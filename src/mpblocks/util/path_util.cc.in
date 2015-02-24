@@ -1,0 +1,30 @@
+#include <mpblocks/util/path_util.h>
+#include <cstdlib>
+
+namespace  mpblocks {
+namespace path_util {
+
+std::string GetSourcePath() {
+  return "@PROJECT_SOURCE_DIR@";
+}
+
+std::string GetBuildPath() {
+  return "@PROJECT_BINARY_DIR@";
+}
+
+std::string GetResourcePath() {
+  return "@CMAKE_INSTALL_PREFIX/share/mpblocks@";
+}
+
+std::string GetPreferencesPath() {
+  static const char* home_dir = getenv("HOME");
+  if(home_dir) {
+    return std::string(home_dir) + "/.mpblocks";
+  } else {
+    return "/tmp/mpblocks";
+  }
+}
+
+
+} // namespace path_util
+} // namespace mpblocks

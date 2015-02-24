@@ -1,0 +1,12 @@
+if(CUDA_FOUND)
+  include_directories(${CUDA_TOOLKIT_INCLUDE})
+  cuda_add_library(mpblocks_cuda STATIC
+                   wrap.cc)
+
+  install(TARGETS mpblocks_cuda
+          RUNTIME DESTINATION bin
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib)
+else()
+  message( WARNING "can't build mpblocks_cuda, missing ${MISSING}" )
+endif()

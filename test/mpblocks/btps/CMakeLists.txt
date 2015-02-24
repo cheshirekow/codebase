@@ -1,0 +1,7 @@
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIR})
+  cc_test(btps_random_weights_test random_weights.cc)
+  target_link_libraries(btps_random_weights_test mpblocks_util rt)
+else()
+  message(WARNING "wont build btps test")
+endif()

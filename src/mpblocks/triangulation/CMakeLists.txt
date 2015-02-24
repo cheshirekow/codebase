@@ -1,0 +1,4 @@
+add_subdirectory(demo_uniform_simplex)
+add_subdirectory(demo_uniform_delaunay)
+add_subdirectory(exp_dt_dimension)
+add_subdirectory(exp_regularity)

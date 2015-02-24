@@ -1,0 +1,10 @@
+macro(nix_test TEST_NAME)
+  cc_test(${TEST_NAME} ${TEST_NAME}.cc ${ARGN})
+  target_link_libraries(${TEST_NAME} cpp_nix_static)
+endmacro()
+
+nix_test(clock_test clock_test.cc)
+nix_test(epoll_test epoll_test.cc)
+nix_test(notify_pipe_test notify_pipe_test.cc)
+nix_test(timespec_test timespec_test.cc)
+nix_test(timeval_test timeval_test.cc)

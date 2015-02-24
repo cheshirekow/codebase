@@ -1,0 +1,1 @@
+add_executable(mpblocks_linalg_demo demo.cc)

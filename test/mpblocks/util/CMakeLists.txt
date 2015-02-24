@@ -1,0 +1,2 @@
+cc_test(mpblocks_binary_literal_test binary_literal_test.cc)
+cc_test(mpblocks_set_operations_test set_operations_test.cc)

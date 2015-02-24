@@ -1,0 +1,6 @@
+add_subdirectory(cpp_nix)
+add_subdirectory(cpp_pthreads)
+add_subdirectory(kwargs)
+add_subdirectory(mpblocks)
+add_subdirectory(openbookfs)
+add_subdirectory(tabwm)

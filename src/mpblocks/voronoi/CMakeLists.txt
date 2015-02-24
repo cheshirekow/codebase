@@ -1,0 +1,3 @@
+add_subdirectory(demo)
+add_subdirectory(2d_obstacle_set_creator)
+#add_subdirectory(demo3d)

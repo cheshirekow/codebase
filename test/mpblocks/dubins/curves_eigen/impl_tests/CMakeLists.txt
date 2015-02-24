@@ -1,0 +1,15 @@
+if(eigen3_FOUND)
+  include_directories(${eigen3_INCLUDE_DIRS})
+  cc_test(dubins_solver_LRLa_test solver_LRLa_test.cc)
+  cc_test(dubins_solver_LRLb_test solver_LRLb_test.cc)
+  cc_test(dubins_solver_RLRa_test solver_RLRa_test.cc)
+  cc_test(dubins_solver_RLRb_test solver_RLRb_test.cc)
+  cc_test(dubins_solver_LSL_test solver_LSL_test.cc)
+  cc_test(dubins_solver_LSR_test solver_LSR_test.cc)
+  cc_test(dubins_solver_RSR_test solver_RSR_test.cc)
+  cc_test(dubins_solver_RSL_test solver_RSL_test.cc)
+else()
+  message(WARNING "wont build dubins solver tests")
+endif()
+
+
