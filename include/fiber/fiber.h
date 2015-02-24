@@ -34,24 +34,24 @@ namespace linalg   {
 
 #include <cassert>
 #include <cmath>
-#include <fiber/StreamAssignment.h>
-#include <fiber/RValue.h>
-#include <fiber/LValue.h>
-#include <fiber/Transpose.h>
-#include <fiber/Difference.h>
-#include <fiber/Sum.h>
-#include <fiber/Product.h>
-#include <fiber/Scale.h>
-#include <fiber/View.h>
-#include <fiber/Matrix.h>
-#include <fiber/Normalize.h>
-#include <fiber/Identity.h>
-#include <fiber/CrossMatrix.h>
+#include <fiber/stream_assignment.h>
+#include <fiber/rvalue.h>
+#include <fiber/lvalue.h>
+#include <fiber/transpose.h>
+#include <fiber/difference.h>
+#include <fiber/sum.h>
+#include <fiber/product.h>
+#include <fiber/scale.h>
+#include <fiber/view.h>
+#include <fiber/matrix.h>
+#include <fiber/normalize.h>
+#include <fiber/identity.h>
+#include <fiber/cross_matrix.h>
 
 #include <fiber/rotation_conversions.h>
-#include <fiber/Quaternion.h>
-#include <fiber/AxisAngle.h>
-#include <fiber/EulerAngles.h>
+#include <fiber/quaternion.h>
+#include <fiber/axis_angle.h>
+#include <fiber/euler_angles.h>
 
 #include <fiber/ostream.h>
 

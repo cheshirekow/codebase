@@ -22,8 +22,8 @@
  *  @author Josh Bialkowski (jbialk@mit.edu)
  */
 
-#ifndef FIBER_AXISANGLE_H_
-#define FIBER_AXISANGLE_H_
+#ifndef FIBER_AXIS_ANGLE_H_
+#define FIBER_AXIS_ANGLE_H_
 
 namespace fiber {
 
