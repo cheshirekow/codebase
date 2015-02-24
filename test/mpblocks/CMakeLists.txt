@@ -1,6 +1,5 @@
 add_subdirectory(btps)
 add_subdirectory(dubins)
-add_subdirectory(linalg)
 add_subdirectory(util)
 
 if(eigen3_FOUND)
