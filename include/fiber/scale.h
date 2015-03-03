@@ -34,16 +34,20 @@ class _Scale : public _RValue<Scalar, _Scale<Scalar, Exp> > {
   Exp const& M_;
 
  public:
-  typedef unsigned int Size_t;
+  enum {
+    ROWS_ = Exp::ROWS_,
+    COLS_ = Exp::COLS_,
+    SIZE_ = Exp::SIZE_
+  };
 
   _Scale(Scalar s, Exp const& A) : s_(s), M_(A) {}
 
-  Size_t size() const { return M_.size(); }
-  Size_t rows() const { return M_.rows(); }
-  Size_t cols() const { return M_.cols(); }
+  Size size() const { return M_.size(); }
+  Size rows() const { return M_.rows(); }
+  Size cols() const { return M_.cols(); }
 
-  Scalar operator[](Size_t i) const { return s_ * M_[i]; }
-  Scalar operator()(Size_t i, Size_t j) const { return s_ * M_(i, j); }
+  Scalar operator[](Size i) const { return s_ * M_[i]; }
+  Scalar operator()(Size i, Size j) const { return s_ * M_(i, j); }
 };
 
 template <typename Scalar, class Exp>

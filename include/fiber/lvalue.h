@@ -29,39 +29,37 @@
 namespace fiber {
 
 /// expression template for rvalues
-template <typename Scalar, class Mat>
+template <typename Scalar, class Exp>
 class _LValue {
  public:
-  typedef StreamAssignment<_LValue<Scalar, Mat> > Stream_t;
+  typedef StreamAssignment<_LValue<Scalar, Exp> > StreamAssign;
 
-  typedef unsigned int Size_t;
+  Size size() const { return static_cast<Exp const&>(*this).size(); }
+  Size rows() const { return static_cast<Exp const&>(*this).rows(); }
+  Size cols() const { return static_cast<Exp const&>(*this).cols(); }
 
-  Size_t size() const { return static_cast<Mat const&>(*this).size(); }
-  Size_t rows() const { return static_cast<Mat const&>(*this).rows(); }
-  Size_t cols() const { return static_cast<Mat const&>(*this).cols(); }
+  Scalar& operator[](Size i) { return static_cast<Exp&>(*this)[i]; }
 
-  Scalar& operator[](Size_t i) { return static_cast<Mat&>(*this)[i]; }
-
-  Scalar const& operator[](Size_t i) const {
-    return static_cast<Mat const&>(*this)[i];
+  Scalar const& operator[](Size i) const {
+    return static_cast<Exp const&>(*this)[i];
   }
 
-  Scalar& operator()(Size_t i, Size_t j) {
-    return static_cast<Mat&>(*this)(i, j);
+  Scalar& operator()(Size i, Size j) {
+    return static_cast<Exp&>(*this)(i, j);
   }
 
-  Scalar const& operator()(Size_t i, Size_t j) const {
-    return static_cast<Mat const&>(*this)(i, j);
+  Scalar const& operator()(Size i, Size j) const {
+    return static_cast<Exp const&>(*this)(i, j);
   }
 
   /// returns a stream for assignment
-  Stream_t operator<<(Scalar x) {
-    Stream_t stream(*this);
+  StreamAssign operator<<(Scalar x) {
+    StreamAssign stream(*this);
     return stream << x;
   }
 
   template <class Exp2>
-  _LValue<Scalar, Mat>& operator=(_RValue<Scalar, Exp2> const& B) {
+  _LValue<Scalar, Exp>& operator=(_RValue<Scalar, Exp2> const& B) {
     assert(rows() == B.rows());
     assert(cols() == B.cols());
     for (int i = 0; i < rows(); i++) {
@@ -70,27 +68,13 @@ class _LValue {
       }
     }
     return *this;
-  }
-
-  template <class Exp2>
-  _LValue<Scalar, Mat>& operator=(_LValue<Scalar, Exp2> const& B) {
-    assert(rows() == B.rows());
-    assert(cols() == B.cols());
-    for (int i = 0; i < rows(); i++) {
-      for (int j = 0; j < cols(); j++) {
-        (*this)(i, j) = B(i, j);
-      }
-    }
-    return *this;
-  }
-
-  operator _RValue<Scalar, _LValue<Scalar, Mat> >() {
-    return _RValue<Scalar, _LValue<Scalar, Mat> >(*this);
   }
 };
 
-template <typename Scalar, class Mat>
-_LValue<Scalar, Mat>& LValue(_LValue<Scalar, Mat>& exp) {
+/// Explicitly expose _LValue of an expressions, can be used to help the
+/// compiler disambiguate overloads
+template <typename Scalar, class Exp>
+_LValue<Scalar, Exp>& LValue(_LValue<Scalar, Exp>& exp) {
   return exp;
 }
 

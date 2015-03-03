@@ -35,23 +35,28 @@ class _Difference : public _RValue<Scalar, _Difference<Scalar, Exp1, Exp2> > {
   Exp2 const& B_;
 
  public:
-  typedef unsigned int Size_t;
+  enum {
+    ROWS_ = Exp1::ROWS_,
+    COLS_ = Exp1::COLS_,
+    SIZE_ = Exp1::SIZE_
+  };
 
   _Difference(Exp1 const& A, Exp2 const& B) : A_(A), B_(B) {
-    assert(A.size() == B.size());
-    assert(A.rows() == B.rows());
-    assert(A.cols() == B.cols());
+    static_assert(Exp1::ROWS_ == Exp2::ROWS_
+                  && Exp1::COLS_ == Exp2::COLS_
+                  && Exp1::SIZE_ == Exp2::SIZE_,
+                  "Matrix sizes must agree in difference");
   }
 
-  Size_t size() const { return A_.size(); }
-  Size_t rows() const { return A_.rows(); }
-  Size_t cols() const { return A_.cols(); }
+  Size size() const { return A_.size(); }
+  Size rows() const { return A_.rows(); }
+  Size cols() const { return A_.cols(); }
 
-  Scalar operator[](Size_t i) const {
+  Scalar operator[](Size i) const {
     return (A_[i] - B_[i]);
   }
 
-  Scalar operator()(Size_t i, Size_t j) const {
+  Scalar operator()(Size i, Size j) const {
     return (A_(i, j) - B_(i, j));
   }
 };

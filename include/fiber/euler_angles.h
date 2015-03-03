@@ -50,11 +50,9 @@ class Angles : public Matrix<Scalar, 3, 1> {
   }
 
   Angles(const Quaternion<Scalar>& q) {
-#if FIBER_USE_STATIC_ASSERT
     static_assert(
         _AnglesFromQuaternion<Scalar, Axis1, Axis2, Axis3>::HAS_SPECIALIZATION,
         "There is no conversion from quaternions to this euler angle set");
-#endif
     _AnglesFromQuaternion<Scalar, Axis1, Axis2, Axis3>::Build(q, this);
   }
 

@@ -27,9 +27,13 @@
 
 namespace fiber {
 
+/// Encodes a rotation in 3-dimensions by an return _RView<Scalar, Exp, rows, Exp::COLS_>(static_cast<Exp const&>(A), i, 0);axis of rotation and an angle
+/// magnitude of rotation about that axis.
 template <typename Scalar>
 class AxisAngle {
  public:
+  typedef Matrix<Scalar, 3, 1> AxisType;
+
   AxisAngle() : axis_(1, 0, 0), angle_(0) {}
 
   template <typename Derived>
@@ -40,12 +44,14 @@ class AxisAngle {
     QuaternionToAxisAngle(q, &axis_, &angle_);
   }
 
-  const Matrix<Scalar, 3, 1>& GetAxis() const {
+  const AxisType& GetAxis() const {
     return axis_;
   }
 
   template <class Exp>
   void SetAxis(const _RValue<Scalar, Exp>& axis) {
+    static_assert(Exp::SIZE_ == 3,
+                  "Cannot set an axis from a vector with size other than 3");
     LValue(axis_) = axis;
   }
 
@@ -58,54 +64,51 @@ class AxisAngle {
   }
 
  private:
-  Matrix<Scalar, 3, 1> axis_;
+  AxisType axis_;
   Scalar angle_;
 };
 
+/// A 3x1 normal vector with one unity element
 template <typename Scalar, int Axis>
 class CoordinateAxis
-    : public fiber::_RValue<Scalar, CoordinateAxis<Scalar, Axis> > {
+    : public _RValue<Scalar, CoordinateAxis<Scalar, Axis> > {
  public:
-  typedef unsigned int Size_t;
+  enum {
+    SIZE_ = 3,
+    ROWS_ = 3,
+    COLS_ = 1
+  };
 
-  Size_t size() const { return 3; }
-  Size_t rows() const { return 3; }
-  Size_t cols() const { return 1; }
+  Size size() const { return 3; }
+  Size rows() const { return 3; }
+  Size cols() const { return 1; }
 
-  Scalar operator[](Size_t i) const {
-#ifdef FIBER_USE_STATIC_ASSERT
+  CoordinateAxis() {
     static_assert(0 <= Axis && Axis < 3,
                   "A primitive axis must have axis 0, 1, or 2");
-#endif
-    if (i == Axis) {
-      return Scalar(1.0);
-    } else {
-      return Scalar(0.0);
-    }
   }
 
-  Scalar operator()(Size_t i, Size_t j) const {
-#ifdef FIBER_USE_STATIC_ASSERT
-    static_assert(0 <= Axis && Axis < 3,
-                  "A primitive axis must have axis 0, 1, or 2");
-#endif
-    if (j != 0) {
-      return 0;
-    }
-    if (i == Axis) {
-      return Scalar(1.0);
-    } else {
-      return 0.0;
-    }
+  Scalar operator[](Index i) const {
+    return (i == Axis) ? Scalar(1.0) : Scalar(0.0);
+  }
+
+  Scalar operator()(Index i, Index j) const {
+    assert(j == 0);
+    return (i == Axis) ? Scalar(1.0) : Scalar(0.0);
   }
 };
 
+/// An axis angle rotation about a coordinate axis
 template <typename Scalar, int Axis>
 class CoordinateAxisAngle {
  public:
-  CoordinateAxisAngle() : angle_(0) {}
+  CoordinateAxisAngle() :
+    angle_(0) {
+  }
 
-  CoordinateAxisAngle(Scalar angle) : angle_(angle) {}
+  CoordinateAxisAngle(Scalar angle) :
+    angle_(angle) {
+  }
 
   Quaternion<Scalar> ToQuaternion() const {
     Quaternion<Scalar> q;

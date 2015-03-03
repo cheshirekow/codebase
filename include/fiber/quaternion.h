@@ -30,16 +30,19 @@ namespace fiber {
 
 template <typename Scalar>
 class Quaternion : public fiber::_RValue<Scalar, Quaternion<Scalar> > {
- public:
-  typedef unsigned int Size_t;
-
  private:
   Scalar data_[4];
 
  public:
-  Size_t size() const { return 4; }
-  Size_t rows() const { return 4; }
-  Size_t cols() const { return 1; }
+  enum {
+    ROWS_ = 4,
+    COLS_ = 1,
+    SIZE_ = 1
+  };
+
+  Size size() const { return 4; }
+  Size rows() const { return 4; }
+  Size cols() const { return 1; }
 
   Scalar& w() { return data_[0]; }
   Scalar w() const { return data_[0]; }
@@ -53,17 +56,17 @@ class Quaternion : public fiber::_RValue<Scalar, Quaternion<Scalar> > {
   Scalar& z() { return data_[3]; }
   Scalar z() const { return data_[3]; }
 
-  Scalar& operator[](Size_t i) {
+  Scalar& operator[](Size i) {
     assert(0 <= i && i < 4);
     return data_[i];
   }
 
-  Scalar operator[](Size_t i) const {
+  Scalar operator[](Size i) const {
     assert(0 <= i && i < 4);
     return data_[i];
   }
 
-  Scalar operator()(Size_t i, Size_t j) const {
+  Scalar operator()(Size i, Size j) const {
     assert(0 <= i && i < 4);
     assert(j == 0);
     return data_[i];
@@ -139,7 +142,7 @@ class Quaternion : public fiber::_RValue<Scalar, Quaternion<Scalar> > {
   Matrix<Scalar, 3, 1> Rotate(const fiber::_RValue<Scalar, Exp>& exp) const {
     assert(exp.size() == 3);
     Quaternion<Scalar> projected(0, exp[0], exp[1], exp[2]);
-    return fiber::ViewRows((*this) * projected * Conjugate(*this), 1, 3);
+    return fiber::GetRows<3>((*this) * projected * Conjugate(*this), 1);
   }
 };
 

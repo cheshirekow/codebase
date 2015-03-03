@@ -72,6 +72,16 @@ macro(cc_test TEST_NAME)
 endmacro()
 
 add_subdirectory(third_party)
+
+# Configuration options
+set(FIBER_USE_VARIADIC_TEMPLATES TRUE CACHE BOOL
+    "If true, fiber will use variadic templates for additional functionality")
+
+if(FIBER_USE_VARIADIC_TEMPLATES)
+  add_definitions(-DFIBER_USE_STATIC_ASSERTS)
+endif()
+
+
 add_subdirectory(src)
 add_subdirectory(test)
 

@@ -34,16 +34,20 @@ class _Transpose : public _RValue<Scalar, _Transpose<Scalar, Exp> > {
   Exp const& m_A;
 
  public:
-  typedef unsigned int Size_t;
+  enum {
+    ROWS_ = Exp::COLS_,
+    COLS_ = Exp::ROWS_,
+    SIZE_ = Exp::SIZE_
+  };
 
   _Transpose(Exp const& A) : m_A(A) {}
 
-  Size_t size() const { return m_A.size(); }
-  Size_t rows() const { return m_A.cols(); }
-  Size_t cols() const { return m_A.rows(); }
+  Size size() const { return m_A.size(); }
+  Size rows() const { return m_A.cols(); }
+  Size cols() const { return m_A.rows(); }
 
-  Scalar operator[](Size_t i) const { return m_A[i]; }
-  Scalar operator()(Size_t i, Size_t j) const { return m_A(j, i); }
+  Scalar operator[](Size i) const { return m_A[i]; }
+  Scalar operator()(Size i, Size j) const { return m_A(j, i); }
 };
 
 template <typename Scalar, class Exp>

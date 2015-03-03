@@ -197,7 +197,7 @@ void RotationMatrixToQuaternion(const fiber::_RValue<Scalar, Exp>& R,
     (*q)[0] = Scalar(0.5) * (r23 - r32) / k;
     (*q)[1] = -Scalar(0.5) * k;
     (*q)[2] = -Scalar(0.5) * (r12 + r21) / k;
-    (*q)[3] = -Scalar(0.5) * (r32 + r32) / k;
+    (*q)[3] = -Scalar(0.5) * (r31 + r13) / k;
   } else if (r22 > r33 && r11 < r22 && r11 < -r33) {
     const Scalar k = std::sqrt(1 - r11 + r22 - r33);
     (*q)[0] = Scalar(0.5) * (r31 - r13) / k;

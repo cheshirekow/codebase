@@ -29,29 +29,26 @@
 namespace fiber {
 
 /// expression template for rvalues
-template <typename Scalar, class Mat>
+template <typename Scalar, class Exp>
 class _RValue {
  public:
-  typedef unsigned int Size_t;
+  Size size() const { return static_cast<Exp const&>(*this).size(); }
+  Size rows() const { return static_cast<Exp const&>(*this).rows(); }
+  Size cols() const { return static_cast<Exp const&>(*this).cols(); }
 
-  Size_t size() const { return static_cast<Mat const&>(*this).size(); }
-  Size_t rows() const { return static_cast<Mat const&>(*this).rows(); }
-  Size_t cols() const { return static_cast<Mat const&>(*this).cols(); }
-
-  Scalar operator[](Size_t i) const {
-    return static_cast<Mat const&>(*this)[i];
+  Scalar operator[](Size i) const {
+    return static_cast<Exp const&>(*this)[i];
   }
 
-  Scalar operator()(Size_t i, Size_t j) const {
-    return static_cast<Mat const&>(*this)(i, j);
+  Scalar operator()(Size i, Size j) const {
+    return static_cast<Exp const&>(*this)(i, j);
   }
-
-  operator Mat&() { return static_cast<Mat&>(*this); }
-  operator Mat const&() { return static_cast<Mat const&>(*this); }
 };
 
-template <typename Scalar, class Mat>
-const _RValue<Scalar, Mat>& RValue(const _RValue<Scalar, Mat>& exp) {
+/// Explicitly expose _RValue of an expressions, can be used to help the
+/// compiler disambiguate overloads
+template <typename Scalar, class Exp>
+const _RValue<Scalar, Exp>& RValue(const _RValue<Scalar, Exp>& exp) {
   return exp;
 }
 

@@ -25,11 +25,12 @@
 #ifndef MPBLOCKS_LINALG_H_
 #define MPBLOCKS_LINALG_H_
 
-namespace fiber {
 /// simple template expression library for linear algebra
-namespace linalg   {
+namespace fiber {
 
-} // namespace linalg
+typedef int Index;
+typedef unsigned int Size;
+
 } // namespace fiber
 
 #include <cassert>

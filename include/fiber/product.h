@@ -25,53 +25,33 @@
 #ifndef FIBER_PRODUCT_H_
 #define FIBER_PRODUCT_H_
 
+#include <fiber/matrix.h>
 
 namespace fiber   {
 
-/// expression template for product of two matrix expressions
-template <typename Scalar, class Exp1, class Exp2>
-class Product : public _RValue<Scalar, Product<Scalar, Exp1, Exp2> > {
-  Exp1 const& A_;
-  Exp2 const& B_;
+/// Matrix multiplication
+template<typename Scalar, class Exp1, class Exp2>
+inline Matrix<Scalar, Exp1::ROWS_, Exp2::COLS_> operator*(
+    _RValue<Scalar, Exp1> const& A, _RValue<Scalar, Exp2> const& B) {
+  static_assert(Exp1::COLS_ == Exp2::ROWS_,
+               "Inner dimensions of matrix multiplication must agree");
 
- public:
-  typedef unsigned int Size_t;
-
-  Product(Exp1 const& A, Exp2 const& B) : A_(A), B_(B) {}
-
-  /// return the size for a vector
-  Size_t size() const { return (A_.rows() * B_.cols()); }
-
-  /// return the rows of a matrix expression
-  Size_t rows() const { return A_.rows(); }
-
-  /// return the columns of a matrix expression
-  Size_t cols() const { return B_.cols(); }
-
-  /// return the evaluated i'th element of a vector expression
-  Scalar operator[](Size_t i) const { return (*this)(i / cols(), i % cols()); }
-
-  /// return the evaluated (i,j)'th element of a matrix expression
-  Scalar operator()(Size_t i, Size_t j) const {
-    Scalar r(0);
-    for (int k = 0; k < A_.cols(); k++) {
-      r += A_(i, k) * B_(k, j);
+  Matrix<Scalar, Exp1::ROWS_, Exp2::COLS_> M;
+  for(int i=0; i < Exp1::ROWS_; i++) {
+    for(int j=0; j < Exp2::COLS_; j++) {
+      M(i,j) = Dot(GetRow(A, i), GetColumn(B, j));
     }
-    return r;
   }
-};
-
-template <typename Scalar, class Exp1, class Exp2>
-inline Product<Scalar, Exp1, Exp2> operator*(_RValue<Scalar, Exp1> const& A,
-                                             _RValue<Scalar, Exp2> const& B) {
-  typedef Product<Scalar, Exp1, Exp2> Product_t;
-  return Product_t(static_cast<Exp1 const&>(A), static_cast<Exp2 const&>(B));
+  return M;
 }
 
+/// Dot product of two vectors
 template <typename Scalar, class Exp1, class Exp2>
 inline Scalar Dot(_RValue<Scalar, Exp1> const& A,
                   _RValue<Scalar, Exp2> const& B) {
-  assert(A.size() == B.size());
+  static_assert(Exp1::SIZE_ == Exp2::SIZE_,
+                "Cannot compute a dot product of vectors that are not the"
+                "same size");
   Scalar r(0);
   for (int i = 0; i < A.size(); i++) {
     r += A[i] * B[i];
@@ -80,6 +60,5 @@ inline Scalar Dot(_RValue<Scalar, Exp1> const& A,
 }
 
 }  // namespace fiber
-
 
 #endif  // FIBER_PRODUCT_H_

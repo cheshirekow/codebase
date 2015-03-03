@@ -27,16 +27,23 @@
 
 namespace fiber {
 
-template <typename Scalar, int Size>
-class Eye :  public _RValue<Scalar, Eye<Scalar, Size> > {
+/// A `N x N` matrix expression for the identity matrix
+template <typename Scalar, int N>
+class Eye :  public _RValue<Scalar, Eye<Scalar, N> > {
  public:
-  int size() const { return Size*Size; }
-  int rows() const { return Size; }
-  int cols() const { return Size; }
+  enum {
+    ROWS_ = N,
+    COLS_ = N,
+    SIZE_ = N * N
+  };
+
+  Size size() const { return N*N; }
+  Size rows() const { return N; }
+  Size cols() const { return N; }
 
   /// vector accessor
-  Scalar operator[](int i) const {
-    if(i % Size == i/Size) {
+  Scalar operator[](Index i) const {
+    if(i % N == i/N) {
       return Scalar(1.0);
     } else {
       return Scalar(0.0);
@@ -45,12 +52,8 @@ class Eye :  public _RValue<Scalar, Eye<Scalar, Size> > {
 
   /// matrix accessor
   Scalar operator()(int i, int j) const {
-    assert(i < Size && j < Size);
-    if(i == j) {
-      return Scalar(1.0);
-    } else {
-      return Scalar(0.0);
-    }
+    assert(i < N && j < N);
+    return (i == j) ? Scalar(1.0) : Scalar(0.0);
   }
 };
 

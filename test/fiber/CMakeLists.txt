@@ -1,3 +1,7 @@
+# TODO(bialkowski): Change fiber to use static const instead of enum so we can
+# allow this warning
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-enum-compare")
+
 if(eigen3_FOUND)
   include_directories(${eigen3_INCLUDE_DIRS})
   cc_test(fiber_axis_angle_test axis_angle_test.cc)

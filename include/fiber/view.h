@@ -29,149 +29,163 @@
 namespace fiber   {
 
 /// expression template for subset of a matrix expression
-template <typename Scalar, class Exp>
-class _RView : public _RValue<Scalar, _RView<Scalar, Exp> > {
- public:
-  typedef unsigned int Size_t;
-
+template<typename Scalar, class Exp, Size rows_, Size cols_>
+class _RView : public _RValue<Scalar, _RView<Scalar, Exp, rows_, cols_> > {
  protected:
-  Exp const& A_;
-  Size_t i_;
-  Size_t j_;
-  Size_t rows_;
-  Size_t cols_;
+  Exp const& A_;   ///< underlying matrix expression
+  Index i_;
+  Index j_;
 
  public:
-  _RView(Exp const& A, Size_t i, Size_t j, Size_t rows_in, Size_t cols_in)
-      : A_(A), i_(i), j_(j), rows_(rows_in), cols_(cols_in) {}
+  enum {
+    ROWS_ = rows_,
+    COLS_ = cols_,
+    SIZE_ = rows_ * cols_
+  };
 
-  Size_t size() const { return rows_ * cols_; }
-  Size_t rows() const { return rows_; }
-  Size_t cols() const { return cols_; }
+  _RView(Exp const& A, int i, int j)
+      : A_(A), i_(i), j_(j) {
+    assert(i + ROWS_ <= Exp::ROWS_
+          && j + COLS_ <= Exp::COLS_);
+  }
 
-  Scalar operator[](Size_t k) const {
-    Size_t i = k / cols_;
-    Size_t j = k - i * cols_;
+  Size size() const { return rows_ * cols_; }
+  Size rows() const { return rows_; }
+  Size cols() const { return cols_; }
+
+  Scalar operator[](Index k) const {
+    assert(k < SIZE_);
+    Index i = k / cols_;
+    Index j = k - i * cols_;
     return (*this)(i, j);
   }
 
-  Scalar operator()(Size_t i, Size_t j) const {
+  Scalar operator()(Index i, Index j) const {
+    assert(i < rows_ && j < cols_);
     return A_(i_ + i, j_ + j);
   }
 };
 
-template <typename Scalar, class Exp>
-inline _RView<Scalar, Exp> View(_RValue<Scalar, Exp> const& A, int i, int j,
-                                int rows, int cols) {
-  return _RView<Scalar, Exp>(static_cast<Exp const&>(A), i, j, rows, cols);
+template<int rows, int cols, typename Scalar, class Exp>
+inline _RView<Scalar, Exp, rows, cols> View(_RValue<Scalar, Exp> const& A,
+    Index i, Index j) {
+  return _RView<Scalar, Exp, rows, cols>(static_cast<Exp const&>(A), i, j);
 }
 
-template <typename Scalar, class Exp>
-inline _RView<Scalar, Exp> ViewRow(_RValue<Scalar, Exp> const& A, int i) {
-  return _RView<Scalar, Exp>(static_cast<Exp const&>(A), i, 0, 1, A.cols());
+template<typename Scalar, class Exp>
+inline _RView<Scalar, Exp, 1, Exp::COLS_> GetRow(_RValue<Scalar, Exp> const& A,
+    int i) {
+  return _RView<Scalar, Exp, 1, Exp::COLS_>(static_cast<Exp const&>(A), i, 0);
 }
 
-template <typename Scalar, class Exp>
-inline _RView<Scalar, Exp> ViewRows(_RValue<Scalar, Exp> const& A, int i,
-                                    int nrows) {
-  return _RView<Scalar, Exp>(static_cast<Exp const&>(A), i, 0, nrows, A.cols());
+template<int rows, typename Scalar, class Exp>
+inline _RView<Scalar, Exp, rows, Exp::COLS_> GetRows(
+    _RValue<Scalar, Exp> const& A, int i) {
+  return _RView<Scalar, Exp, rows, Exp::COLS_>(static_cast<Exp const&>(A),
+                                               i, 0);
 }
 
-template <typename Scalar, class Exp>
-inline _RView<Scalar, Exp> ViewColumn(_RValue<Scalar, Exp> const& A, int j) {
-  return _RView<Scalar, Exp>(static_cast<Exp const&>(A), 0, j, A.rows(), 1);
+template<typename Scalar, class Exp>
+inline _RView<Scalar, Exp, Exp::ROWS_, 1> GetColumn(
+    _RValue<Scalar, Exp> const& A, int j) {
+  return _RView<Scalar, Exp, Exp::ROWS_, 1>(static_cast<Exp const&>(A), 0, j);
 }
 
-template <typename Scalar, class Exp>
-inline _RView<Scalar, Exp> ViewColumns(_RValue<Scalar, Exp> const& A, int j,
-                                       int ncols) {
-  return _RView<Scalar, Exp>(static_cast<Exp const&>(A), 0, j, A.rows(), ncols);
+template< int cols, typename Scalar, class Exp>
+inline _RView<Scalar, Exp, Exp::ROWS_, cols> GetColumns(
+    _RValue<Scalar, Exp> const& A, int j) {
+  return _RView<Scalar, Exp, Exp::ROWS_, cols>(static_cast<Exp const&>(A),
+                                               0, j);
 }
 
 /// expression template for subset of a matrix expression
-template <typename Scalar, class Exp>
-class LView : public _LValue<Scalar, LView<Scalar, Exp> >,
-              public _RValue<Scalar, LView<Scalar, Exp> > {
- public:
-  typedef unsigned int Size_t;
+template <typename Scalar, class Exp, int rows_, int cols_>
+class LView : public _LValue<Scalar, LView<Scalar, Exp, rows_, cols_> > {
 
  protected:
   Exp& A_;
-  Size_t i_;
-  Size_t j_;
-  Size_t rows_;
-  Size_t cols_;
+  Index i_;
+  Index j_;
 
  public:
-  LView(Exp& A, Size_t i, Size_t j, Size_t rows_in, Size_t cols_in)
-      : A_(A), i_(i), j_(j), rows_(rows_in), cols_(cols_in) {}
+  typedef LView<Scalar, Exp, rows_, cols_> ThisType;
+  typedef _LValue<Scalar, ThisType> LValueType;
 
-  Size_t size() const { return rows_ * cols_; }
-  Size_t rows() const { return rows_; }
-  Size_t cols() const { return cols_; }
+  enum {
+    ROWS_ = rows_,
+    COLS_ = cols_,
+    SIZE_ = rows_ * cols_
+  };
+
+  LView(Exp& A, Index i, Index j)
+      : A_(A), i_(i), j_(j) {}
+
+  Size size() const { return rows_ * cols_; }
+  Size rows() const { return rows_; }
+  Size cols() const { return cols_; }
 
   /// return the evaluated i'th element of a vector expression
-  Scalar const& operator[](Size_t k) const {
-    Size_t i = k / cols_;
-    Size_t j = k - i * cols_;
+  Scalar const& operator[](Index k) const {
+    assert(k < SIZE_);
+    Index i = k / cols_;
+    Index j = k - i * cols_;
     return (*this)(i, j);
   }
 
   /// return the evaluated i'th element of a vector expression
-  Scalar& operator[](Size_t k) {
-    Size_t i = k / cols_;
-    Size_t j = k - i * cols_;
+  Scalar& operator[](Index k) {
+    assert(k < SIZE_);
+    Index i = k / cols_;
+    Index j = k - i * cols_;
     return (*this)(i, j);
   }
 
   /// return the evaluated (j,i)'th element of a matrix expression
-  Scalar const& operator()(Size_t i, Size_t j) const {
+  Scalar const& operator()(Index i, Index j) const {
     return A_(i_ + i, j_ + j);
   }
 
   /// return the evaluated (j,i)'th element of a matrix expression
-  Scalar& operator()(Size_t i, Size_t j) { return A_(i_ + i, j_ + j); }
-
-  template <class Exp2>
-  LView<Scalar, Exp>& operator=(_RValue<Scalar, Exp2> const& B) {
-    _LValue<Scalar, LView<Scalar, Exp> >::operator=(B);
-    return *this;
+  Scalar& operator()(Index i, Index j) {
+    return A_(i_ + i, j_ + j);
   }
 
-  template <class Exp2>
-  LView<Scalar, Exp>& operator=(_LValue<Scalar, Exp2> const& B) {
-    _LValue<Scalar, LView<Scalar, Exp> >::operator=(B);
+  template <class OtherExp>
+  ThisType& operator=(const _RValue<Scalar, OtherExp>& other) {
+    LValueType::operator=(other);
     return *this;
   }
 };
 
-template <typename Scalar, class Exp>
-inline LView<Scalar, Exp> Block(_LValue<Scalar, Exp>& A, int i, int j, int rows,
-                                int cols) {
-  return LView<Scalar, Exp>(static_cast<Exp&>(A), i, j, rows, cols);
+template<int rows, int cols, typename Scalar, class Exp>
+inline LView<Scalar, Exp, rows, cols> Block(_LValue<Scalar, Exp>& A, int i,
+    int j) {
+  return LView<Scalar, Exp, rows, cols>(static_cast<Exp&>(A), i, j);
 }
 
-template <typename Scalar, class Exp>
-inline LView<Scalar, Exp> Row(_LValue<Scalar, Exp>& A, int i) {
-  return LView<Scalar, Exp>(static_cast<Exp&>(A), i, 0, 1, A.cols());
+template<typename Scalar, class Exp>
+inline LView<Scalar, Exp, 1, Exp::COLS_> Row(_LValue<Scalar, Exp>& A, int i) {
+  return LView<Scalar, Exp, 1, Exp::COLS_>(static_cast<Exp&>(A), i, 0);
 }
 
-template <typename Scalar, class Exp>
-inline LView<Scalar, Exp> Rows(_LValue<Scalar, Exp>& A, int i, int nrows) {
-  return LView<Scalar, Exp>(static_cast<Exp&>(A), i, 0, nrows, A.cols());
+template<int rows, typename Scalar, class Exp>
+inline LView<Scalar, Exp, rows, Exp::COLS_> Rows(_LValue<Scalar, Exp>& A,
+    int i) {
+  return LView<Scalar, Exp, rows, Exp::COLS_>(static_cast<Exp&>(A), i, 0);
 }
 
-template <typename Scalar, class Exp>
-inline LView<Scalar, Exp> Column(_LValue<Scalar, Exp>& A, int j) {
-  return LView<Scalar, Exp>(static_cast<Exp&>(A), 0, j, A.rows(), 1);
+template<typename Scalar, class Exp>
+inline LView<Scalar, Exp, Exp::ROWS_, 1> Column(_LValue<Scalar, Exp>& A,
+    int j) {
+  return LView<Scalar, Exp, Exp::ROWS_, 1>(static_cast<Exp&>(A), 0, j);
 }
 
-template <typename Scalar, class Exp>
-inline LView<Scalar, Exp> Columns(_LValue<Scalar, Exp>& A, int j, int ncols) {
-  return LView<Scalar, Exp>(static_cast<Exp&>(A), 0, j, A.rows(), ncols);
+template<int cols, typename Scalar, class Exp>
+inline LView<Scalar, Exp, Exp::ROWS_, cols> Columns(_LValue<Scalar, Exp>& A,
+    int j) {
+  return LView<Scalar, Exp, Exp::ROWS_, cols>(static_cast<Exp&>(A), 0, j);
 }
 
 }  // namespace fiber
-
 
 #endif  // FIBER_VIEW_H_

@@ -31,20 +31,30 @@ namespace fiber {
 template <typename Scalar, int Rows, int Cols>
 class Matrix : public _LValue<Scalar, Matrix<Scalar, Rows, Cols> >,
                public _RValue<Scalar, Matrix<Scalar, Rows, Cols> > {
- public:
-  typedef Matrix<Scalar, Rows, Cols> Matrix_t;
-  typedef _LValue<Scalar, Matrix_t> LValue_t;
 
  protected:
   Scalar data_[Rows * Cols];
 
  public:
-  int size() const { return Rows * Cols; }
-  int rows() const { return Rows; }
-  int cols() const { return Cols; }
+  enum {
+    ROWS_ = Rows,
+    COLS_ = Cols,
+    SIZE_ = Rows * Cols
+  };
 
-  Scalar& operator[](int i) { return data_[i]; }
-  Scalar const& operator[](int i) const { return data_[i]; }
+  Size size() const { return Rows * Cols; }
+  Size rows() const { return Rows; }
+  Size cols() const { return Cols; }
+
+  Scalar& operator[](Index i) {
+    assert(i < SIZE_);
+    return data_[i];
+  }
+
+  Scalar const& operator[](Index i) const {
+    assert(i < SIZE_);
+    return data_[i];
+  }
 
   Scalar& operator()(int i, int j) {
     assert(i < Rows && j < Cols);
@@ -62,27 +72,23 @@ class Matrix : public _LValue<Scalar, Matrix<Scalar, Rows, Cols> >,
   /// Construct from any MatrixExpression:
   template <typename Exp>
   Matrix(const _RValue<Scalar, Exp>& exp) {
-    assert(exp.rows() == rows());
-    assert(exp.cols() == cols());
+    static_assert(Exp::ROWS_ == ROWS_ && Exp::COLS_ == COLS_,
+                  "Cannot construct a matrix from a matrix of a differnt size");
 
-    for (int i = 0; i < rows(); i++) {
-      for (int j = 0; j < cols(); j++) {
+    for (int i = 0; i < ROWS_; i++) {
+      for (int j = 0; j < COLS_; j++) {
         (*this)(i, j) = exp(i, j);
       }
     }
   }
 
-#ifdef USE_VARIADIC_TEMPLATES
+#ifdef FIBER_USE_VARIADIC_TEMPLATES
   template <int Index>
   void BulkAssign() {}
 
-  template <int Index, typename... Tail>
+  template <int Index, typename... Tail>2
   void BulkAssign(Scalar head, Tail... tail) {
-#ifdef FIBER_USE_STATIC_ASSERT
     static_assert(Index < Rows * Cols, "Too many inputs to BulkAssign!");
-#else
-    assert(Index < Rows * Cols);
-#endif
     (*this)[Index] = head;
     BulkAssign<Index + 1>(tail...);
   }
@@ -97,14 +103,8 @@ class Matrix : public _LValue<Scalar, Matrix<Scalar, Rows, Cols> >,
 
   /// Fixed size construction
   Matrix(Scalar x0, Scalar x1, Scalar x2, Scalar x3) {
-#ifdef FIBER_USE_STATIC_ASSERT
-    static_assert((Rows == 4 && Cols == 1) || (Rows == 1 && Cols == 4) ||
-                  (Rows == 2 && Cols == 2),
+    static_assert(SIZE_ == 4,
                   "This constructor is only for size 4 matrices");
-#else
-    assert((Rows == 4 && Cols == 1) || (Rows == 1 && Cols == 4) ||
-           (Rows == 2 && Cols == 2));
-#endif
     data_[0] = x0;
     data_[1] = x1;
     data_[2] = x2;
@@ -113,12 +113,8 @@ class Matrix : public _LValue<Scalar, Matrix<Scalar, Rows, Cols> >,
 
   /// Fixed size construction
   Matrix(Scalar x0, Scalar x1, Scalar x2) {
-#ifdef FIBER_USE_STATIC_ASSERT
-    static_assert((Rows == 3 && Cols == 1) || (Rows == 1 && Cols == 3),
+    static_assert(SIZE_ == 3,
                   "This constructor is only for size 3 matrices");
-#else
-    assert((Rows == 3 && Cols == 1) || (Rows == 1 && Cols == 3));
-#endif
     data_[0] = x0;
     data_[1] = x1;
     data_[2] = x2;
@@ -126,19 +122,17 @@ class Matrix : public _LValue<Scalar, Matrix<Scalar, Rows, Cols> >,
 
   /// Fixed size construction
   Matrix(Scalar x0, Scalar x1) {
-#ifdef FIBER_USE_STATIC_ASSERT
-    static_assert((Rows == 2 && Cols == 1) || (Rows == 1 && Cols == 2),
+    static_assert(SIZE_ == 2,
                   "This constructor is only for size 2 matrices");
-#else
-    assert((Rows == 2 && Cols == 1) || (Rows == 1 && Cols == 2));
-#endif
     data_[0] = x0;
     data_[1] = x1;
   }
 #endif  // USE_VARIADIC_TEMPLATES
 
   Matrix(Scalar a) {
-    (*this)(0, 0) = a;
+    static_assert(SIZE_ == 1,
+                  "This constructor is only for size 1 matrices");
+    data_[0] = a;
   }
 
 };
