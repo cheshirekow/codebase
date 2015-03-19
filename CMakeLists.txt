@@ -13,6 +13,8 @@ set(VERSION_STRING "${${CMAKE_PROJECT_NAME}_VERSION_MAJOR}")
 set(VERSION_STRING "${VERSION_STRING}.${${CMAKE_PROJECT_NAME}_VERSION_MINOR}")
 set(VERSION_STRING "${VERSION_STRING}.${${CMAKE_PROJECT_NAME}_VERSION_BUGFIX}")
 
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/Modules")
+
 include("${CMAKE_SOURCE_DIR}/cmake/Modules/FindAll.cmake")
 
 find_all(cheshirekow
@@ -39,18 +41,12 @@ find_all(cheshirekow
          PKG yaml-cpp
          PACKAGE Boost COMPONENTS filesystem system random
          PACKAGE CUDA
+         PACKAGE FastCGI
+         PACKAGE ProtobufCompiler
+         PACKAGE Soci COMPONENTS sqlite3
          PACKAGE Threads)
 
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-
-# Excute custom find scripts
-# Note(bialkowski): Ideally, we would just add our cmake/Modules directory
-# to the CMAKE_MODULE_PATH but this fails if CMAKE_MODULE_PATH is provided
-# on the command line. Thus, the only reliable way to get these particular
-# scripts executed is to do so ourselves.  
-include("${CMAKE_SOURCE_DIR}/cmake/Modules/FindProtobufCompiler.cmake")
-set(Soci_FIND_COMPONENTS sqlite3)
-include("${CMAKE_SOURCE_DIR}/cmake/Modules/FindSoci.cmake")
 
 enable_testing()
 

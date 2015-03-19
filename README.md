@@ -30,6 +30,10 @@ Project Documentation
   <td>[cpp_nix](@ref cpp_nix_page)</td>
   <td>'nix API wrappers in C++</td>
 </tr>
+<tr>
+  <td>[cpp_fcgi](@ref cpp_fcgi_page)</td>
+  <td>FastCGI wrappers in C++</td>
+</tr>
 </td>
 
 
