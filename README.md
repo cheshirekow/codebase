@@ -15,24 +15,32 @@ Project Documentation
   <th>Description</th>
 </tr>
 <tr>
-  <td>[tabwm](@ref tawbm_page)</td>
-  <td> A compositing window manager with a sensible touch-based UI. </td>
+  <td>[cpp_fcgi](@ref cpp_fcgi_page)</td>
+  <td>FastCGI wrappers in C++</td>
 </tr>
 <tr>
-  <td>[kwargs](@ref kwargs_page)</td>
-  <td> Python-like kwargs in C++</td>
-</tr>
-<tr>
-  <td>[cpp_pthreads](@ref cpp_pthreads_page)</td>
-  <td>pthreads in C++</td>
+  <td>[cpp_freetype](@ref cpp_freetype_page)</td>
+  <td>Freetype wrappers in C++</td>
 </tr>
 <tr>
   <td>[cpp_nix](@ref cpp_nix_page)</td>
   <td>'nix API wrappers in C++</td>
 </tr>
 <tr>
-  <td>[cpp_fcgi](@ref cpp_fcgi_page)</td>
-  <td>FastCGI wrappers in C++</td>
+  <td>[cpp_pthreads](@ref cpp_pthreads_page)</td>
+  <td>pthreads in C++</td>
+</tr>
+<tr>
+  <td>[gltk](@ref gltk_page)</td>
+  <td> OpenGL Toolkit </td>
+</tr>
+<tr>
+  <td>[kwargs](@ref kwargs_page)</td>
+  <td> Python-like kwargs in C++</td>
+</tr>
+<tr>
+  <td>[tabwm](@ref tawbm_page)</td>
+  <td> A compositing window manager with a sensible touch-based UI. </td>
 </tr>
 </td>
 

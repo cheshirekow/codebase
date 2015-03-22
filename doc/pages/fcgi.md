@@ -1,4 +1,4 @@
-C++ Bindings for fact-cgi {#fcgi_page}
+C++ Bindings for fact-cgi {#cpp_fcgi_page}
 ==========
 
 cpp-fcgi provides a thin object oriented wrapper around the thread-safe

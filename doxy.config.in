@@ -88,8 +88,9 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       =  
 EXCLUDE_SYMBOLS        =  
 EXAMPLE_PATH           = ${CMAKE_CURRENT_SOURCE_DIR}/src \
+                         ${CMAKE_CURRENT_SOURCE_DIR}/test \
                          ${CMAKE_CURRENT_SOURCE_DIR}/doc/
-EXAMPLE_PATTERNS       = *.cc *.txt
+EXAMPLE_PATTERNS       = *.cc *.cpp *.txt
 EXAMPLE_RECURSIVE      = NO  
 IMAGE_PATH             =  
 INPUT_FILTER           =  
