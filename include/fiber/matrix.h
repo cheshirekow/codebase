@@ -86,7 +86,7 @@ class Matrix : public _LValue<Scalar, Matrix<Scalar, Rows, Cols> >,
   template <int Index>
   void BulkAssign() {}
 
-  template <int Index, typename... Tail>2
+  template <int Index, typename... Tail>
   void BulkAssign(Scalar head, Tail... tail) {
     static_assert(Index < Rows * Cols, "Too many inputs to BulkAssign!");
     (*this)[Index] = head;

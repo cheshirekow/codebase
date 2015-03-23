@@ -52,11 +52,10 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
 enable_testing()
 
-add_subdirectory(include)
 include_directories(include BEFORE SYSTEM)
+include_directories(BEFORE SYSTEM third_party/gtest)
 
-add_subdirectory(gtest)
-include_directories(BEFORE SYSTEM gtest)
+add_subdirectory(third_party)
 
 set(GTEST_LIBS
   gtest
@@ -69,16 +68,12 @@ macro(cc_test TEST_NAME)
   add_test(${TEST_NAME} ${TEST_NAME})
 endmacro()
 
-add_subdirectory(third_party)
-
 # Configuration options
 set(FIBER_USE_VARIADIC_TEMPLATES TRUE CACHE BOOL
     "If true, fiber will use variadic templates for additional functionality")
-
 if(FIBER_USE_VARIADIC_TEMPLATES)
-  add_definitions(-DFIBER_USE_STATIC_ASSERTS)
+  add_definitions(-DFIBER_USE_VARIADIC_TEMPLATES)
 endif()
-
 
 add_subdirectory(src)
 add_subdirectory(test)
