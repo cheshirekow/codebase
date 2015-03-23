@@ -1,4 +1,5 @@
 add_subdirectory(cpp_fcgi)
+add_subdirectory(cpp_fontconfig)
 add_subdirectory(cpp_freetype)
 add_subdirectory(cpp_nix)
 add_subdirectory(cpp_pthreads)

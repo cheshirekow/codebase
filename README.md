@@ -19,6 +19,10 @@ Project Documentation
   <td>FastCGI wrappers in C++</td>
 </tr>
 <tr>
+  <td>[cpp_fontconfig](@ref cpp_fontconfig_page)</td>
+  <td>Fontconfig wrappers in C++</td>
+</tr>
+<tr>
   <td>[cpp_freetype](@ref cpp_freetype_page)</td>
   <td>Freetype wrappers in C++</td>
 </tr>

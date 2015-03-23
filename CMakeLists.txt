@@ -20,6 +20,7 @@ include("${CMAKE_SOURCE_DIR}/cmake/Modules/FindAll.cmake")
 find_all(cheshirekow
          PKG cairomm-xlib-1.0 PREFIX cairomm
          PKG eigen3
+         PKG fontconfig
          PKG freetype2
          PKG fuse
          PKG gtkmm-3.0    PREFIX GTKmm
