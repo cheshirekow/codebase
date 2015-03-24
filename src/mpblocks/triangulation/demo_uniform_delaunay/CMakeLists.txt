@@ -1,11 +1,11 @@
-if((Eigen3_FOUND)
+if((eigen3_FOUND)
    AND (GTKmm_FOUND)
    AND (TinyXML2_FOUND)
-   AND (YAMLCPP_FOUND))
+   AND (yamlcpp_FOUND))
 
-  include_directories(${Eigen3_INCLUDE_DIRS}
+  include_directories(${eigen3_INCLUDE_DIRS}
                       ${GTKmm_INCLUDE_DIRS}
-                      ${YAMLCPP_INCLUDE_DIRS}
+                      ${yamlcpp_INCLUDE_DIRS}
                       ${TinyXML2_INCLUDE_DIRS}
                       ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -15,7 +15,7 @@ if((Eigen3_FOUND)
                  ${CMAKE_CURRENT_BINARY_DIR}/config.cpp)
   target_link_libraries(mpblocks_demo_uniform_delaunay
       ${GTKmm_LDFLAGS}
-      ${YAMLCPP_LDFLAGS}
+      ${yamlcpp_LDFLAGS}
       ${TinyXML2_LDFLAGS}
       mpblocks_gtk)
 else()

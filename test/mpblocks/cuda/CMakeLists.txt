@@ -1,5 +1,0 @@
-add_subdirectory( powers_of_two )
-add_subdirectory( linalg )
-add_subdirectory( linalg2 )
-add_subdirectory( bitonic )
-add_subdirectory( polynomial )

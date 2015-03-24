@@ -1,4 +1,0 @@
-add_subdirectory(demo_clarkson93)
-add_subdirectory(demo_brown79)
-add_subdirectory(demo_voronoi_2d)
-add_subdirectory(demo_edelsbrunner96)

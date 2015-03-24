@@ -2,24 +2,24 @@ install(FILES layout.glade
         DESTINATION share/mpblocks/
         RENAME dubins_curves_demo.glade)
 
-if((Cairomm_FOUND)
-    AND (Eigen3_FOUND)
+if((cairomm_FOUND)
+    AND (eigen3_FOUND)
     AND (GTKmm_FOUND)
     AND (TinyXML2_FOUND)
-    AND (YAMLCPP_FOUND))
+    AND (yamlcpp_FOUND))
 
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-                      ${Eigen3_INCLUDE_DIRS}
+                      ${eigen3_INCLUDE_DIRS}
                       ${GTKmm_INCLUDE_DIRS}
-                      ${Cairomm_INCLUDE_DIRS}
+                      ${cairomm_INCLUDE_DIRS}
                       ${TinyXML2_INCLUDE_DIR}
-                      ${YAMLCPP_INCLUDE_DIRS})
+                      ${yamlcpp_INCLUDE_DIRS})
 
   set(LIBS ${LIBS}
-      ${GTKmm_LIBRARIES}
-      ${Cairomm_LIBRARIES}
-      ${TinyXML2_LIBRARY}
-      ${YAMLCPP_LDFLAGS}
+      ${GTKmm_LDFLAGS}
+      ${cairomm_LDFLAGS}
+      ${TinyXML2_LDFLAGS}
+      ${yamlcpp_LDFLAGS}
       mpblocks_gtk
       mpblocks_path_util)
 

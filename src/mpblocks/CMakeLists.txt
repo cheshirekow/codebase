@@ -1,6 +1,8 @@
+add_subdirectory(brown79)
 add_subdirectory(cuda)
 add_subdirectory(dubins)
 add_subdirectory(edelsbrunner96)
 add_subdirectory(gtk)
+add_subdirectory(redblack)
 add_subdirectory(triangulation)
 add_subdirectory(util)

@@ -1,32 +1,24 @@
-if( (Eigen3_FOUND)
-    AND (SigC++_FOUND)
-    AND (MPBlocks_FOUND )
-    AND (MPBlocks_gtk_FOUND )
-    AND (GTKmm_FOUND)
-    AND (Cairomm_FOUND)
-    AND (YAMLCPP_FOUND)
-    AND (TinyXML2_FOUND)
-    )
+if((eigen3_FOUND)
+   AND (sigc++_FOUND)
+   AND (GTKmm_FOUND)
+   AND (cairomm_FOUND)
+   AND (yamlcpp_FOUND)
+   AND (TinyXML2_FOUND))
     
-    include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${Eigen3_INCLUDE_DIR}
-        ${SigC++_INCLUDE_DIRS}
-        ${MPBlocks_INCLUDE_DIRS}
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+        ${eigen3_INCLUDE_DIRS}
+        ${sigc++_INCLUDE_DIRS}
         ${GTKmm_INCLUDE_DIRS}
-        ${Cairomm_INCLUDE_DIRS}
-        ${YAMLCPP_INCLUDE_DIR}
-        ${TinyXML2_INCLUDE_DIRS}
-        ${MPBlocks_INCLUDE_DIR}
-        ) 
+        ${cairomm_INCLUDE_DIRS}
+        ${yamlcpp_INCLUDE_DIRS}
+        ${TinyXML2_INCLUDE_DIRS}) 
         
-    set( LIBS ${LIBS}
-        ${GTKmm_LIBRARIES}
-        ${SigC++_LIBRARIES}
-        ${YAMLCPP_LIBRARY}
-        ${TinyXML2_LIBRARIES}
-        ${MPBlocks_gtk_LIBRARY}
-         )
+    set(LIBS ${LIBS}
+        ${GTKmm_LDFLAGS}
+        ${SigC++_LDFLAGS}
+        ${YAMLCPP_LDFLAGS}
+        ${TinyXML2_LDFLAGS}
+        ${MPBlocks_gtk_LDFLAGS})
          
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/config.cpp
                     ${CMAKE_CURRENT_BINARY_DIR}/config.cpp )

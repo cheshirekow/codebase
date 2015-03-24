@@ -1,15 +1,15 @@
-if((Eigen3_FOUND)
+if((eigen3_FOUND)
     AND (GTKmm_FOUND)
     AND (TinyXML2_FOUND)
-    AND (YAMLCPP_FOUND))
-  include_directories(${Eigen3_INCLUDE_DIRS}
+    AND (yamlcpp_FOUND))
+  include_directories(${eigen3_INCLUDE_DIRS}
                       ${GTKmm_INCLUDE_DIRS}
                       ${TinyXML2_INCLUDE_DIRS}
-                      ${YAMLCPP_INCLUDE_DIRS})
+                      ${yamlcpp_INCLUDE_DIRS})
   set(LIBS
       ${GTKmm_LDFLAGS}
       ${TinyXML2_LDFLAGS}
-      ${YAMLCPP_LDFLAGS})
+      ${yamlcpp_LDFLAGS})
 
   add_library(mpblocks_gtk SHARED
               LayoutMap.cpp

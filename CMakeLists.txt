@@ -23,15 +23,17 @@ find_all(cheshirekow
          PKG fontconfig
          PKG freetype2
          PKG fuse
-         PKG gtkmm-3.0    PREFIX GTKmm
+         PKG glew
+         PKG gtkmm-3.0 PREFIX GTKmm
          PKG libcrypto++ 
+         PKG libglfw PREFIX glfw
          PKG libglog PREFIX glog
          PKG libgflags PREFIX gflags
          PKG pangomm-1.4 PREFIX pangomm
          PKG protobuf
          PKG re2
          PKG sigc++-2.0 PREFIX sigc++
-         PKG tinyxml2     PREFIX TinyXML2
+         PKG tinyxml2 PREFIX TinyXML2
          PKG tclap
          PKG x11
          PKG xcomposite
@@ -40,8 +42,9 @@ find_all(cheshirekow
          PKG xfixes
          PKG xrender
          PKG xrandr
-         PKG yaml-cpp
+         PKG yaml-cpp PREFIX yamlcpp
          PACKAGE Boost COMPONENTS filesystem system random
+         PACKAGE OpenGL
          PACKAGE CUDA
          PACKAGE FastCGI
          PACKAGE ProtobufCompiler
@@ -53,6 +56,7 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 enable_testing()
 
 include_directories(include BEFORE SYSTEM)
+include_directories(src BEFORE SYSTEM)
 include_directories(BEFORE SYSTEM third_party/gtest)
 
 add_subdirectory(third_party)
@@ -76,7 +80,6 @@ if(FIBER_USE_VARIADIC_TEMPLATES)
 endif()
 
 add_subdirectory(src)
-add_subdirectory(test)
 
 # configure the doxygen configuration
 configure_file("${PROJECT_SOURCE_DIR}/doxy.config.in"

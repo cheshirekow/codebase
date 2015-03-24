@@ -55,3 +55,9 @@ target_link_libraries(echo_server ${LIBS})
 add_executable(echo_client
                echo/client.cc)
 target_link_libraries(echo_client ${LIBS})
+
+configure_file(xephyr_test.cc ${CMAKE_CURRENT_BINARY_DIR}/xephyr_test.cc @ONLY)
+add_executable(xephyr_test ${CMAKE_CURRENT_BINARY_DIR}/xephyr_test.cc)
+
+cc_test(tree_test "tree_test.cc")
+target_link_libraries(tree_test ${LIBS})

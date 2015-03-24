@@ -26,6 +26,16 @@ if( (MPBlocks_FOUND)
              RUNTIME DESTINATION bin
              LIBRARY DESTINATION lib
              ARCHIVE DESTINATION lib )
+
+    set( TARGET_NAME "mpblocks_cudaNN_fattr" )
+    cuda_add_executable( ${TARGET_NAME} fattr.cpp )
+                    
+    target_link_libraries( ${TARGET_NAME}
+        mpblocks_cudaNN
+        ${MPBlocks_cuda_LIBRARY}
+        ${CUDA_CUDA_LIBRARY}
+        ${CUDA_CUDART_LIBRARY}
+    )
 else()
     message( WARNING "Skipping target ${TARGET_NAME}" )
 endif()

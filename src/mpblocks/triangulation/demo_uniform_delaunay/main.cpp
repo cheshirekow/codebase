@@ -62,24 +62,24 @@ struct BTPSTraits {
   /// fields of a node
   struct NodeOps {
     /// you can leave this one off you if you dont need removal
-    NodeRef& parent(NodeRef N) { return N->parent; }
+    NodeRef& Parent(NodeRef N) { return N->parent; }
 
     /// return the left child of N
-    NodeRef& left(NodeRef N) { return N->left; }
+    NodeRef& LeftChild(NodeRef N) { return N->left; }
 
     /// return the right child of N
-    NodeRef& right(NodeRef N) { return N->right; }
+    NodeRef& RightChild(NodeRef N) { return N->right; }
 
     /// return the weight of this node in particular
-    double weight(NodeRef N) { return N->weight; }
+    double Weight(NodeRef N) { return N->weight; }
 
     /// return the cumulative weight of the subtree, the return type
     /// is deduced by the tree template and can be anything modeling a
     /// real number
-    double& cum(NodeRef N) { return N->cumweight; }
+    double& CumulativeWeight(NodeRef N) { return N->cumweight; }
 
     /// return the subtree node count
-    uint32_t& count(NodeRef N) { return N->count; }
+    uint32_t& Count(NodeRef N) { return N->count; }
   };
 };
 

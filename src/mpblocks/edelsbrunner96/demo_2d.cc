@@ -35,7 +35,7 @@
 #include <gtkmm.h>
 #include <re2/re2.h>
 
-#include <edelsbrunner96.hpp>
+#include <edelsbrunner96/edelsbrunner96.hpp>
 #include <mpblocks/gtk.hpp>
 #include <mpblocks/util/path_util.h>
 
