@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,38 +17,31 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/src/gltk/VertexArray.cpp
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
-#include <gltk/VertexArray.h>
-
+#include <gltk/vertexarray.h>
 
 namespace gltk {
 
-VertexArray::VertexArray()
-{
-    glGenVertexArrays(1, &m_id);
+VertexArray::VertexArray() {
+  glGenVertexArrays(1, &m_id);
 }
 
-VertexArray::~VertexArray()
-{
-    glDeleteVertexArrays(1, &m_id);
+VertexArray::~VertexArray() {
+  glDeleteVertexArrays(1, &m_id);
 }
 
-void VertexArray::bind( )
-{
-    glBindVertexArray(m_id);
+void VertexArray::Bind() {
+  glBindVertexArray(m_id);
 }
 
-RefPtr<VertexArray> VertexArray::create()
-{
-    return RefPtr<VertexArray>( new VertexArray() );
+RefPtr<VertexArray> VertexArray::Create() {
+  return RefPtr<VertexArray>(new VertexArray());
 }
 
-
-} // namespace gltk
+}  // namespace gltk
 

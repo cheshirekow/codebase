@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,40 +17,31 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/src/FrameBuffer.cpp
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
-#include <gltk/FrameBuffer.h>
+#include <gltk/texture.h>
 
 namespace gltk {
 
-FrameBuffer::FrameBuffer()
-{
-    glGenFramebuffers(1,&m_id);
+Texture::Texture() {
+  glGenTextures(1, &m_id);
 }
 
-FrameBuffer::~FrameBuffer()
-{
-    glDeleteFramebuffers(1,&m_id);
+Texture::~Texture() {
+  glDeleteTextures(1, &m_id);
 }
 
-void FrameBuffer::bind()
-{
-    glBindFramebuffer(GL_FRAMEBUFFER,m_id);
+void Texture::Bind() {
+  glBindTexture(GL_TEXTURE_2D, m_id);
 }
 
-RefPtr<FrameBuffer> FrameBuffer::create()
-{
-    return RefPtr<FrameBuffer>( new FrameBuffer() );
+RefPtr<Texture> Texture::Create() {
+  return RefPtr<Texture>(new Texture());
 }
 
-
-} // namespace gltk
-
-
-
+}  // namespace gltk
 

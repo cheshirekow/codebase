@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,45 +17,41 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/src/FrameBuffer.h
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
-#ifndef GLTK_FRAMEBUFFER_H_
-#define GLTK_FRAMEBUFFER_H_
+#ifndef GLTK_BUFFER_H_
+#define GLTK_BUFFER_H_
 
 #include <GL/glew.h>
 #include <GL/glfw.h>
-#include <gltk/GLuintRef.h>
-#include <gltk/RefPtr.h>
+#include <gltk/gluintref.h>
+#include <gltk/refptr.h>
 
 namespace gltk {
 
-class FrameBuffer:
-    public GLuintRef
-{
-    private:
-        /// calls glGenFramebuffers to instanciate a new framebuffer
-        FrameBuffer();
+class Buffer : public GLuintRef {
+ private:
+  /// calls glGenBuffers to instanciate a new texture
+  Buffer();
 
-    public:
-        /// calls glDestroyFramebuffers to destroy the framebuffer
-        ~FrameBuffer();
+ public:
+  /// calls glDestroyBuffers to destroy the texture
+  ~Buffer();
 
-        /// binds the frame buffer so that future calls work with this
-        /// buffer
-        void bind();
+  /// binds the texture so that future calls work with this texture
+  void Bind(GLenum type);
 
-        /// create a frame buffer
-        static RefPtr<FrameBuffer> create();
+  /// set data to this buffer
+  void SetData(GLenum bufType, GLsizeiptr size, const void* data, GLenum usage);
+
+  /// create a new texture
+  static RefPtr<Buffer> Create();
 };
 
+}  // namespace gltk
 
-} // namespace gltk
-
-
-
-#endif // FRAMEBUFFER_H_
+#endif // GLTK_BUFFER_H_

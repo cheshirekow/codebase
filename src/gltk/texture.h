@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,45 +17,38 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/src/gltk/VertexArray.h
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
-#ifndef GLTK_VERTEXARRAY_H_
-#define GLTK_VERTEXARRAY_H_
-
+#ifndef GLTK_TEXTURE_H_
+#define GLTK_TEXTURE_H_
 
 #include <GL/glew.h>
 #include <GL/glfw.h>
-#include <gltk/GLuintRef.h>
-#include <gltk/RefPtr.h>
+#include <gltk/gluintref.h>
+#include <gltk/refptr.h>
 
 namespace gltk {
 
-class VertexArray:
-    public GLuintRef
-{
-    private:
-        /// calls glGenVertexArrays to instanciate a new texture
-        VertexArray();
+class Texture : public GLuintRef {
+ private:
+  /// calls glGenTextures to instanciate a new texture
+  Texture();
 
-    public:
-        /// calls glDestroyVertexArrays to destroy the texture
-        ~VertexArray();
+ public:
+  /// calls glDestroyTextures to destroy the texture
+  ~Texture();
 
-        /// binds the texture so that future calls work with this texture
-        void bind( );
+  /// binds the texture so that future calls work with this texture
+  void Bind();
 
-        /// create a new texture
-        static RefPtr<VertexArray> create();
+  /// create a new texture
+  static RefPtr<Texture> Create();
 };
 
+}  // namespace gltk
 
-} // namespace gltk
-
-
-
-#endif // VERTEXARRAY_H_
+#endif // GLTK_TEXTURE_H_

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,36 +17,30 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/src/RefCounted.cpp
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
-#include <gltk/RefCounted.h>
+#include <gltk/refcounted.h>
 
 namespace gltk {
 
-
-int RefCounted::getRefCount() const
-{
-    return m_refCount;
+int RefCounted::GetRefCount() const {
+  return m_refCount;
 }
 
-RefCounted::RefCounted():
-    m_refCount(0)
-{}
-
-void RefCounted::reference()
-{
-    m_refCount++;
+RefCounted::RefCounted()
+    : m_refCount(0) {
 }
 
-bool RefCounted::dereference()
-{
-    return (--m_refCount < 1);
+void RefCounted::Reference() {
+  m_refCount++;
 }
 
+bool RefCounted::Dereference() {
+  return (--m_refCount < 1);
+}
 
-} // namespace gltk
+}  // namespace gltk

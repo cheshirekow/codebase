@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,42 +17,36 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/src/GLuintRef.h
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
-#ifndef GLTK_GLUINTREF_H_
-#define GLTK_GLUINTREF_H_
-
-#include <GL/glew.h>
-#include <GL/glfw.h>
-#include <gltk/RefCounted.h>
+#include <gltk/buffer.h>
 
 namespace gltk {
 
-/// base class for objects which are referenced by a GLuint
-class GLuintRef:
-    public RefCounted
-{
-    protected:
-        GLuint  m_id;
+Buffer::Buffer() {
+  glGenBuffers(1, &m_id);
+}
 
-    public:
-        operator GLuint() const
-        {
-            return m_id;
-        }
-};
+Buffer::~Buffer() {
+  glDeleteBuffers(1, &m_id);
+}
 
+void Buffer::Bind(GLenum type) {
+  glBindBuffer(type, m_id);
+}
 
+void Buffer::SetData(GLenum bufType, GLsizeiptr size, const void* data,
+                     GLenum usage) {
+  Bind(bufType);
+  glBufferData(bufType, size, data, usage);
+}
 
+RefPtr<Buffer> Buffer::Create() {
+  return RefPtr<Buffer>(new Buffer());
+}
 
-} // namespace gltk
-
-
-
-
-#endif // GLUINTREF_H_
+}  // namespace gltk

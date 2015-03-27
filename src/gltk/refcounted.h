@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,46 +17,36 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/src/Texture.h
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
-#ifndef GLTK_TEXTURE_H_
-#define GLTK_TEXTURE_H_
-
-
-#include <GL/glew.h>
-#include <GL/glfw.h>
-#include <gltk/GLuintRef.h>
-#include <gltk/RefPtr.h>
+#ifndef GLTK_REFCOUNTED_H_
+#define GLTK_REFCOUNTED_H_
 
 namespace gltk {
 
-class Texture:
-    public GLuintRef
-{
-    private:
-        /// calls glGenTextures to instanciate a new texture
-        Texture();
+/// base class for objects which are reference counted
+class RefCounted {
+ private:
+  int m_refCount;
 
-    public:
-        /// calls glDestroyTextures to destroy the texture
-        ~Texture();
+ public:
+  /// initializes reference count to 0
+  RefCounted();
 
-        /// binds the texture so that future calls work with this texture
-        void bind( );
+  /// increase reference count by 1
+  void Reference();
 
-        /// create a new texture
-        static RefPtr<Texture> create();
+  /// decrease reference count by 1, return true if reference count
+  /// is zero
+  bool Dereference();
+
+  int GetRefCount() const;
 };
 
+}  // namespace gltk
 
-
-} // namespace gltk
-
-
-
-#endif // TEXTURE_H_
+#endif // GLTK_REFCOUNTED_H_

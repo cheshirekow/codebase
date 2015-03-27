@@ -1,21 +1,21 @@
-set(LIBRARY_HEADERS Buffer.h
-                    FrameBuffer.h
-                    GLuintRef.h
+set(LIBRARY_HEADERS buffer.h
+                    framebuffer.h
+                    gluintref.h
                     gltk.h
-                    Program.h
-                    RefCounted.h
-                    RefPtr.h
-                    Shader.h
-                    Texture.h
-                    VertexArray.h)
+                    program.h
+                    refcounted.h
+                    refptr.h
+                    shader.h
+                    texture.h
+                    vertexarray.h)
 
-set(LIBRARY_SOURCES Buffer.cpp
-                    FrameBuffer.cpp
-                    Program.cpp
-                    RefCounted.cpp
-                    Shader.cpp
-                    Texture.cpp
-                    VertexArray.cpp)
+set(LIBRARY_SOURCES buffer.cc
+                    framebuffer.cc
+                    program.cc
+                    refcounted.cc
+                    shader.cc
+                    texture.cc
+                    vertexarray.cc)
 
 add_library(gltk_static STATIC ${LIBRARY_SOURCES})
 add_library(gltk_shared SHARED ${LIBRARY_SOURCES})
@@ -42,8 +42,8 @@ if((OPENGL_FOUND)
 
   set(LIBS ${LIBS}
       ${OPENGL_LIBRARY}
-      ${glew_LIBRARY}
-      ${glfw_LIBRARY}
+      ${glew_LDFLAGS}
+      ${glfw_LDFLAGS}
       gltk_shared )
 
     add_subdirectory(test01)

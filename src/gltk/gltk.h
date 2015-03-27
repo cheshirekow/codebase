@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,23 +17,20 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/include/gltk.h
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
 #ifndef GLTK_GLTK_H_
 #define GLTK_GLTK_H_
 
-#include <gltk/Buffer.h>
-#include <gltk/FrameBuffer.h>
-#include <gltk/Program.h>
-#include <gltk/Shader.h>
-#include <gltk/Texture.h>
-#include <gltk/VertexArray.h>
+#include <gltk/buffer.h>
+#include <gltk/framebuffer.h>
+#include <gltk/program.h>
+#include <gltk/shader.h>
+#include <gltk/texture.h>
+#include <gltk/vertexarray.h>
 
-
-
-#endif // GLTK_H_
+#endif // GLTK_GLTK_H_

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of gltk.
  *
@@ -17,40 +17,39 @@
  *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   /home/josh/Codes/cpp/gltk/src/RefCounted.h
- *
+ *  @file
  *  @date   Feb 3, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
 
-#ifndef GLTK_REFCOUNTED_H_
-#define GLTK_REFCOUNTED_H_
+#ifndef GLTK_FRAMEBUFFER_H_
+#define GLTK_FRAMEBUFFER_H_
+
+#include <GL/glew.h>
+#include <GL/glfw.h>
+#include <gltk/gluintref.h>
+#include <gltk/refptr.h>
 
 namespace gltk {
 
-/// base class for objects which are reference counted
-class RefCounted
-{
-    private:
-        int m_refCount;
+class FrameBuffer : public GLuintRef {
+ private:
+  /// calls glGenFramebuffers to instanciate a new framebuffer
+  FrameBuffer();
 
-    public:
-        /// initializes reference count to 0
-        RefCounted();
+ public:
+  /// calls glDestroyFramebuffers to destroy the framebuffer
+  ~FrameBuffer();
 
-        /// increase reference count by 1
-        void reference();
+  /// binds the frame buffer so that future calls work with this
+  /// buffer
+  void Bind();
 
-        /// decrease reference count by 1, return true if reference count
-        /// is zero
-        bool dereference();
-
-        int getRefCount() const;
+  /// create a frame buffer
+  static RefPtr<FrameBuffer> Create();
 };
 
+}  // namespace gltk
 
-} // namespace gltk
-
-
-#endif // REFCOUNTED_H_
+#endif // GLTK_FRAMEBUFFER_H_
