@@ -1,4 +1,6 @@
 add_subdirectory(gtest)
+add_subdirectory(cppformat)
+
 if(NOT (re2_FOUND))
   add_subdirectory(re2)  
   set(re2_FOUND TRUE)
