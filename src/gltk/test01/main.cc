@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
                          sizeof(vertex_buffer_data), vertex_buffer_data,
                          GL_STATIC_DRAW);
 
-  if (glGetError != GL_NO_ERROR) {
+  if (glGetError() != GL_NO_ERROR) {
     std::cerr << "Failed to create vertex buffer" << std::endl;
   }
 
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
   RefPtr<Shader> vertex_shader = Shader::CreateFromFile(GL_VERTEX_SHADER,
                                                         source_file.c_str());
 
-  if (!vertex_shader || glGetError != GL_NO_ERROR) {
+  if (!vertex_shader || glGetError() != GL_NO_ERROR) {
     std::cerr << "Failed to load shader file: " << source_file << std::endl;
     return 1;
   }
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
   source_file = std::string(g_srcDir) + "/simple_fragment_shader.glslf";
   RefPtr<Shader> fragment_shader = Shader::CreateFromFile(GL_FRAGMENT_SHADER,
                                                           source_file.c_str());
-  if (!fragment_shader) {
+  if (!fragment_shader  || glGetError() != GL_NO_ERROR) {
     std::cerr << "Failed to load shader file: " << source_file << std::endl;
     return 1;
   }
