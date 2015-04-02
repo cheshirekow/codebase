@@ -50,3 +50,7 @@ if((OPENGL_FOUND)
 else()
   message(WARNING "Wont build gltk test01")
 endif()
+
+if((OPENGL_FOUND) AND (x11_FOUND))
+  add_subdirectory(xlib)
+endif()

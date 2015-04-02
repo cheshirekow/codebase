@@ -1,7 +1,7 @@
 # Note(bialkowski): This listfile was not distributed with cppformat
 
-set(LIBRARY_HEADERS format.h)
-set(LIBRARY_SOURCES format.cc)
+set(LIBRARY_HEADERS cppformat/format.h)
+set(LIBRARY_SOURCES cppformat/format.cc)
 
 add_library(format_static STATIC ${LIBRARY_SOURCES})
 add_library(format_shared SHARED ${LIBRARY_SOURCES})

@@ -57,6 +57,8 @@ enable_testing()
 
 include_directories(include BEFORE SYSTEM)
 include_directories(src BEFORE SYSTEM)
+
+include_directories(BEFORE SYSTEM third_party/cppformat)
 include_directories(BEFORE SYSTEM third_party/gtest)
 
 add_subdirectory(third_party)
