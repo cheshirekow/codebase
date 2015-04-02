@@ -6,7 +6,8 @@ set(LIBRARY_HEADERS clock.h
                     timespec.h
                     timeval.h)
 
-set(LIBRARY_SOURCES fd_set.cc
+set(LIBRARY_SOURCES clock.cc
+                    fd_set.cc
                     notify_pipe.cc
                     select_set.cc
                     timespec.cc
