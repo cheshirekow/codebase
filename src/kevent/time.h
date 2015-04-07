@@ -1,6 +1,9 @@
 #ifndef KEVENT_TIME_H_
 #define KEVENT_TIME_H_
 
+#include <cstdint>
+#include <cpp_nix/clock.h>
+
 namespace kevent {
 
 typedef int64_t TimeDuration;
@@ -18,7 +21,7 @@ class Clock {
    */
   virtual TimeDuration GetResolution() = 0;
 
- private:
+ protected:
   virtual ~Clock(){}
 };
 
@@ -26,16 +29,10 @@ class Clock {
 class PosixClock : public Clock {
  public:
   PosixClock(clockid_t clock_id) : nix_clock_(clock_id) {}
+  virtual ~PosixClock(){}
 
-  TimeDuration GetTime() override {
-    nix::Timespec dt = nix_clock_.GetTime();
-    return dt.tv_sec * 1000 + dt.tv_nsec / 1000;
-  }
-
-  TimeDuration GetResolution() override {
-    nix::Timespec dt = nix_clock_.GetRes();
-    return dt.tv_sec * 1000 + dt.tv_nsec / 1000;
-  }
+  TimeDuration GetTime() override;
+  TimeDuration GetResolution() override;
 
  private:
   nix::Clock nix_clock_;
