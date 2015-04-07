@@ -19,8 +19,36 @@ Timer::Timer(TimerCallbackFn fn, TimeDuration current_time, TimeDuration period,
 
 
 EventLoop::EventLoop(const std::shared_ptr<Clock>& clock) :
-  clock_(clock) {
+  clock_(clock),
+  epoll_fd_(0) {
+  should_quit_.store(false);
+  epoll_fd_ = epoll_create(1);
+}
 
+void EventLoop::Run() {
+  while(!should_quit_.load()) {
+    // fire ready timers
+    ExecuteTimers();
+
+    // set timeout for epoll wait
+    int timeout_ms = -1;
+    if (timer_queue_.size() > 0) {
+      timeout_ms = static_cast<int>(
+          (timer_queue_.top().due - clock_->GetTime()) / 1000);
+    }
+
+    static const int kNumEvents = 10;
+    epoll_event events[kNumEvents];
+    epoll_wait(epoll_fd_, events, kNumEvents, timeout_ms);
+  }
+}
+
+void EventLoop::Reset() {
+  should_quit_.store(false);
+}
+
+void EventLoop::Quit() {
+  should_quit_.store(true);
 }
 
 void EventLoop::AddTimer(TimerCallbackFn fn, TimeDuration period,

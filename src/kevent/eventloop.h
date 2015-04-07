@@ -1,17 +1,19 @@
 #ifndef KEVENT_EVENTLOOP_H_
 #define KEVENT_EVENTLOOP_H_
 
+#include <sys/epoll.h>
+
+#include <atomic>
 #include <functional>
 #include <list>
 #include <memory>
 #include <queue>
+
 #include <kevent/time.h>
 
 namespace kevent {
 
 typedef std::function<void (TimeDuration)> TimerCallbackFn;
-typedef std::function<void (int)> FileDescriptorCallbackFn;
-
 
 enum class TimerPolicy : uint8_t {
   kOneShot,   ///< fire the timer once and then cleanup
@@ -19,6 +21,8 @@ enum class TimerPolicy : uint8_t {
   kAbsolute,  ///< schedule timer based on registration time + n*period
   kCleanup,   ///< timer has been unsubscribed, remove before firing
 };
+
+
 
 struct Timer {
   Timer(TimerCallbackFn fn, TimeDuration current_time,
@@ -60,11 +64,15 @@ class EventLoop {
                     TimerPolicy::kRelative);
   void ExecuteTimers();
   void Run();
+  void Reset();
+  void Quit();
 
  private:
   std::shared_ptr<Clock> clock_;
   std::priority_queue<TimerQueueNode> timer_queue_;  ///< priority queue of timers
-
+  std::vector<epoll_event> fd_events_; /// epoll event structures
+  std::atomic<bool> should_quit_; ///< set to true if the event loop should terminate
+  int epoll_fd_;
 };
 
 
