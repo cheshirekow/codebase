@@ -1,14 +1,7 @@
-/*
- * clock.h
- *
- *  Created on: Apr 2, 2015
- *      Author: josh
- */
+#ifndef KEVENT_TIME_H_
+#define KEVENT_TIME_H_
 
-#ifndef CKEVENT_CLOCK_H_
-#define CKEVENT_CLOCK_H_
-
-namespace ckevent {
+namespace kevent {
 
 typedef int64_t TimeDuration;
 
@@ -48,6 +41,6 @@ class PosixClock : public Clock {
   nix::Clock nix_clock_;
 };
 
-}  // namespace ckevent
+}  // namespace kevent
 
-#endif // CKEVENT_CLOCK_H_
+#endif // KEVENT_TIME_H_
