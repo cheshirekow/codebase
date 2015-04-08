@@ -4,6 +4,9 @@
  *  @author Josh Bialkowski <josh.bialkowski@gmail.com>
  */
 
+#include <sys/epoll.h>
+
+#include <glog/logging.h>
 #include <kevent/eventloop.h>
 
 namespace kevent {
@@ -17,6 +20,34 @@ Timer::Timer(TimerCallbackFn fn, TimeDuration current_time, TimeDuration period,
       n_fired(0) {
 }
 
+/// Maps field masks for our FdEvent bitvector to field masks for the epoll
+/// bitvector.
+std::vector<std::pair<int,int>> kBitMap = {
+    {EPOLLIN, kCanRead},
+    {EPOLLOUT, kCanWrite},
+    {EPOLLERR, kError},
+    {EPOLLHUP, kHangup}
+};
+
+inline int FromEpollMask(int mask) {
+  int kevent_mask = 0x00;
+  for( auto& pair: kBitMap) {
+    if(mask & pair.first) {
+      kevent_mask |= pair.second;
+    }
+  }
+  return kevent_mask;
+}
+
+inline int ToEpollMask(int kevent_mask) {
+  int mask = 0x00;
+  for (auto& pair : kBitMap) {
+    if (kevent_mask & pair.second) {
+      mask |= pair.first;
+    }
+  }
+  return mask;
+}
 
 EventLoop::EventLoop(const std::shared_ptr<Clock>& clock) :
   clock_(clock),
@@ -25,7 +56,7 @@ EventLoop::EventLoop(const std::shared_ptr<Clock>& clock) :
   epoll_fd_ = epoll_create(1);
 }
 
-void EventLoop::Run() {
+int EventLoop::Run() {
   while(!should_quit_.load()) {
     // fire ready timers
     ExecuteTimers();
@@ -39,8 +70,17 @@ void EventLoop::Run() {
 
     static const int kNumEvents = 10;
     epoll_event events[kNumEvents];
-    epoll_wait(epoll_fd_, events, kNumEvents, timeout_ms);
+    int epoll_result = epoll_wait(epoll_fd_, events, kNumEvents, timeout_ms);
+    if(epoll_result == -1) {
+      PLOG(WARNING) << "epoll_wait returned -1 exiting event-loop. ";
+      return epoll_result;
+    }
+    for(int i=0; i < epoll_result; i++) {
+      static_cast<FDWatch*>(events[i].data.ptr)->fn(
+          FromEpollMask(events[i].events));
+    }
   }
+  return 0;
 }
 
 void EventLoop::Reset() {

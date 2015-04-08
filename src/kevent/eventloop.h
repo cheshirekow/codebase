@@ -1,8 +1,6 @@
 #ifndef KEVENT_EVENTLOOP_H_
 #define KEVENT_EVENTLOOP_H_
 
-#include <sys/epoll.h>
-
 #include <atomic>
 #include <functional>
 #include <list>
@@ -13,7 +11,12 @@
 
 namespace kevent {
 
+/// Callback for a timer watch.
 typedef std::function<void (TimeDuration)> TimerCallbackFn;
+
+/// Callback for a FdWatch, the argument supplied to the callback is a bitmask
+/// of which events are ready on the file descriptor
+typedef std::function<void (int)> FDCallbackFn;
 
 enum class TimerPolicy : uint8_t {
   kOneShot,   ///< fire the timer once and then cleanup
@@ -21,8 +24,6 @@ enum class TimerPolicy : uint8_t {
   kAbsolute,  ///< schedule timer based on registration time + n*period
   kCleanup,   ///< timer has been unsubscribed, remove before firing
 };
-
-
 
 struct Timer {
   Timer(TimerCallbackFn fn, TimeDuration current_time,
@@ -53,6 +54,20 @@ struct TimerQueueNode {
 };
 
 
+/// Bitfields indicating epoll event types
+enum FdEvent {
+  kCanRead  = 0x01 << 0,
+  kCanWrite = 0x01 << 1,
+  kError    = 0x01 << 2,
+  kHangup   = 0x01 << 3
+};
+
+
+
+struct FDWatch {
+  FDCallbackFn  fn;
+};
+
 
 
 /// A class for multiplexing responses to event sources, in particular:
@@ -63,14 +78,13 @@ class EventLoop {
   void AddTimer(TimerCallbackFn fn, TimeDuration period, TimerPolicy policy =
                     TimerPolicy::kRelative);
   void ExecuteTimers();
-  void Run();
+  int Run();
   void Reset();
   void Quit();
 
  private:
   std::shared_ptr<Clock> clock_;
   std::priority_queue<TimerQueueNode> timer_queue_;  ///< priority queue of timers
-  std::vector<epoll_event> fd_events_; /// epoll event structures
   std::atomic<bool> should_quit_; ///< set to true if the event loop should terminate
   int epoll_fd_;
 };
