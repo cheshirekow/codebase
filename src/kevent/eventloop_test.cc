@@ -15,5 +15,4 @@ TEST(EventloopTest, SimpleTest) {
   event_loop.AddTimer([](kevent::TimeDuration) {fmt::print("Hello world\n");},
                       0, kevent::TimerPolicy::kOneShot);
   usleep(100);
-  event_loop.ExecuteTimers();
 }

@@ -70,8 +70,8 @@ class EventLoop {
   void RemoveTimer(TimerWatch* watch);
   FDWatch* AddFileDescriptor(int fd, FDCallbackFn fn, int events);
   void RemoveFileDescriptor(FDWatch* watch);
-  void ExecuteTimers();
-  int Run();
+
+  void Run();
   void Reset();
   void Quit();
 
