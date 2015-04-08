@@ -25,8 +25,8 @@ enum class TimerPolicy : uint8_t {
   kCleanup,   ///< timer has been unsubscribed, remove before firing
 };
 
-struct Timer {
-  Timer(TimerCallbackFn fn, TimeDuration current_time,
+struct TimerWatch {
+  TimerWatch(TimerCallbackFn fn, TimeDuration current_time,
                     TimeDuration period, TimerPolicy policy);
 
   TimerCallbackFn fn;  ///< callback to execute on the timeout
@@ -37,10 +37,10 @@ struct Timer {
 };
 
 struct TimerQueueNode {
-  Timer*  timer;
+  TimerWatch*  timer;
   TimeDuration due;
 
-  TimerQueueNode(Timer* timer, TimeDuration due) :
+  TimerQueueNode(TimerWatch* timer, TimeDuration due) :
     timer(timer),
     due(due) {}
 

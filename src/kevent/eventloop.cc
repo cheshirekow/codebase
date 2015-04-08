@@ -11,7 +11,7 @@
 
 namespace kevent {
 
-Timer::Timer(TimerCallbackFn fn, TimeDuration current_time, TimeDuration period,
+TimerWatch::TimerWatch(TimerCallbackFn fn, TimeDuration current_time, TimeDuration period,
              TimerPolicy policy)
     : fn(fn),
       start_time(current_time),
@@ -94,14 +94,14 @@ void EventLoop::Quit() {
 void EventLoop::AddTimer(TimerCallbackFn fn, TimeDuration period,
                          TimerPolicy policy) {
   TimeDuration now = clock_->GetTime();
-  timer_queue_.emplace(new Timer(fn, now, period, policy), now + period);
+  timer_queue_.emplace(new TimerWatch(fn, now, period, policy), now + period);
 }
 
 void EventLoop::ExecuteTimers() {
   while (timer_queue_.size() > 0
       && timer_queue_.top().IsReady(clock_->GetTime())) {
     TimeDuration now = clock_->GetTime();
-    Timer* timer = timer_queue_.top().timer;
+    TimerWatch* timer = timer_queue_.top().timer;
     timer_queue_.pop();
     timer->fn(now);
     timer->n_fired++;
