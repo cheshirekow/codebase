@@ -47,7 +47,9 @@ struct TimerWatch {
         start_time(current_time),
         period(period),
         policy(policy),
-        n_fired(0) {
+        n_fired(0),
+        is_queued(false),
+        is_freed(false) {
   }
 
   TimerCallbackFn fn;  ///< callback to execute on the timeout
@@ -55,6 +57,8 @@ struct TimerWatch {
   TimeDuration period;  ///< period at which the callback should be called
   TimerPolicy policy;  ///< reschedule policy
   int n_fired;  ///< number of times the callback has been fired
+  bool is_queued; ///< true if the timer is in the timer queue
+  bool is_freed;  ///< true if the priority loop should destroy the watch
 };
 
 
@@ -114,10 +118,21 @@ void EventLoop::Quit() {
   should_quit_.store(true);
 }
 
-void EventLoop::AddTimer(TimerCallbackFn fn, TimeDuration period,
-                         TimerPolicy policy) {
+TimerWatch* EventLoop::AddTimer(TimerCallbackFn fn, TimeDuration period,
+                                TimerPolicy policy) {
   TimeDuration now = clock_->GetTime();
-  timer_queue_.emplace(new TimerWatch(fn, now, period, policy), now + period);
+  TimerWatch* watch = new TimerWatch(fn, now, period, policy);
+  timer_queue_.emplace(watch, now + period);
+  watch->is_queued = true;
+  return watch;
+}
+
+void EventLoop::RemoveTimer(TimerWatch* watch) {
+  if(watch->is_queued) {
+    watch->is_freed = true;
+  } else {
+    delete watch;
+  }
 }
 
 FDWatch* EventLoop::AddFileDescriptor(int fd, FDCallbackFn fn, int events) {
@@ -133,31 +148,38 @@ void EventLoop::RemoveFileDescriptor(FDWatch* watch) {
                                &watch->event);
   PLOG_IF(WARNING, epoll_result == -1)
       << "epoll_ctl returned -1 while trying to remove a watch.";
+  delete watch;
 }
 
 void EventLoop::ExecuteTimers() {
   while (timer_queue_.size() > 0
       && timer_queue_.top().IsReady(clock_->GetTime())) {
-    TimeDuration now = clock_->GetTime();
     TimerWatch* timer = timer_queue_.top().timer;
+    if(timer->is_freed) {
+      delete timer;
+      continue;
+    }
+    TimeDuration now = clock_->GetTime();
     timer_queue_.pop();
     timer->fn(now);
     timer->n_fired++;
+    timer->is_queued = false;
 
     switch (timer->policy) {
       case TimerPolicy::kRelative:
         timer_queue_.emplace(timer, now + timer->period);
+        timer->is_queued = true;
         break;
 
       case TimerPolicy::kAbsolute:
         timer_queue_.emplace(
             timer, timer->start_time + timer->n_fired * timer->period);
+        timer->is_queued = true;
         break;
 
       default:
         break;
     }
-
   }
 }
 

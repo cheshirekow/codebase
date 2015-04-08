@@ -65,8 +65,9 @@ enum FdEvent {
 class EventLoop {
  public:
   EventLoop(const std::shared_ptr<Clock>& clock);
-  void AddTimer(TimerCallbackFn fn, TimeDuration period, TimerPolicy policy =
+  TimerWatch* AddTimer(TimerCallbackFn fn, TimeDuration period, TimerPolicy policy =
                     TimerPolicy::kRelative);
+  void RemoveTimer(TimerWatch* watch);
   FDWatch* AddFileDescriptor(int fd, FDCallbackFn fn, int events);
   void RemoveFileDescriptor(FDWatch* watch);
   void ExecuteTimers();
