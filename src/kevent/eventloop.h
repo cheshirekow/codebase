@@ -25,16 +25,8 @@ enum class TimerPolicy : uint8_t {
   kCleanup,   ///< timer has been unsubscribed, remove before firing
 };
 
-struct TimerWatch {
-  TimerWatch(TimerCallbackFn fn, TimeDuration current_time,
-                    TimeDuration period, TimerPolicy policy);
-
-  TimerCallbackFn fn;  ///< callback to execute on the timeout
-  TimeDuration start_time;  ///< time when registration occured
-  TimeDuration period;  ///< period at which the callback should be called
-  TimerPolicy policy;  ///< reschedule policy
-  int n_fired;  ///< number of times the callback has been fired
-};
+class TimerWatch;
+class FDWatch;
 
 struct TimerQueueNode {
   TimerWatch*  timer;
@@ -53,7 +45,6 @@ struct TimerQueueNode {
   }
 };
 
-
 /// Bitfields indicating epoll event types
 enum FdEvent {
   kCanRead  = 0x01 << 0,
@@ -64,9 +55,8 @@ enum FdEvent {
 
 
 
-struct FDWatch {
-  FDCallbackFn  fn;
-};
+
+
 
 
 
@@ -77,6 +67,8 @@ class EventLoop {
   EventLoop(const std::shared_ptr<Clock>& clock);
   void AddTimer(TimerCallbackFn fn, TimeDuration period, TimerPolicy policy =
                     TimerPolicy::kRelative);
+  FDWatch* AddFileDescriptor(int fd, FDCallbackFn fn, int events);
+  void RemoveFileDescriptor(FDWatch* watch);
   void ExecuteTimers();
   int Run();
   void Reset();
