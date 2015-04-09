@@ -6,6 +6,7 @@
 
 #include <sys/epoll.h>
 
+#include <cppformat/format.h>
 #include <glog/logging.h>
 #include <kevent/eventloop.h>
 
@@ -117,29 +118,41 @@ void EventLoop::RemoveFileDescriptor(FDWatch* watch) {
 
 void EventLoop::Run() {
   while(!should_quit_.load()) {
+    TimeDuration now = clock_->GetTime();
+
     // fire ready timers
     while (timer_queue_.size() > 0
-        && timer_queue_.top().IsReady(clock_->GetTime())) {
+        && timer_queue_.top().IsReady(now)) {
       TimerWatch* timer = timer_queue_.top().timer;
       if(timer->is_freed) {
         delete timer;
         continue;
       }
-      TimeDuration now = clock_->GetTime();
       timer_queue_.pop();
       timer->fn(now);
       timer->n_fired++;
       timer->is_queued = false;
 
       switch (timer->policy) {
-        case TimerPolicy::kRelative:
-          timer_queue_.emplace(timer, now + timer->period);
+        case TimerPolicy::kRelative: {
+          TimeDuration due1 = now + timer->period;
+          TimeDuration due2 = timer->start_time
+              + (timer->n_fired + 1) * timer->period;
+          LOG(INFO)<< fmt::format(
+              "\nstart + n * dt = {:d} * {:d} = {:d}"
+              "\now + dt = {:d} + {:d} = {:d}"
+              "\n",
+              timer->n_fired, timer->period, due2 - timer->start_time,
+              now - timer->start_time, timer->period, due1 - timer->start_time);
+
+          timer_queue_.emplace(timer, due2);
           timer->is_queued = true;
           break;
+        }
 
         case TimerPolicy::kAbsolute:
           timer_queue_.emplace(
-              timer, timer->start_time + timer->n_fired * timer->period);
+              timer, timer->start_time + (timer->n_fired + 1) * timer->period);
           timer->is_queued = true;
           break;
 
@@ -153,20 +166,20 @@ void EventLoop::Run() {
     int timeout_ms = -1;
     if (timer_queue_.size() > 0) {
       timeout_ms = static_cast<int>(
-          (timer_queue_.top().due - clock_->GetTime()) / 1000);
+          (timer_queue_.top().due - now) / 1e3);
     }
 
-    static const int kNumEvents = 10;
-    epoll_event events[kNumEvents];
-    int epoll_result = epoll_wait(epoll_fd_, events, kNumEvents, timeout_ms);
-    if(epoll_result == -1) {
-      PLOG(WARNING) << "epoll_wait returned -1 exiting event-loop. ";
-      return;
-    }
-    for(int i=0; i < epoll_result; i++) {
-      static_cast<FDWatch*>(events[i].data.ptr)->fn(
-          FromEpollMask(events[i].events));
-    }
+//    static const int kNumEvents = 10;
+//    epoll_event events[kNumEvents];
+//    int epoll_result = epoll_wait(epoll_fd_, events, kNumEvents, timeout_ms);
+//    if(epoll_result == -1) {
+//      PLOG(WARNING) << "epoll_wait returned -1 exiting event-loop. ";
+//      return;
+//    }
+//    for(int i=0; i < epoll_result; i++) {
+//      static_cast<FDWatch*>(events[i].data.ptr)->fn(
+//          FromEpollMask(events[i].events));
+//    }
   }
 }
 

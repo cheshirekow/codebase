@@ -53,13 +53,6 @@ enum FdEvent {
   kHangup   = 0x01 << 3
 };
 
-
-
-
-
-
-
-
 /// A class for multiplexing responses to event sources, in particular:
 /// file descriptors and timers
 class EventLoop {
@@ -81,8 +74,6 @@ class EventLoop {
   std::atomic<bool> should_quit_; ///< set to true if the event loop should terminate
   int epoll_fd_;
 };
-
-
 
 }  // namespace kevent
 

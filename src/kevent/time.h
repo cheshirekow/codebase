@@ -6,6 +6,7 @@
 
 namespace kevent {
 
+/// In microseconds
 typedef int64_t TimeDuration;
 
 /// Abstract interface for various clocks

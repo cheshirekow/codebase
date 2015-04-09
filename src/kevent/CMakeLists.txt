@@ -23,7 +23,7 @@ install(TARGETS kevent_static
 
 macro(kevent_test TEST_NAME)
   cc_test(${TEST_NAME} ${TEST_NAME}.cc ${ARGN})
-  target_link_libraries(${TEST_NAME} format_static kevent_static cpp_nix_static 
+  target_link_libraries(${TEST_NAME}  kevent_static cpp_nix_static format_static 
                         ${glog_LDFLAGS})
 endmacro()
 
