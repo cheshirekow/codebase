@@ -6,7 +6,7 @@
 
 namespace kevent {
 
-/// In microseconds
+/// In microseconds, not nanoseconds. One second is 1e6.
 typedef int64_t TimeDuration;
 
 /// Abstract interface for various clocks
@@ -14,6 +14,11 @@ class Clock {
  public:
   /// Return the 'current' time according to the clock
   virtual TimeDuration GetTime() = 0;
+
+  /// Return the 'current' time in milliseconds according to the clock
+  int GetTimeMilliseconds() {
+    return GetTime() / 1e3;
+  }
 
   /// Return the resolution of the clock
   /**
@@ -42,3 +47,4 @@ class PosixClock : public Clock {
 }  // namespace kevent
 
 #endif // KEVENT_TIME_H_
+

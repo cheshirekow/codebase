@@ -4,6 +4,7 @@
  *  @author Josh Bialkowski <josh.bialkowski@gmail.com>
  */
 
+#include <unistd.h>
 #include <sys/epoll.h>
 
 #include <cppformat/format.h>
@@ -42,11 +43,11 @@ static inline int ToEpollMask(int kevent_mask) {
 }
 
 struct TimerWatch {
-  TimerWatch(TimerCallbackFn fn, TimeDuration current_time, TimeDuration period,
+  TimerWatch(TimerCallbackFn fn, int current_ms, int period_ms,
              TimerPolicy policy)
       : fn(fn),
-        start_time(current_time),
-        period(period),
+        start_ms(current_ms),
+        period_ms(period_ms),
         policy(policy),
         n_fired(0),
         is_queued(false),
@@ -54,8 +55,8 @@ struct TimerWatch {
   }
 
   TimerCallbackFn fn;  ///< callback to execute on the timeout
-  TimeDuration start_time;  ///< time when registration occured
-  TimeDuration period;  ///< period at which the callback should be called
+  TimeDuration start_ms;  ///< time when registration occured
+  TimeDuration period_ms;  ///< period at which the callback should be called
   TimerPolicy policy;  ///< reschedule policy
   int n_fired;  ///< number of times the callback has been fired
   bool is_queued; ///< true if the timer is in the timer queue
@@ -78,16 +79,29 @@ struct FDWatch {
 
 EventLoop::EventLoop(const std::shared_ptr<Clock>& clock) :
   clock_(clock),
-  epoll_fd_(0) {
+  epoll_fd_(0),
+  pipe_read_fd_(0),
+  pipe_write_fd_(0),
+  pipe_watch_(nullptr) {
   should_quit_.store(false);
   epoll_fd_ = epoll_create(1);
+  int pipe_fds[2];
+  if(pipe(pipe_fds) == -1) {
+    PLOG(FATAL) << "Failed to create pipe";
+  }
+  pipe_read_fd_ = pipe_fds[0];
+  pipe_write_fd_ = pipe_fds[1];
+
+  // Add the pipe to the epoll instance
+  pipe_watch_ = AddFileDescriptor(pipe_read_fd_, [this](int events){},kCanRead);
 }
 
-TimerWatch* EventLoop::AddTimer(TimerCallbackFn fn, TimeDuration period,
+TimerWatch* EventLoop::AddTimer(TimerCallbackFn fn, int period_ms,
                                 TimerPolicy policy) {
-  TimeDuration now = clock_->GetTime();
-  TimerWatch* watch = new TimerWatch(fn, now, period, policy);
-  timer_queue_.emplace(watch, now + period);
+  int now_ms = clock_->GetTimeMilliseconds();
+  TimerWatch* watch = new TimerWatch(fn, now_ms, period_ms, policy);
+  LOG(INFO) << fmt::format("Queing timer at {}", now_ms + watch->period_ms);
+  timer_queue_.emplace(watch, now_ms + watch->period_ms);
   watch->is_queued = true;
   return watch;
 }
@@ -118,10 +132,10 @@ void EventLoop::RemoveFileDescriptor(FDWatch* watch) {
 
 void EventLoop::Run() {
   while(!should_quit_.load()) {
-    TimeDuration now = clock_->GetTime();
+    int now = clock_->GetTimeMilliseconds();
 
     // fire ready timers
-    while (timer_queue_.size() > 0
+    if (timer_queue_.size() > 0
         && timer_queue_.top().IsReady(now)) {
       TimerWatch* timer = timer_queue_.top().timer;
       if(timer->is_freed) {
@@ -135,24 +149,14 @@ void EventLoop::Run() {
 
       switch (timer->policy) {
         case TimerPolicy::kRelative: {
-          TimeDuration due1 = now + timer->period;
-          TimeDuration due2 = timer->start_time
-              + (timer->n_fired + 1) * timer->period;
-          LOG(INFO)<< fmt::format(
-              "\nstart + n * dt = {:d} * {:d} = {:d}"
-              "\now + dt = {:d} + {:d} = {:d}"
-              "\n",
-              timer->n_fired, timer->period, due2 - timer->start_time,
-              now - timer->start_time, timer->period, due1 - timer->start_time);
-
-          timer_queue_.emplace(timer, due2);
+          timer_queue_.emplace(timer, now + timer->period_ms);
           timer->is_queued = true;
           break;
         }
 
         case TimerPolicy::kAbsolute:
           timer_queue_.emplace(
-              timer, timer->start_time + (timer->n_fired + 1) * timer->period);
+              timer, timer->start_ms + (timer->n_fired + 1) * timer->period_ms);
           timer->is_queued = true;
           break;
 
@@ -165,21 +169,30 @@ void EventLoop::Run() {
     // we wait indefinitely for file descriptor events.
     int timeout_ms = -1;
     if (timer_queue_.size() > 0) {
-      timeout_ms = static_cast<int>(
-          (timer_queue_.top().due - now) / 1e3);
+      TimeDuration sleep_time_us = timer_queue_.top().due_ms - now;
+      LOG(INFO) << "sleept_time_us = " << sleep_time_us;
+      if(sleep_time_us < 0) {
+        timeout_ms = 0;
+      } else {
+        timeout_ms = static_cast<int>(sleep_time_us / 1e3);
+      }
     }
 
-//    static const int kNumEvents = 10;
-//    epoll_event events[kNumEvents];
-//    int epoll_result = epoll_wait(epoll_fd_, events, kNumEvents, timeout_ms);
-//    if(epoll_result == -1) {
-//      PLOG(WARNING) << "epoll_wait returned -1 exiting event-loop. ";
-//      return;
-//    }
-//    for(int i=0; i < epoll_result; i++) {
-//      static_cast<FDWatch*>(events[i].data.ptr)->fn(
-//          FromEpollMask(events[i].events));
-//    }
+    static const int kNumEvents = 10;
+    epoll_event events[kNumEvents];
+    LOG(INFO) << fmt::format("Sleeping for {}ms", timeout_ms);
+    int epoll_result = epoll_wait(epoll_fd_, events, kNumEvents, timeout_ms);
+    if(epoll_result == -1) {
+      PLOG(WARNING) << "epoll_wait returned -1 exiting event-loop. ";
+      return;
+    }
+    for(int i=0; i < epoll_result; i++) {
+      static_cast<FDWatch*>(events[i].data.ptr)->fn(
+          FromEpollMask(events[i].events));
+    }
+
+    // If we had remaining microsecond time to sleep, even after processing file descriptors,
+    // then do that sleep here
   }
 }
 
