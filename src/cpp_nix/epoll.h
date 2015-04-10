@@ -27,68 +27,99 @@
 
 #include <sys/epoll.h>
 
+#include <functional>
+#include <map>
+
 namespace nix {
 namespace epoll {
 
-struct Flags {
+class Flags {
  public:
-  Flags(int flags)
-      : m_flags(flags) {
-  }
-
-  int Get() {
-    return m_flags;
-  }
+  Flags(int flags);
+  int Get();
 
  private:
-  int m_flags;
+  int flags_;
 };
 
-}
+/// The tye of a callback registered to a file descriptor
+typedef std::function<void (void)> Callback;
 
+
+/// Stores a map of epoll event bitfields to their corresponding callback 
+/// functions
+class Subscription : public epoll_event {
+ public:
+  Subscription();
+
+  /// Add callbacks to the registration
+  void AddCallbacks(const std::map<int,Callback>& callbacks);
+  
+  /// Remove callbacks for the given bitset of events
+  void RemoveCallbacks(int events);
+  
+  /// Called when a file descriptor event is occurs
+  void Dispatch(int events);
+  
+  /// Return pointer to registration for epoll
+  epoll_event* GetRegistration() { return &registration_; }
+  
+  /// Return the number of subscribed callbacks
+  int NumCallbacks() { return callbacks_.size(); }
+  
+ private:
+  /// event structure pointing pack to this object which is passed to
+  /// the epoll instance
+  epoll_event registration_;
+  
+  /// maps event bitfields to a callback function each
+  std::map<int,Callback> callbacks_;
+};
+
+}  // namespace epoll
+
+
+/// A dispatching wrapper for the linux epoll api
+/**
+ *  @see http://man7.org/linux/man-pages/man7/epoll.7.html
+ *
+ *  The Epoll class maintains a map from filedescriptors to Subscription
+ *  objects. A Subscription is likewise a map from event id's (i.e. EPOLLIN,
+ *  EPOLLOUT, EPOLLERR) to callbacks. Each call to `Wait()` is followed by
+ *  iterating over all filedescriptors that are ready and dispatching callbacks
+ *  for each subscribed event. 
+ */
 class Epoll {
  public:
-  Epoll() {
-    m_epfd = epoll_create(1);
-  }
+  /// Create an epoll instance using epoll_create
+  Epoll();
 
-  Epoll(epoll::Flags flags) {
-    m_epfd = epoll_create1(flags.Get());
-  }
+  /// Create an epoll instance using epoll_create1, while specifying flags
+  Epoll(epoll::Flags flags);
 
-  ~Epoll() {
-    if (m_epfd > 0) {
-      close(m_epfd);
-    }
-  }
+  /// Closes the epoll file descriptor
+  ~Epoll();
 
-  int GetFd() {
-    return m_epfd;
-  }
+  /// Returns the underlying epoll file descriptor
+  int GetFd() const;
 
-  int Add(int fd, epoll_event* event) {
-    return epoll_ctl(m_epfd, EPOLL_CTL_ADD, fd, event);
-  }
+  /// Add watches for the given file descriptor
+  int Add(int fd, const std::map<int,epoll::Callback>& callbacks);
 
-  int Modify(int fd, epoll_event* event) {
-    return epoll_ctl(m_epfd, EPOLL_CTL_ADD, fd, event);
-  }
+  /// Remove a watched events for the given file descriptor
+  int Remove(int fd, int events);
 
-  int Delete(int fd) {
-    return epoll_ctl(m_epfd, EPOLL_CTL_DEL, fd, NULL);
-  }
+  /// Block until one or more watched file descriptors are ready
+  int Wait(int timeout) const;
 
-  int Wait(struct epoll_event *events, int maxevents, int timeout) {
-    return epoll_wait(m_epfd, events, maxevents, timeout);
-  }
-
-  int Pwait(epoll_event *events, int maxevents, int timeout,
-            const sigset_t *sigmask) {
-    return epoll_pwait(m_epfd, events, maxevents, timeout, sigmask);
-  }
+  /// Block until one or more watched file descriptors are ready, and mask
+  /// signals while blocked.
+  int Pwait(int timeout, const sigset_t *sigmask) const;
 
  private:
-  int m_epfd;
+  int epfd_;
+  std::map<int,epoll::Subscription> subscriptions_;
+  mutable std::vector<epoll_event> event_buffer_;
 };
 
 }  // namespace nix
