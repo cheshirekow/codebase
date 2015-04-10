@@ -29,6 +29,7 @@
 
 #include <functional>
 #include <map>
+#include <vector>
 
 namespace nix {
 namespace epoll {
@@ -46,34 +47,38 @@ class Flags {
 typedef std::function<void (void)> Callback;
 
 
-/// Stores a map of epoll event bitfields to their corresponding callback 
+/// Stores a map of epoll event bitfields to their corresponding callback
 /// functions
 class Subscription : public epoll_event {
  public:
   Subscription();
 
   /// Add callbacks to the registration
-  void AddCallbacks(const std::map<int,Callback>& callbacks);
-  
+  void AddCallbacks(const std::map<int, Callback>& callbacks);
+
   /// Remove callbacks for the given bitset of events
   void RemoveCallbacks(int events);
-  
+
   /// Called when a file descriptor event is occurs
   void Dispatch(int events);
-  
+
   /// Return pointer to registration for epoll
-  epoll_event* GetRegistration() { return &registration_; }
-  
+  epoll_event* GetRegistration() {
+    return &registration_;
+  }
+
   /// Return the number of subscribed callbacks
-  int NumCallbacks() { return callbacks_.size(); }
-  
+  int NumCallbacks() {
+    return callbacks_.size();
+  }
+
  private:
   /// event structure pointing pack to this object which is passed to
   /// the epoll instance
   epoll_event registration_;
-  
+
   /// maps event bitfields to a callback function each
-  std::map<int,Callback> callbacks_;
+  std::map<int, Callback> callbacks_;
 };
 
 }  // namespace epoll
@@ -104,7 +109,7 @@ class Epoll {
   int GetFd() const;
 
   /// Add watches for the given file descriptor
-  int Add(int fd, const std::map<int,epoll::Callback>& callbacks);
+  int Add(int fd, const std::map<int, epoll::Callback>& callbacks);
 
   /// Remove a watched events for the given file descriptor
   int Remove(int fd, int events);
@@ -118,7 +123,7 @@ class Epoll {
 
  private:
   int epfd_;
-  std::map<int,epoll::Subscription> subscriptions_;
+  std::map<int, epoll::Subscription> subscriptions_;
   mutable std::vector<epoll_event> event_buffer_;
 };
 

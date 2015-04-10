@@ -35,7 +35,7 @@ int SelectSet::BuildSets(fd_set* read_set, fd_set* write_set,
                          fd_set* except_set) const {
   int nfds = 0;
 
-  std::vector<fd_set*> all_sets( { read_set, write_set, except_set });
+  std::vector<fd_set*> all_sets({ read_set, write_set, except_set });
   for (fd_set* set : all_sets) {
     if (set != NULL) {
       FD_ZERO(set);
@@ -59,20 +59,20 @@ int SelectSet::BuildSets(fd_set* read_set, fd_set* write_set,
       int fd = fd_and_spec.first;
       int spec = fd_and_spec.second;
       if (spec & mask) {
-        if(fd > nfds){
+        if (fd > nfds) {
           nfds = fd;
         }
         FD_SET(fd, set);
       }
     }
   }
-  return nfds+1;
+  return nfds + 1;
 }
 
 int SelectSet::Select(fd_set* read_set, fd_set* write_set, fd_set* except_set,
                       timeval* timeout) const {
-  int nfds = BuildSets(read_set,write_set,except_set);
-  return select(nfds,read_set,write_set,except_set,timeout);
+  int nfds = BuildSets(read_set, write_set, except_set);
+  return select(nfds, read_set, write_set, except_set, timeout);
 }
 
 int SelectSet::Pselect(fd_set* read_set, fd_set* write_set, fd_set* except_set,
@@ -80,7 +80,5 @@ int SelectSet::Pselect(fd_set* read_set, fd_set* write_set, fd_set* except_set,
   int nfds = BuildSets(read_set, write_set, except_set);
   return pselect(nfds, read_set, write_set, except_set, timeout, sigmask);
 }
-
-
 
 }  // namespace nix

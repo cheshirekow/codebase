@@ -24,15 +24,14 @@
  */
 
 #include <gtest/gtest.h>
-
 #include <cpp_nix/clock.h>
 
-TEST(Clock,Monotonic) {
+TEST(Clock, Monotonic) {
   nix::Clock clock(CLOCK_MONOTONIC);
   timespec prev = clock.GetTime();
   usleep(100);
   timespec now = clock.GetTime();
-  EXPECT_GT(now,prev);
-  EXPECT_GT(now-prev,(timespec{0,100}));
+  EXPECT_GT(now, prev);
+  EXPECT_GT(now - prev, (timespec { 0, 100 }));
 }
 

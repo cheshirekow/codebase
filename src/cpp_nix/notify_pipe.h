@@ -24,8 +24,8 @@
  *  @brief  
  */
 
-#ifndef CPP_NIX_NOTIFYPIPE_H_
-#define CPP_NIX_NOTIFYPIPE_H_
+#ifndef CPP_NIX_NOTIFY_PIPE_H_
+#define CPP_NIX_NOTIFY_PIPE_H_
 
 namespace nix {
 
@@ -34,7 +34,7 @@ namespace nix {
 /// can't be `selected`-ed or `epoll`-ed.
 class NotifyPipe {
  private:
-  int m_fd[2];
+  int fd_[2];
 
  public:
   /// opens pipe
@@ -58,4 +58,4 @@ class NotifyPipe {
 
 }  // namespace nix
 
-#endif // NOTIFYPIPE_H_
+#endif  // CPP_NIX_NOTIFY_PIPE_H_

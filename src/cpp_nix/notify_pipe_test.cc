@@ -32,7 +32,7 @@
 #include <cpp_nix/select_set.h>
 #include <cpp_nix/timeval.h>
 
-TEST(NotifyPipe,NotifyAfterFork) {
+TEST(NotifyPipe, NotifyAfterFork) {
   const int32_t sleep_time = 1e5;
   const int num_conditions = 3;
 
@@ -47,26 +47,25 @@ TEST(NotifyPipe,NotifyAfterFork) {
     for (int i = 0; i < num_conditions; i++) {
       nix::FdSet fd_set;
       timeval timeout { 0, 2 * sleep_time };
-      int result = select_set.Select(&fd_set, NULL, NULL,&timeout);
+      int result = select_set.Select(&fd_set, NULL, NULL, &timeout);
 
       // we expect that a timeout did not occur
-      EXPECT_GT(result,0);
-      EXPECT_GT(timeout,(timeval{0,0}));
+      EXPECT_GT(result, 0);
+      EXPECT_GT(timeout, (timeval { 0, 0 }));
 
       // we expect that the read FD is readable
       EXPECT_TRUE(fd_set[condition.GetReadFd()]);
-      EXPECT_EQ(condition.Clear(),1);
+      EXPECT_EQ(condition.Clear(), 1);
     }
     int child_status;
     pid_t term_pid = wait(&child_status);
-    EXPECT_EQ(child_pid,term_pid);
-    EXPECT_EQ(WEXITSTATUS(child_status),0);
+    EXPECT_EQ(child_pid, term_pid);
+    EXPECT_EQ(WEXITSTATUS(child_status), 0);
   } else {
     for (int i = 0; i < num_conditions; i++) {
-      EXPECT_EQ(condition.Notify(),1);
+      EXPECT_EQ(condition.Notify(), 1);
       usleep(sleep_time);
     }
     exit(0);
   }
 }
-

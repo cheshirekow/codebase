@@ -27,6 +27,7 @@
 #define CPP_NIX_TIMESPEC_H_
 
 #include <sys/time.h>
+#include <cstdint>
 
 timespec operator+(const timespec& a, const timespec& b);
 timespec operator-(const timespec& a, const timespec& b);
@@ -42,7 +43,7 @@ class Timespec : public timespec {
       : timespec(other) {
   }
 
-  Timespec(int sec = 0, long int nsec = 0)
+  Timespec(int sec = 0, int64_t nsec = 0)
       : timespec { sec, nsec } {
   }
 
@@ -105,5 +106,4 @@ inline bool operator>=(const timespec& a, const timespec& b) {
   }
 }
 
-
-#endif // TIMESPEC_H_
+#endif  // CPP_NIX_TIMESPEC_H_

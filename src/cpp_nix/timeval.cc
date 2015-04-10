@@ -43,4 +43,3 @@ timeval operator-(const timeval& a, const timeval& b) {
   return result;
 }
 
-
