@@ -22,14 +22,15 @@
  *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief  
  */
-
 #include <gltk/shader.h>
-#include <cstdio>
-#include <cstdlib>
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 
 namespace gltk {

@@ -28,19 +28,19 @@
 namespace gltk {
 
 int RefCounted::GetRefCount() const {
-  return m_refCount;
+  return ref_count_;
 }
 
 RefCounted::RefCounted()
-    : m_refCount(0) {
+    : ref_count_(0) {
 }
 
 void RefCounted::Reference() {
-  m_refCount++;
+  ref_count_++;
 }
 
 bool RefCounted::Dereference() {
-  return (--m_refCount < 1);
+  return (--ref_count_ < 1);
 }
 
 }  // namespace gltk

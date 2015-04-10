@@ -31,7 +31,7 @@ namespace gltk {
 /// base class for objects which are reference counted
 class RefCounted {
  private:
-  int m_refCount;
+  int ref_count_;
 
  public:
   /// initializes reference count to 0
