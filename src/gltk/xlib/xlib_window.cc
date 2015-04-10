@@ -23,6 +23,7 @@
  *  @brief
  */
 
+#include <gltk/xlib/xlib_window>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -122,7 +123,6 @@ int main(int argc, char* argv[]) {
       || ((glx_major == 1) && (glx_minor < 3)) || (glx_major < 1)) {
     LOG(FATAL) << fmt::format("Invalid GLX Version {}.{} < 1.3",
                               glx_major, glx_minor);
-    fmt::print(std::cerr, "Invalid GLX version");
     exit(1);
   }
 
