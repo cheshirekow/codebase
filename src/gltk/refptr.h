@@ -30,29 +30,39 @@
 
 namespace gltk {
 
-/// pointer ot a reference counted object, auto destruct when reference
-/// count is zero
+/// pointer to a reference counted object, self-destruct when reference
+/// count is zero.
+/**
+ *  This is a smart pointer for intrusive reference counting (as opposed to,
+ *  for instance, shared_ptr).
+ */
 template<class Obj>
 class RefPtr {
  private:
-  Obj* m_ptr;
+  Obj* ptr_;
 
+  /// Increase reference count if we're not pointing to a nullptr
   void Reference() {
-    if (m_ptr)
-      static_cast<RefCounted*>(m_ptr)->Reference();
+    if (ptr_) {
+      static_cast<RefCounted*>(ptr_)->Reference();
+    }
   }
 
+  /// Decrease reference count and, if this is the last reference, then
+  /// destroy the object
   void Dereference() {
-    if (m_ptr)
-      if (static_cast<RefCounted*>(m_ptr)->Dereference())
-        delete m_ptr;
+    if (ptr_) {
+      if (static_cast<RefCounted*>(ptr_)->Dereference()) {
+        delete ptr_;
+      }
+    }
   }
 
  public:
   template<class Other> friend class RefPtr;
 
-  RefPtr(Obj* ptr = 0)
-      : m_ptr(ptr) {
+  RefPtr(Obj* ptr = nullptr)
+      : ptr_(ptr) {
     Reference();
   }
 
@@ -62,42 +72,41 @@ class RefPtr {
 
   void Unlink() {
     Dereference();
-    m_ptr = 0;
+    ptr_ = nullptr;
   }
 
   int RefCount() const {
-    return static_cast<const RefCounted*>(m_ptr)->GetRefCount();
+    return static_cast<const RefCounted*>(ptr_)->GetRefCount();
   }
 
-  RefPtr<Obj>& operator=(RefPtr<Obj> other) {
+  RefPtr<Obj>& operator=(const RefPtr<Obj>& other) {
     Dereference();
-    m_ptr = other.m_ptr;
+    ptr_ = other.ptr_;
     Reference();
     return *this;
   }
 
   Obj* operator->() {
-    return m_ptr;
+    return ptr_;
   }
 
   const Obj* operator->() const {
-    return m_ptr;
+    return ptr_;
   }
 
   Obj& operator*() {
-    return *m_ptr;
+    return *ptr_;
   }
 
   const Obj& operator*() const {
-    return *m_ptr;
+    return *ptr_;
   }
 
   operator bool() const {
-    return m_ptr;
+    return ptr_;
   }
-
 };
 
 }  // namespace gltk
 
-#endif // GLTK_REFPTR_H_
+#endif  // GLTK_REFPTR_H_
