@@ -1,3 +1,5 @@
+include_directories(${glog_INCLUDE_DIRS})
+
 set(LIBRARY_HEADERS clock.h
                     epoll.h
                     fd_set.h
@@ -6,7 +8,9 @@ set(LIBRARY_HEADERS clock.h
                     timespec.h
                     timeval.h)
 
-set(LIBRARY_SOURCES fd_set.cc
+set(LIBRARY_SOURCES clock.cc
+                    epoll.cc
+                    fd_set.cc
                     notify_pipe.cc
                     select_set.cc
                     timespec.cc
@@ -30,7 +34,7 @@ install(TARGETS cpp_nix_static cpp_nix_shared
         
 macro(nix_test TEST_NAME)
   cc_test(${TEST_NAME} ${TEST_NAME}.cc ${ARGN})
-  target_link_libraries(${TEST_NAME} cpp_nix_static)
+  target_link_libraries(${TEST_NAME} cpp_nix_static ${glog_LDFLAGS})
 endmacro()
 
 nix_test(clock_test clock_test.cc)

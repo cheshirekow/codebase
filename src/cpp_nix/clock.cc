@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
+ *  Copyright (C) 2015 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of cpp-nix.
  *
@@ -18,33 +18,36 @@
  */
 /**
  *  @file
- *  @date   Jun 22, 2014
- *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
- *  @brief
+ *  @date Apr 2, 2015
+ *  @author Josh Bialkowski <josh.bialkowski@gmail.com>
  */
 
-#ifndef CPP_NIX_CLOCK_H_
-#define CPP_NIX_CLOCK_H_
-
-#include <ctime>
-#include <cpp_nix/timespec.h>
+#include <cpp_nix/clock.h>
 
 namespace nix {
 
-class Clock {
- public:
-  Clock(clockid_t clock_id)
-      : m_clock_id(clock_id) {
+Timespec Clock::GetRes() const {
+  Timespec output;
+  int result = clock_getres(m_clock_id, &output);
+  if (!result) {
+    return output;
+  } else {
+    return Timespec { result, 0 };
   }
+}
 
-  Timespec GetRes() const;
-  Timespec GetTime() const;
-  int SetTime(const timespec& time);
+Timespec Clock::GetTime() const {
+  Timespec output;
+  int result = clock_gettime(m_clock_id, &output);
+  if (!result) {
+    return output;
+  } else {
+    return Timespec { result, 0 };
+  }
+}
 
- private:
-  clockid_t  m_clock_id;
-};
+int Clock::SetTime(const timespec& time) {
+  return clock_settime(m_clock_id, &time);
+}
 
 }  // namespace nix
-
-#endif  // CPP_NIX_CLOCK_H_
