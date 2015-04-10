@@ -23,8 +23,10 @@
  *  @brief
  */
 
-#include <gtest/gtest.h>
 #include <sys/types.h>
+
+#include <gtest/gtest.h>
+#include <glog/logging.h>
 
 #include <cpp_nix/epoll.h>
 #include <cpp_nix/fd_set.h>
@@ -48,25 +50,27 @@ TEST(EpollTest,NotifyInOrderAfterFork) {
       break;
     }
   }
-
+  
   if (is_parent_process) {
     nix::Epoll epoll;
     std::vector<epoll_event> events_in(num_spawn);
-
+    
+    bool notified[num_spawn];
     for (int i = 0; i < num_spawn; i++) {
-      epoll_event& event = events_in[i];
-      event.events = EPOLLIN;
-      event.data.u32 = i;
-      epoll.Add(condition[i].GetReadFd(), &event);
+      bool& bool_ref = notified[i];
+      bool_ref = false;
+      auto callback = [&bool_ref, i](){bool_ref=true;};
+      epoll.Add(condition[i].GetReadFd(), {{EPOLLIN, callback}});
     }
 
-    std::vector<epoll_event> events_out(num_spawn);
     for (int i = 0; i < num_spawn; i++) {
-      int num_events = epoll.Wait(&events_out[0], events_out.size(),
-                                  2 * sleep_time);
+      int num_events = epoll.Wait(2 * sleep_time);
+      condition[i].Clear();
       EXPECT_EQ(num_events, 1);
-      EXPECT_EQ(events_out[0].data.u32, i);
-      EXPECT_EQ(condition[events_out[0].data.u32].Clear(), 1);
+    }
+    
+    for(int i=0; i < num_spawn; i++) {
+      EXPECT_TRUE(notified[i]) << " for child " << i;
     }
 
     int child_status;
