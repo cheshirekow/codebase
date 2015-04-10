@@ -1,5 +1,5 @@
 set(LIBRARY_SOURCES is_call_possible.h
-                    kwargs.h)
+                    v1.h)
 
 install(FILES ${LIBRARY_SOURCES} DESTINATION include/kwargs)
 

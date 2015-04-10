@@ -1,12 +1,27 @@
 /*
- * is_call_possible.h
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
- *  Created on: Jul 14, 2014
- *      Author: josh
+ *  This file is part of kwargs.
+ *
+ *  kwargs is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  kwargs is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with kwargs.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef IS_CALL_POSSIBLE_H_
-#define IS_CALL_POSSIBLE_H_
+/**
+ *  @file
+ *  @author Josh Bialkowski <josh.bialkowski@gmail.com>
+ */
+#ifndef KWARGS_IS_CALL_POSSIBLE_H_
+#define KWARGS_IS_CALL_POSSIBLE_H_
 
 namespace kw {
 
@@ -223,12 +238,6 @@ public:
   static constexpr bool value = sizeof(Deduce(*(SourceType*)0)) == sizeof(Yes);
 };
 
-
-
-
-
 }  // namespace kw
 
-
-
-#endif /* IS_CALL_POSSIBLE_H_ */
+#endif // KWARGS_IS_CALL_POSSIBLE_H_
