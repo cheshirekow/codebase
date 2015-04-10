@@ -28,15 +28,15 @@
 namespace gltk {
 
 FrameBuffer::FrameBuffer() {
-  glGenFramebuffers(1, &m_id);
+  glGenFramebuffers(1, &id_);
 }
 
 FrameBuffer::~FrameBuffer() {
-  glDeleteFramebuffers(1, &m_id);
+  glDeleteFramebuffers(1, &id_);
 }
 
 void FrameBuffer::Bind() {
-  glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+  glBindFramebuffer(GL_FRAMEBUFFER, id_);
 }
 
 RefPtr<FrameBuffer> FrameBuffer::Create() {

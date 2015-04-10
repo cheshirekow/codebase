@@ -28,15 +28,15 @@
 namespace gltk {
 
 VertexArray::VertexArray() {
-  glGenVertexArrays(1, &m_id);
+  glGenVertexArrays(1, &id_);
 }
 
 VertexArray::~VertexArray() {
-  glDeleteVertexArrays(1, &m_id);
+  glDeleteVertexArrays(1, &id_);
 }
 
 void VertexArray::Bind() {
-  glBindVertexArray(m_id);
+  glBindVertexArray(id_);
 }
 
 RefPtr<VertexArray> VertexArray::Create() {

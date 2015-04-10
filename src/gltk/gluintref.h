@@ -35,14 +35,14 @@ namespace gltk {
 /// base class for objects which are referenced by a GLuint
 class GLuintRef : public RefCounted {
  protected:
-  GLuint m_id;
+  GLuint id_;
 
  public:
   operator GLuint() const {
-    return m_id;
+    return id_;
   }
 };
 
 }  // namespace gltk
 
-#endif // GLTK_GLUINTREF_H_
+#endif  // GLTK_GLUINTREF_H_

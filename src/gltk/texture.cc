@@ -28,15 +28,15 @@
 namespace gltk {
 
 Texture::Texture() {
-  glGenTextures(1, &m_id);
+  glGenTextures(1, &id_);
 }
 
 Texture::~Texture() {
-  glDeleteTextures(1, &m_id);
+  glDeleteTextures(1, &id_);
 }
 
 void Texture::Bind() {
-  glBindTexture(GL_TEXTURE_2D, m_id);
+  glBindTexture(GL_TEXTURE_2D, id_);
 }
 
 RefPtr<Texture> Texture::Create() {

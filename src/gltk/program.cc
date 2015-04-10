@@ -29,47 +29,47 @@
 namespace gltk {
 
 Program::Program() {
-  m_id = glCreateProgram();
+  id_ = glCreateProgram();
 }
 
 Program::~Program() {
-  if (m_id)
-    glDeleteProgram(m_id);
+  if (id_)
+    glDeleteProgram(id_);
 }
 
 void Program::AttachShader(const RefPtr<Shader>& shader) {
-  glAttachShader(m_id, *shader);
+  glAttachShader(id_, *shader);
 }
 
 bool Program::GetDeleteStatus() {
   GLint val;
-  glGetProgramiv(m_id, GL_DELETE_STATUS, &val);
+  glGetProgramiv(id_, GL_DELETE_STATUS, &val);
   return (val > 0);
 }
 
 bool Program::GetLinkStatus() {
   GLint val;
-  glGetProgramiv(m_id, GL_LINK_STATUS, &val);
+  glGetProgramiv(id_, GL_LINK_STATUS, &val);
   return (val > 0);
 }
 
 GLint Program::GetInfoLogLength() {
   GLint val;
-  glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &val);
+  glGetProgramiv(id_, GL_INFO_LOG_LENGTH, &val);
   return val;
 }
 
 void Program::Link() {
-  glLinkProgram(m_id);
+  glLinkProgram(id_);
 }
 
 void Program::Use() {
-  glUseProgram(m_id);
+  glUseProgram(id_);
 }
 
 void Program::GetInfoLog(GLuint program, GLsizei maxLength, GLsizei * length,
                          GLchar * infoLog) {
-  glGetProgramInfoLog(m_id, maxLength, length, infoLog);
+  glGetProgramInfoLog(id_, maxLength, length, infoLog);
 }
 
 void Program::GetInfoLog(std::string& log) {
@@ -78,7 +78,7 @@ void Program::GetInfoLog(std::string& log) {
   log.reserve(size);
 
   char* writable = new char[size + 1];
-  glGetProgramInfoLog(m_id, size, &length, writable);
+  glGetProgramInfoLog(id_, size, &length, writable);
   log = writable;
   delete[] writable;
 }

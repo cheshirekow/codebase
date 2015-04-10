@@ -28,15 +28,15 @@
 namespace gltk {
 
 Buffer::Buffer() {
-  glGenBuffers(1, &m_id);
+  glGenBuffers(1, &id_);
 }
 
 Buffer::~Buffer() {
-  glDeleteBuffers(1, &m_id);
+  glDeleteBuffers(1, &id_);
 }
 
 void Buffer::Bind(GLenum type) {
-  glBindBuffer(type, m_id);
+  glBindBuffer(type, id_);
 }
 
 void Buffer::SetData(GLenum bufType, GLsizeiptr size, const void* data,

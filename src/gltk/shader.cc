@@ -35,24 +35,24 @@
 namespace gltk {
 
 Shader::Shader(GLenum type) {
-  m_id = glCreateShader(type);
+  id_ = glCreateShader(type);
 }
 
 Shader::~Shader() {
-  glDeleteShader(m_id);
+  glDeleteShader(id_);
 }
 
 void Shader::SetSource(GLsizei count, const GLchar** src, GLint* length) {
-  glShaderSource(m_id, count, src, length);
+  glShaderSource(id_, count, src, length);
 }
 
 void Shader::SetSource(const std::string& src) {
   const char* srcStr = src.c_str();
-  glShaderSource(m_id, 1, &srcStr, 0);
+  glShaderSource(id_, 1, &srcStr, 0);
 }
 
 void Shader::GetSource(GLsizei bufSize, GLint& length, GLchar* source) {
-  glGetShaderSource(m_id, bufSize, &length, source);
+  glGetShaderSource(id_, bufSize, &length, source);
 }
 
 void Shader::GetSource(std::string& src) {
@@ -61,47 +61,47 @@ void Shader::GetSource(std::string& src) {
   src.reserve(size + 1);
 
   char* writable = new char[size + 1];
-  glGetShaderSource(m_id, size, &length, writable);
+  glGetShaderSource(id_, size, &length, writable);
   src = writable;
   delete[] writable;
 }
 
 GLint Shader::GetType() {
   GLint val = 0;
-  glGetShaderiv(m_id, GL_SHADER_TYPE, &val);
+  glGetShaderiv(id_, GL_SHADER_TYPE, &val);
   return val;
 }
 
 bool Shader::GetDeleteStatus() {
   GLint val = 0;
-  glGetShaderiv(m_id, GL_DELETE_STATUS, &val);
+  glGetShaderiv(id_, GL_DELETE_STATUS, &val);
   return (val == GL_TRUE);
 }
 
 bool Shader::GetCompileStatus() {
   GLint val = 0;
-  glGetShaderiv(m_id, GL_COMPILE_STATUS, &val);
+  glGetShaderiv(id_, GL_COMPILE_STATUS, &val);
   return (val == GL_TRUE);
 }
 
 GLint Shader::GetInfoLogLength() {
   GLint val = 0;
-  glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &val);
+  glGetShaderiv(id_, GL_INFO_LOG_LENGTH, &val);
   return val;
 }
 
 GLint Shader::GetSourceLength() {
   GLint val = 0;
-  glGetShaderiv(m_id, GL_SHADER_SOURCE_LENGTH, &val);
+  glGetShaderiv(id_, GL_SHADER_SOURCE_LENGTH, &val);
   return val;
 }
 
 void Shader::compile() {
-  glCompileShader(m_id);
+  glCompileShader(id_);
 }
 
 void Shader::GetInfoLog(GLsizei maxLength, GLsizei * length, GLchar * infoLog) {
-  glGetShaderInfoLog(m_id, maxLength, length, infoLog);
+  glGetShaderInfoLog(id_, maxLength, length, infoLog);
 }
 
 void Shader::GetInfoLog(std::string& log) {
@@ -113,7 +113,7 @@ void Shader::GetInfoLog(std::string& log) {
 
   log.reserve(size);
   GLchar* writable = new GLchar[size + 1];
-  glGetShaderInfoLog(m_id, size, 0, writable);
+  glGetShaderInfoLog(id_, size, 0, writable);
   log = writable;
   delete[] writable;
 }
@@ -158,5 +158,5 @@ RefPtr<Shader> Shader::CreateFromString(GLenum type, const char* src) {
   return shader;
 }
 
-}
+}  // namespace gltk
 

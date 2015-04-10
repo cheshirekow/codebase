@@ -35,7 +35,7 @@ namespace gltk {
 
 class Buffer : public GLuintRef {
  private:
-  /// calls glGenBuffers to instanciate a new texture
+  /// calls glGenBuffers to instantiate a new texture
   Buffer();
 
  public:
@@ -54,4 +54,4 @@ class Buffer : public GLuintRef {
 
 }  // namespace gltk
 
-#endif // GLTK_BUFFER_H_
+#endif  // GLTK_BUFFER_H_
