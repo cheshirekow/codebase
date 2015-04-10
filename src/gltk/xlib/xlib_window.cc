@@ -42,6 +42,7 @@ enum {
 
 #include <iostream>
 #include <cppformat/format.h>
+#include <glog/logging.h>
 
 static const int kGlxContextMajorVersionARB = 0x2091;
 static const int kGlxContextMinorversionARB = 0x2092;
@@ -92,7 +93,7 @@ int main(int argc, char* argv[]) {
   Display *display = XOpenDisplay(NULL);
 
   if (!display) {
-    fmt::print(std::cerr, "Failed to open X display\n");
+    LOG(FATAL) << "Failed to open X display";
     exit(1);
   }
 
@@ -113,27 +114,30 @@ int main(int argc, char* argv[]) {
   // GLX_SAMPLES         , 4,
       X11_None };
 
-  int glx_major, glx_minor;
+  int glx_major = 0;
+  int glx_minor = 0;
 
   // FBConfigs were added in GLX version 1.3.
   if (!glXQueryVersion(display, &glx_major, &glx_minor)
       || ((glx_major == 1) && (glx_minor < 3)) || (glx_major < 1)) {
+    LOG(FATAL) << fmt::format("Invalid GLX Version {}.{} < 1.3",
+                              glx_major, glx_minor);
     fmt::print(std::cerr, "Invalid GLX version");
     exit(1);
   }
 
-  fmt::print("Getting matching framebuffer configs\n");
+  LOG(INFO) << "Getting matching framebuffer configs";
   int fbcount;
   GLXFBConfig* fbc = glXChooseFBConfig(display, DefaultScreen(display),
                                        visual_attribs, &fbcount);
   if (!fbc) {
-    fmt::print(std::cerr, "Failed to retrieve a framebuffer config\n");
+    LOG(FATAL) << "Failed to retrieve a framebuffer config";
     exit(1);
   }
-  fmt::print("Found {} matching FB configs.\n", fbcount);
+  LOG(INFO) << fmt::format("Found {} matching FB configs.", fbcount);
 
   // Pick the FB config/visual with the most samples per pixel
-  fmt::print("Getting XVisualInfos\n");
+  LOG(INFO) << "Getting XVisualInfos";
   int best_fbc = -1;
   int worst_fbc = -1;
   int best_num_samp = -1;
@@ -146,9 +150,9 @@ int main(int argc, char* argv[]) {
       glXGetFBConfigAttrib(display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
       glXGetFBConfigAttrib(display, fbc[i], GLX_SAMPLES, &samples);
 
-      fmt::print("  Matching fbconfig {}, visual ID {#2x}: SAMPLE_BUFFERS = {},"
-                 " SAMPLES = {}\n", i, vi->visualid, samp_buf, samples);
-
+      LOG(INFO) << fmt::format("  Matching fbconfig {}, visual ID {:#2x}: "
+                               "SAMPLE_BUFFERS = {}, SAMPLES = {}",
+                               i, vi->visualid, samp_buf, samples);
       if (best_fbc < 0 || samp_buf && samples > best_num_samp) {
         best_fbc = i;
         best_num_samp = samples;
@@ -168,9 +172,9 @@ int main(int argc, char* argv[]) {
 
   // Get a visual
   XVisualInfo *vi = glXGetVisualFromFBConfig(display, bestFbc);
-  fmt::print("Chosen visual ID = {#x}\n", vi->visualid);
+  LOG(INFO) << fmt::format("Chosen visual ID = {:#x}\n", vi->visualid);
 
-  fmt::print("Creating colormap\n");
+  LOG(INFO) << "Creating colormap";
   XSetWindowAttributes swa;
   Colormap cmap;
   swa.colormap = cmap = XCreateColormap(display,
@@ -180,22 +184,20 @@ int main(int argc, char* argv[]) {
   swa.border_pixel = 0;
   swa.event_mask = StructureNotifyMask;
 
-  fmt::print("Creating window\n");
+  LOG(INFO) << "Creating window";
   Window win = XCreateWindow(display, RootWindow(display, vi->screen), 0, 0,
                              100, 100, 0, vi->depth, InputOutput, vi->visual,
                              CWBorderPixel | CWColormap | CWEventMask,
                              &swa);
   if (!win) {
-    fmt::print(std::cerr, "Failed to create window.\n");
+    LOG(FATAL) << "Failed to create window";
     exit(1);
   }
 
   // Done with the visual info data
   XFree(vi);
-
   XStoreName(display, win, "GL 3.0 Window");
-
-  fmt::print("Mapping window\n");
+  LOG(INFO) << "Mapping window";
   XMapWindow(display, win);
 
   // Get the default screen's GLX extension list
@@ -208,7 +210,6 @@ int main(int argc, char* argv[]) {
   glX_create_context_attribs_ARB =
       (glXCreateContextAttribsARBProc) glXGetProcAddressARB(
           (const GLubyte *) "glX_create_context_attribs_ARB");
-
   GLXContext ctx = 0;
 
   // Install an X error handler so the application won't exit if GL 3.0
@@ -225,8 +226,8 @@ int main(int argc, char* argv[]) {
   // If either is not present, use GLX 1.3 context creation method.
   if (!IsExtensionSupported(glx_extentions, "GLX_ARB_create_context")
       || !glX_create_context_attribs_ARB) {
-    fmt::print(std::cerr, "glXCreateContextAttribsARB() not found"
-               " ... using old-style GLX context\n");
+    LOG(WARNING) << "glXCreateContextAttribsARB() not found"
+                     " ... using old-style GLX context";
     ctx = glXCreateNewContext(display, bestFbc, GLX_RGBA_TYPE, 0, True);
   // If it does, try to get a GL 3.0 context!
   } else {
@@ -236,14 +237,14 @@ int main(int argc, char* argv[]) {
         // GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
         X11_None };
 
-    fmt::print("Creating context\n");
+    LOG(INFO) << "Creating context";
     ctx = glX_create_context_attribs_ARB(display, bestFbc, 0, True,
                                          context_attribs);
 
     // Sync to ensure any errors generated are processed.
     XSync(display, False);
     if (!g_ctx_error_occurred && ctx) {
-      fmt::print("Created GL 3.0 context\n");
+      LOG(INFO) << "Created GL 3.0 context";
     } else {
       // Couldn't create GL 3.0 context.  Fall back to old-style 2.x context.
       // When a context version below 3.0 is requested, implementations will
@@ -256,8 +257,8 @@ int main(int argc, char* argv[]) {
 
       g_ctx_error_occurred = false;
 
-      fmt::print("Failed to create GL 3.0 context"
-                 " ... using old-style GLX context\n");
+      LOG(WARNING) << "Failed to create GL 3.0 context"
+                      " ... using old-style GLX context";
       ctx = glX_create_context_attribs_ARB(display, bestFbc, 0, True,
                                            context_attribs);
     }
@@ -270,18 +271,18 @@ int main(int argc, char* argv[]) {
   XSetErrorHandler(old_handler);
 
   if (g_ctx_error_occurred || !ctx) {
-    fmt::print("Failed to create an OpenGL context\n");
+    LOG(FATAL) << "Failed to create an OpenGL context";
     exit(1);
   }
 
   // Verifying that context is a direct context
   if (!glXIsDirect(display, ctx)) {
-    fmt::print("Indirect GLX rendering context obtained\n");
+    LOG(WARNING) << "Indirect GLX rendering context obtained";
   } else {
-    fmt::print("Direct GLX rendering context obtained\n");
+    LOG(INFO) << "Direct GLX rendering context obtained";
   }
 
-  fmt::print("Making context current\n");
+  LOG(INFO) << "Making context current";
   glXMakeCurrent(display, win, ctx);
 
   glClearColor(0, 0.5, 1, 1);

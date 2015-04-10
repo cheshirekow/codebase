@@ -5,5 +5,6 @@ add_executable(gltk_xlib_window_demo xlib_window.cc)
 
 target_link_libraries(gltk_xlib_window_demo 
                       format_static
+                      ${glog_LDFLAGS}
                       ${OPENGL_LIBRARIES}
                       ${x11_LDFLAGS})
