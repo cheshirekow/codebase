@@ -1,3 +1,29 @@
+/*
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
+ *
+ *  This file is part of gltk.
+ *
+ *  gltk is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  gltk is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with gltk.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ *  @file
+ *  @date   Apr 10, 2015
+ *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
+ *  @brief
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,11 +37,11 @@ enum {
   X11_None = None
 };
 
-//Note: defined in X11/Xlib.h, but also a class in format.h
+// Note: defined in X11/Xlib.h, but also a class in format.h
 #undef None
 
 #include <iostream>
-#include "cppformat/format.h"
+#include <cppformat/format.h>
 
 static const int kGlxContextMajorVersionARB = 0x2091;
 static const int kGlxContextMinorversionARB = 0x2092;
@@ -83,8 +109,8 @@ int main(int argc, char* argv[]) {
   GLX_DEPTH_SIZE, 24,
   GLX_STENCIL_SIZE, 8,
   GLX_DOUBLEBUFFER, True,
-  //GLX_SAMPLE_BUFFERS  , 1,
-  //GLX_SAMPLES         , 4,
+  // GLX_SAMPLE_BUFFERS  , 1,
+  // GLX_SAMPLES         , 4,
       X11_None };
 
   int glx_major, glx_minor;
@@ -96,7 +122,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  printf( "Getting matching framebuffer configs\n" );
+  fmt::print("Getting matching framebuffer configs\n");
   int fbcount;
   GLXFBConfig* fbc = glXChooseFBConfig(display, DefaultScreen(display),
                                        visual_attribs, &fbcount);
@@ -142,7 +168,7 @@ int main(int argc, char* argv[]) {
 
   // Get a visual
   XVisualInfo *vi = glXGetVisualFromFBConfig(display, bestFbc);
-  fmt::print("Chosen visual ID = {#x}\n", vi->visualid );
+  fmt::print("Chosen visual ID = {#x}\n", vi->visualid);
 
   fmt::print("Creating colormap\n");
   XSetWindowAttributes swa;
@@ -165,7 +191,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Done with the visual info data
-  XFree( vi );
+  XFree(vi);
 
   XStoreName(display, win, "GL 3.0 Window");
 
@@ -202,14 +228,12 @@ int main(int argc, char* argv[]) {
     fmt::print(std::cerr, "glXCreateContextAttribsARB() not found"
                " ... using old-style GLX context\n");
     ctx = glXCreateNewContext(display, bestFbc, GLX_RGBA_TYPE, 0, True);
-  }
-
   // If it does, try to get a GL 3.0 context!
-  else {
+  } else {
     int context_attribs[] = {
         kGlxContextMajorVersionARB, 3,
         kGlxContextMinorversionARB, 0,
-        //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        // GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
         X11_None };
 
     fmt::print("Creating context\n");
@@ -218,9 +242,9 @@ int main(int argc, char* argv[]) {
 
     // Sync to ensure any errors generated are processed.
     XSync(display, False);
-    if (!g_ctx_error_occurred && ctx)
+    if (!g_ctx_error_occurred && ctx) {
       fmt::print("Created GL 3.0 context\n");
-    else {
+    } else {
       // Couldn't create GL 3.0 context.  Fall back to old-style 2.x context.
       // When a context version below 3.0 is requested, implementations will
       // return the newest context version compatible with OpenGL versions less
@@ -258,26 +282,26 @@ int main(int argc, char* argv[]) {
   }
 
   fmt::print("Making context current\n");
-  glXMakeCurrent( display, win, ctx );
+  glXMakeCurrent(display, win, ctx);
 
-  glClearColor( 0, 0.5, 1, 1 );
-  glClear( GL_COLOR_BUFFER_BIT );
-  glXSwapBuffers ( display, win );
+  glClearColor(0, 0.5, 1, 1);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glXSwapBuffers(display, win);
 
-  sleep( 1 );
+  sleep(1);
 
-  glClearColor ( 1, 0.5, 0, 1 );
-  glClear ( GL_COLOR_BUFFER_BIT );
-  glXSwapBuffers ( display, win );
+  glClearColor(1, 0.5, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glXSwapBuffers(display, win);
 
-  sleep( 1 );
+  sleep(1);
 
-  glXMakeCurrent( display, 0, 0 );
-  glXDestroyContext( display, ctx );
+  glXMakeCurrent(display, 0, 0);
+  glXDestroyContext(display, ctx);
 
-  XDestroyWindow( display, win );
-  XFreeColormap( display, cmap );
-  XCloseDisplay( display );
+  XDestroyWindow(display, win);
+  XFreeColormap(display, cmap);
+  XCloseDisplay(display);
 
   return 0;
 }
