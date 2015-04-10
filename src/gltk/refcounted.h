@@ -49,4 +49,4 @@ class RefCounted {
 
 }  // namespace gltk
 
-#endif // GLTK_REFCOUNTED_H_
+#endif  // GLTK_REFCOUNTED_H_
