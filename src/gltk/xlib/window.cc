@@ -23,7 +23,7 @@
  *  @brief
  */
 
-#include <gltk/xlib/xlib_window.h>
+#include <gltk/xlib/window.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -328,11 +328,3 @@ void Window::DoDemo() {
 
 }  // namespace xlib
 }  // namespace gltk
-
-int main(int argc, char *argv[]) {
-  std::shared_ptr<nix::Epoll> epoll_ptr(new nix::Epoll());
-  std::unique_ptr<gltk::xlib::Window> window =
-      gltk::xlib::Window::Create(epoll_ptr);
-  window->DoDemo();
-  return 0;
-}

@@ -22,8 +22,8 @@
  *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief
  */
-#ifndef GLTK_XLIB_XLIB_WINDOW_H_
-#define GLTK_XLIB_XLIB_WINDOW_H_
+#ifndef GLTK_XLIB_WINDOW_H_
+#define GLTK_XLIB_WINDOW_H_
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -77,4 +77,4 @@ class Window {
 }  // namespace xlib
 }  // namespace gltk
 
-#endif  // GLTK_XLIB_XLIB_WINDOW_H_
+#endif  // GLTK_XLIB_WINDOW_H_

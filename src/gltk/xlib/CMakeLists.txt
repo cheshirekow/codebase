@@ -2,8 +2,8 @@ include_directories(${glog_INCLUDE_DIRS}
                     ${OPENGL_INCLUDE_DIR}
                     ${x11_INCLUDE_DIRS})
 
-set(LIBRARY_HEADERS xlib_window.h)
-set(LIBRARY_SOURCES xlib_window.cc)
+set(LIBRARY_HEADERS window.h)
+set(LIBRARY_SOURCES window.cc)
 
 
 add_library(gltk_xlib_static STATIC ${LIBRARY_SOURCES})
@@ -21,7 +21,7 @@ install(TARGETS gltk_xlib_static
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib )
 
-add_executable(gltk_xlib_window_demo xlib_window_demo.cc)
+add_executable(gltk_xlib_window_demo window_demo.cc)
 
 target_link_libraries(gltk_xlib_window_demo 
                       gltk_xlib_static

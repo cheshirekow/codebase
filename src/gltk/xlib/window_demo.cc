@@ -22,3 +22,13 @@
  *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief
  */
+
+#include <gltk/xlib/window.h>
+
+int main(int argc, char *argv[]) {
+  std::shared_ptr<nix::Epoll> epoll_ptr(new nix::Epoll());
+  std::unique_ptr<gltk::xlib::Window> window =
+      gltk::xlib::Window::Create(epoll_ptr);
+  window->DoDemo();
+  return 0;
+}
