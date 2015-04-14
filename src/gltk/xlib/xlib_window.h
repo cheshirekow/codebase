@@ -25,8 +25,13 @@
 #ifndef GLTK_XLIB_XLIB_WINDOW_H_
 #define GLTK_XLIB_XLIB_WINDOW_H_
 
+#include <cstdint>
+#include <memory>
+#include <cpp_nix/epoll.h>
+
 // forward declarations of X things we need to store
-struct Display;
+struct _XDisplay;
+typedef _XDisplay Display;
 
 namespace gltk {
 
@@ -39,18 +44,24 @@ namespace gltk {
  */
 class XlibWindow {
  public:
+  /// Calls XDestroyWindow
+  ~XlibWindow();
+
   /// Create a new window with it's own connection to the display server
   static std::unique_ptr<XlibWindow> Create();
 
   /// Create a new window using the provided connection to the display
   /// server.
-  static std::unique_ptr<XlibWindow> Create(Display* display);
+  static std::unique_ptr<XlibWindow> Create(
+      const std::shared_ptr<Display>& display);
 
  private:
   /// construction only allowed through `Create()`
-  XlibWindow();
+  XlibWindow(const std::shared_ptr<Display>& display, uint64_t window);
 
-  Display* display_;  ///< xserver connection
+  std::shared_ptr<Display> display_;  ///< xserver connection
+  uint64_t window_;                   ///< x11 window id
+  nix::Epoll epoll_;                  ///< event multiplexer
 };
 
 }  // namespace gltk
