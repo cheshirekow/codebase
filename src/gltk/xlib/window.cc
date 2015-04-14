@@ -310,7 +310,7 @@ Window::~Window() {
 }
 
 void Window::DispatchXEvents() {
-  while(XPending(display_)) {
+  while (XPending(display_)) {
     XEvent e;
     XNextEvent(display_, &e);
 
