@@ -309,6 +309,39 @@ Window::~Window() {
   XCloseDisplay(display_);
 }
 
+void Window::DispatchXEvents() {
+  while(XPending(display_)) {
+    XEvent e;
+    XNextEvent(display_, &e);
+
+    switch (e.type) {
+      case MapNotify:
+        // OnMapNotify(e.xmap);
+        break;
+      case UnmapNotify:
+        // OnUnmapNotify(e.xunmap);
+        break;
+      case ConfigureNotify:
+        // OnConfigureNotify(e.xconfigure);
+        break;
+      case ButtonPress:
+        // OnButtonPress(e.xbutton);
+        break;
+      case ButtonRelease:
+        // OnButtonRelease(e.xbutton);
+        break;
+      case KeyPress:
+        // OnKeyPress(e.xkey);
+        break;
+      case KeyRelease:
+        // OnKeyRelease(e.xkey);
+        break;
+      default:
+        LOG(WARNING) << "Ignored event";
+    }
+  }
+}
+
 void Window::DoDemo() {
   LOG(INFO) << "Making context current";
   glXMakeCurrent(display_, window_, context_);

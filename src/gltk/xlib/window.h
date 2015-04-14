@@ -60,7 +60,9 @@ class Window {
   static std::unique_ptr<Window> Create(
       const std::shared_ptr<nix::Epoll>& epoll);
 
-  void OnXEventReady();
+  /// Reads all available messages in the xlib inbound queue and dispatches
+  /// them to the appropriate handler
+  void DispatchXEvents();
   void DoDemo();
 
  private:
