@@ -26,6 +26,7 @@ add_executable(gltk_xlib_window_demo xlib_window_demo.cc)
 target_link_libraries(gltk_xlib_window_demo 
                       gltk_xlib_static
                       gltk_static
+                      cpp_nix_static
                       format_static
                       ${glog_LDFLAGS}
                       ${OPENGL_LIBRARIES}

@@ -53,6 +53,23 @@ typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig,
                                                      const int*);
 
 namespace gltk {
+namespace xlib {
+
+std::unique_ptr<XlibWindow> XlibWindow::Create(
+    const std::shared_ptr<nix::Epoll> &epoll) {
+  Display *display = XOpenDisplay(NULL);
+
+  if (!display) {
+    LOG(FATAL) << "Failed to open X display";
+    exit(1);
+  }
+
+
+  return std::unique_ptr<XlibWindow>();
+}
+
+}  // namespace xlib
+}  // namespace gltk
 
 // Helper to check for extension string presence.  Adapted from:
 //   http://www.opengl.org/resources/features/OGLextensions/
@@ -95,32 +112,6 @@ static int HandleCtxError(Display *dpy, XErrorEvent *ev) {
   g_ctx_error_occurred = true;
   return 0;
 }
-
-std::unique_ptr<XlibWindow> XlibWindow::Create() {
-  Display *display = XOpenDisplay(NULL);
-
-  if (!display) {
-    LOG(FATAL) << "Failed to open X display";
-    exit(1);
-  }
-
-  std::shared_ptr<Display> display_ptr(display, XCloseDisplay);
-  return Create(display_ptr);
-}
-
-std::unique_ptr<XlibWindow> XlibWindow::Create(
-    const std::shared_ptr<Display> &display) {
-  return std::unique_ptr<XlibWindow>();
-}
-
-XlibWindow::XlibWindow(const std::shared_ptr<Display> &display, uint64_t window)
-    : display_(display), window_(window) {}
-
-XlibWindow::~XlibWindow() {
-  XDestroyWindow(display_.get(), window_);
-}
-
-}  // namespace gltk
 
 int main(int argc, char* argv[]) {
   Display *display = XOpenDisplay(NULL);
@@ -250,13 +241,13 @@ int main(int argc, char* argv[]) {
   // Note this error handler is global.  All display connections in all threads
   // of a process use the same error handler, so be sure to guard against other
   // threads issuing X commands while this code is running.
-  gltk::g_ctx_error_occurred = false;
+  g_ctx_error_occurred = false;
   int (*old_handler)(Display*,
-                     XErrorEvent*) = XSetErrorHandler(&gltk::HandleCtxError);
+                     XErrorEvent*) = XSetErrorHandler(&HandleCtxError);
 
   // Check for the GLX_ARB_create_context extension string and the function.
   // If either is not present, use GLX 1.3 context creation method.
-  if (!gltk::IsExtensionSupported(glx_extentions, "GLX_ARB_create_context")
+  if (!IsExtensionSupported(glx_extentions, "GLX_ARB_create_context")
       || !glX_create_context_attribs_ARB) {
     LOG(WARNING) << "glXCreateContextAttribsARB() not found"
                      " ... using old-style GLX context";
@@ -275,7 +266,7 @@ int main(int argc, char* argv[]) {
 
     // Sync to ensure any errors generated are processed.
     XSync(display, False);
-    if (!gltk::g_ctx_error_occurred && ctx) {
+    if (!g_ctx_error_occurred && ctx) {
       LOG(INFO) << "Created GL 3.0 context";
     } else {
       // Couldn't create GL 3.0 context.  Fall back to old-style 2.x context.
@@ -287,7 +278,7 @@ int main(int argc, char* argv[]) {
       // kGlxContextMinorversionARB = 0
       context_attribs[3] = 0;
 
-      gltk::g_ctx_error_occurred = false;
+      g_ctx_error_occurred = false;
 
       LOG(WARNING) << "Failed to create GL 3.0 context"
                       " ... using old-style GLX context";
@@ -302,7 +293,7 @@ int main(int argc, char* argv[]) {
   // Restore the original error handler
   XSetErrorHandler(old_handler);
 
-  if (gltk::g_ctx_error_occurred || !ctx) {
+  if (g_ctx_error_occurred || !ctx) {
     LOG(FATAL) << "Failed to create an OpenGL context";
     exit(1);
   }

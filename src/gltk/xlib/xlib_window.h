@@ -25,19 +25,21 @@
 #ifndef GLTK_XLIB_XLIB_WINDOW_H_
 #define GLTK_XLIB_XLIB_WINDOW_H_
 
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+
 #include <cstdint>
 #include <memory>
 #include <cpp_nix/epoll.h>
 
-// forward declarations of X things we need to store
-struct _XDisplay;
-typedef _XDisplay Display;
-
 namespace gltk {
+namespace xlib {
 
 /// A self-contained xlib window which provides xlib message translation to
 /// `gltk` message types.
-/**
+/**should
  *  By default, each XlibWindow maintains it's own connection to the X server.
  *  If you would like to share a common connection to the server use the
  *  `Create()` method which takes a `Display` pointer.
@@ -48,22 +50,27 @@ class XlibWindow {
   ~XlibWindow();
 
   /// Create a new window with it's own connection to the display server
-  static std::unique_ptr<XlibWindow> Create();
-
-  /// Create a new window using the provided connection to the display
-  /// server.
+  /**
+   * @param epoll   the epoll instance to attach to
+   *
+   * If the window is created successfully then it will attach the socket
+   * file descriptor for it's X11 server connection to the specified epoll
+   * instance so that it may process X11 events when they occur.
+   */
   static std::unique_ptr<XlibWindow> Create(
-      const std::shared_ptr<Display>& display);
+      const std::shared_ptr<nix::Epoll>& epoll);
 
  private:
   /// construction only allowed through `Create()`
-  XlibWindow(const std::shared_ptr<Display>& display, uint64_t window);
+  XlibWindow();
 
-  std::shared_ptr<Display> display_;  ///< xserver connection
-  uint64_t window_;                   ///< x11 window id
-  nix::Epoll epoll_;                  ///< event multiplexer
+  Display* display_;     ///< xserver connection
+  GLXContext* context_;  ///< glx context
+  Window window_;        ///< x11 window id
+  Colormap* color_map_;  ///< x11 color map
 };
 
+}  // namespace xlib
 }  // namespace gltk
 
 #endif  // GLTK_XLIB_XLIB_WINDOW_H_
