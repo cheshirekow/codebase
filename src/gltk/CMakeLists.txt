@@ -1,7 +1,9 @@
 set(LIBRARY_HEADERS buffer.h
+                    events.h
                     framebuffer.h
                     gluintref.h
                     gltk.h
+                    pipeline.h
                     program.h
                     refcounted.h
                     refptr.h
@@ -10,7 +12,9 @@ set(LIBRARY_HEADERS buffer.h
                     vertexarray.h)
 
 set(LIBRARY_SOURCES buffer.cc
+                    events.h
                     framebuffer.cc
+                    pipeline.cc
                     program.cc
                     refcounted.cc
                     shader.cc
