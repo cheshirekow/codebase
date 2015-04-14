@@ -62,12 +62,17 @@ class XlibWindow {
 
  private:
   /// construction only allowed through `Create()`
-  XlibWindow();
+  XlibWindow(Display* display, GLXContext context, Colormap color_map,
+             Window window);
+
+  void OnXEventReady();
+  void DoDemo();
+
 
   Display* display_;     ///< xserver connection
-  GLXContext* context_;  ///< glx context
+  GLXContext context_;  ///< glx context
+  Colormap color_map_;  ///< x11 color map
   Window window_;        ///< x11 window id
-  Colormap* color_map_;  ///< x11 color map
 };
 
 }  // namespace xlib

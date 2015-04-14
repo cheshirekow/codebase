@@ -68,6 +68,23 @@ std::unique_ptr<XlibWindow> XlibWindow::Create(
   return std::unique_ptr<XlibWindow>();
 }
 
+XlibWindow::XlibWindow(Display *display, GLXContext context, Colormap color_map,
+                       Window window)
+    : display_(display),
+      context_(context),
+      color_map_(color_map),
+      window_(window) {}
+
+XlibWindow::~XlibWindow() {
+  // remove the current context to ensure that the context we are about to
+  // delete is not active
+  glXMakeCurrent(display_, 0, 0);
+  glXDestroyContext(display_, context_);
+  XDestroyWindow(display_, window_);
+  XFreeColormap(display_, color_map_);
+  XCloseDisplay(display_);
+}
+
 }  // namespace xlib
 }  // namespace gltk
 
