@@ -97,7 +97,7 @@ static int HandleCtxError(Display *dpy, XErrorEvent *ev) {
 namespace gltk {
 namespace xlib {
 
-std::unique_ptr<WindowX> WindowX::Create(
+std::unique_ptr<Window> Window::Create(
     const std::shared_ptr<nix::Epoll> &epoll) {
   Display *display = XOpenDisplay(NULL);
 
@@ -193,10 +193,9 @@ std::unique_ptr<WindowX> WindowX::Create(
   swa.event_mask = StructureNotifyMask;
 
   LOG(INFO) << "Creating window";
-  Window win = XCreateWindow(display, RootWindow(display, vi->screen), 0, 0,
-                             100, 100, 0, vi->depth, InputOutput, vi->visual,
-                             CWBorderPixel | CWColormap | CWEventMask,
-                             &swa);
+  ::Window win = XCreateWindow(display, RootWindow(display, vi->screen), 0, 0,
+                               100, 100, 0, vi->depth, InputOutput, vi->visual,
+                               CWBorderPixel | CWColormap | CWEventMask, &swa);
   if (!win) {
     LOG(FATAL) << "Failed to create window";
     exit(1);
@@ -290,17 +289,17 @@ std::unique_ptr<WindowX> WindowX::Create(
     LOG(INFO) << "Direct GLX rendering context obtained";
   }
 
-  return std::unique_ptr<WindowX>(new WindowX(display, ctx, cmap, win));
+  return std::unique_ptr<Window>(new Window(display, ctx, cmap, win));
 }
 
-WindowX::WindowX(Display *display, GLXContext context, Colormap color_map,
-                 Window window)
+Window::Window(Display *display, GLXContext context, Colormap color_map,
+               ::Window window)
     : display_(display),
       context_(context),
       color_map_(color_map),
       window_(window) {}
 
-WindowX::~WindowX() {
+Window::~Window() {
   // remove the current context to ensure that the context we are about to
   // delete is not active
   glXMakeCurrent(display_, 0, 0);
@@ -310,7 +309,7 @@ WindowX::~WindowX() {
   XCloseDisplay(display_);
 }
 
-void WindowX::DoDemo() {
+void Window::DoDemo() {
   LOG(INFO) << "Making context current";
   glXMakeCurrent(display_, window_, context_);
 
@@ -332,8 +331,8 @@ void WindowX::DoDemo() {
 
 int main(int argc, char *argv[]) {
   std::shared_ptr<nix::Epoll> epoll_ptr(new nix::Epoll());
-  std::unique_ptr<gltk::xlib::WindowX> window =
-      gltk::xlib::WindowX::Create(epoll_ptr);
+  std::unique_ptr<gltk::xlib::Window> window =
+      gltk::xlib::Window::Create(epoll_ptr);
   window->DoDemo();
   return 0;
 }
