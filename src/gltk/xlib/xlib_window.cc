@@ -97,7 +97,7 @@ static int HandleCtxError(Display *dpy, XErrorEvent *ev) {
 namespace gltk {
 namespace xlib {
 
-std::unique_ptr<XlibWindow> XlibWindow::Create(
+std::unique_ptr<WindowX> WindowX::Create(
     const std::shared_ptr<nix::Epoll> &epoll) {
   Display *display = XOpenDisplay(NULL);
 
@@ -290,17 +290,17 @@ std::unique_ptr<XlibWindow> XlibWindow::Create(
     LOG(INFO) << "Direct GLX rendering context obtained";
   }
 
-  return std::unique_ptr<XlibWindow>(new XlibWindow(display, ctx, cmap, win));
+  return std::unique_ptr<WindowX>(new WindowX(display, ctx, cmap, win));
 }
 
-XlibWindow::XlibWindow(Display *display, GLXContext context, Colormap color_map,
-                       Window window)
+WindowX::WindowX(Display *display, GLXContext context, Colormap color_map,
+                 Window window)
     : display_(display),
       context_(context),
       color_map_(color_map),
       window_(window) {}
 
-XlibWindow::~XlibWindow() {
+WindowX::~WindowX() {
   // remove the current context to ensure that the context we are about to
   // delete is not active
   glXMakeCurrent(display_, 0, 0);
@@ -310,7 +310,7 @@ XlibWindow::~XlibWindow() {
   XCloseDisplay(display_);
 }
 
-void XlibWindow::DoDemo() {
+void WindowX::DoDemo() {
   LOG(INFO) << "Making context current";
   glXMakeCurrent(display_, window_, context_);
 
@@ -332,8 +332,8 @@ void XlibWindow::DoDemo() {
 
 int main(int argc, char *argv[]) {
   std::shared_ptr<nix::Epoll> epoll_ptr(new nix::Epoll());
-  std::unique_ptr<gltk::xlib::XlibWindow> window =
-      gltk::xlib::XlibWindow::Create(epoll_ptr);
+  std::unique_ptr<gltk::xlib::WindowX> window =
+      gltk::xlib::WindowX::Create(epoll_ptr);
   window->DoDemo();
   return 0;
 }

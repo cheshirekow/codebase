@@ -44,10 +44,10 @@ namespace xlib {
  *  If you would like to share a common connection to the server use the
  *  `Create()` method which takes a `Display` pointer.
  */
-class XlibWindow {
+class WindowX {
  public:
   /// Calls XDestroyWindow
-  ~XlibWindow();
+  ~WindowX();
 
   /// Create a new window with it's own connection to the display server
   /**
@@ -57,7 +57,7 @@ class XlibWindow {
    * file descriptor for it's X11 server connection to the specified epoll
    * instance so that it may process X11 events when they occur.
    */
-  static std::unique_ptr<XlibWindow> Create(
+  static std::unique_ptr<WindowX> Create(
       const std::shared_ptr<nix::Epoll>& epoll);
 
   void OnXEventReady();
@@ -65,8 +65,8 @@ class XlibWindow {
 
  private:
   /// construction only allowed through `Create()`
-  XlibWindow(Display* display, GLXContext context, Colormap color_map,
-             Window window);
+  WindowX(Display* display, GLXContext context, Colormap color_map,
+          Window window);
 
   Display* display_;     ///< xserver connection
   GLXContext context_;  ///< glx context
