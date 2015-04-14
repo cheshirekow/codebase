@@ -60,14 +60,13 @@ class XlibWindow {
   static std::unique_ptr<XlibWindow> Create(
       const std::shared_ptr<nix::Epoll>& epoll);
 
+  void OnXEventReady();
+  void DoDemo();
+
  private:
   /// construction only allowed through `Create()`
   XlibWindow(Display* display, GLXContext context, Colormap color_map,
              Window window);
-
-  void OnXEventReady();
-  void DoDemo();
-
 
   Display* display_;     ///< xserver connection
   GLXContext context_;  ///< glx context

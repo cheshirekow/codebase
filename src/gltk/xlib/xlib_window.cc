@@ -52,42 +52,6 @@ typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig,
                                                      GLXContext, Bool,
                                                      const int*);
 
-namespace gltk {
-namespace xlib {
-
-std::unique_ptr<XlibWindow> XlibWindow::Create(
-    const std::shared_ptr<nix::Epoll> &epoll) {
-  Display *display = XOpenDisplay(NULL);
-
-  if (!display) {
-    LOG(FATAL) << "Failed to open X display";
-    exit(1);
-  }
-
-
-  return std::unique_ptr<XlibWindow>();
-}
-
-XlibWindow::XlibWindow(Display *display, GLXContext context, Colormap color_map,
-                       Window window)
-    : display_(display),
-      context_(context),
-      color_map_(color_map),
-      window_(window) {}
-
-XlibWindow::~XlibWindow() {
-  // remove the current context to ensure that the context we are about to
-  // delete is not active
-  glXMakeCurrent(display_, 0, 0);
-  glXDestroyContext(display_, context_);
-  XDestroyWindow(display_, window_);
-  XFreeColormap(display_, color_map_);
-  XCloseDisplay(display_);
-}
-
-}  // namespace xlib
-}  // namespace gltk
-
 // Helper to check for extension string presence.  Adapted from:
 //   http://www.opengl.org/resources/features/OGLextensions/
 static bool IsExtensionSupported(const char *extList, const char *extension) {
@@ -130,7 +94,11 @@ static int HandleCtxError(Display *dpy, XErrorEvent *ev) {
   return 0;
 }
 
-int main(int argc, char* argv[]) {
+namespace gltk {
+namespace xlib {
+
+std::unique_ptr<XlibWindow> XlibWindow::Create(
+    const std::shared_ptr<nix::Epoll> &epoll) {
   Display *display = XOpenDisplay(NULL);
 
   if (!display) {
@@ -322,27 +290,50 @@ int main(int argc, char* argv[]) {
     LOG(INFO) << "Direct GLX rendering context obtained";
   }
 
+  return std::unique_ptr<XlibWindow>(new XlibWindow(display, ctx, cmap, win));
+}
+
+XlibWindow::XlibWindow(Display *display, GLXContext context, Colormap color_map,
+                       Window window)
+    : display_(display),
+      context_(context),
+      color_map_(color_map),
+      window_(window) {}
+
+XlibWindow::~XlibWindow() {
+  // remove the current context to ensure that the context we are about to
+  // delete is not active
+  glXMakeCurrent(display_, 0, 0);
+  glXDestroyContext(display_, context_);
+  XDestroyWindow(display_, window_);
+  XFreeColormap(display_, color_map_);
+  XCloseDisplay(display_);
+}
+
+void XlibWindow::DoDemo() {
   LOG(INFO) << "Making context current";
-  glXMakeCurrent(display, win, ctx);
+  glXMakeCurrent(display_, window_, context_);
 
   glClearColor(0, 0.5, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT);
-  glXSwapBuffers(display, win);
+  glXSwapBuffers(display_, window_);
 
   sleep(1);
 
   glClearColor(1, 0.5, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT);
-  glXSwapBuffers(display, win);
+  glXSwapBuffers(display_, window_);
 
   sleep(1);
+}
 
-  glXMakeCurrent(display, 0, 0);
-  glXDestroyContext(display, ctx);
+}  // namespace xlib
+}  // namespace gltk
 
-  XDestroyWindow(display, win);
-  XFreeColormap(display, cmap);
-  XCloseDisplay(display);
-
+int main(int argc, char *argv[]) {
+  std::shared_ptr<nix::Epoll> epoll_ptr(new nix::Epoll());
+  std::unique_ptr<gltk::xlib::XlibWindow> window =
+      gltk::xlib::XlibWindow::Create(epoll_ptr);
+  window->DoDemo();
   return 0;
 }
