@@ -9,7 +9,8 @@ set(LIBRARY_HEADERS buffer.h
                     refptr.h
                     shader.h
                     texture.h
-                    vertexarray.h)
+                    vertexarray.h
+                    widget.h)
 
 set(LIBRARY_SOURCES buffer.cc
                     events.cc
@@ -19,7 +20,8 @@ set(LIBRARY_SOURCES buffer.cc
                     refcounted.cc
                     shader.cc
                     texture.cc
-                    vertexarray.cc)
+                    vertexarray.cc
+                    widget.cc)
 
 add_library(gltk_static STATIC ${LIBRARY_SOURCES})
 add_library(gltk_shared SHARED ${LIBRARY_SOURCES})

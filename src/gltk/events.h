@@ -52,8 +52,22 @@ enum NotifyKeys {
   kWindowUnmapped
 };
 
+
+enum EventType {
+  kNotifyEvent,
+  kWindowConfigureEvent,
+  kButtonEvent,
+  kKeyEvent,
+  kMotionEvent,
+  kTouchEvent,
+};
+
+struct Event {
+  int event_type;
+};
+
 struct NotifyEvent {
-  int type;
+  int notification;
 };
 
 struct WindowConfigureEvent {

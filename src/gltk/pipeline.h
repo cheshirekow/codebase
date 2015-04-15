@@ -26,9 +26,25 @@
 #ifndef GLTK_PIPELINE_H_
 #define GLTK_PIPELINE_H_
 
+#include <memory>
 #include <gltk/events.h>
+#include <gltk/widget.h>
 
 namespace gltk {
+
+/// Passed to event handlers along with new events
+class HandlerActions {
+ public:
+  /// Called if the handler wishes to relinquish focus for the current
+  /// event type
+  void PopFocus();
+
+  /// Called if the handler wishes to give focus to a child widget
+  void PushFocus(Widget* widget);
+
+  /// Called if the handler wishes for the given widget to be redrawn
+  void MarkDirty(Widget* widget);
+};
 
 /// Encapsulates the gltk event dispatching and rendering pipline
 /**
@@ -41,14 +57,25 @@ namespace gltk {
  */
 class Pipeline {
  public:
-  /// Dispatch the specified input event to the current event handler
+  /// Push new events onto the event queue
   /**
    * This should be called by the native event handling system after
-   * translating event messages to gltk message types. The event is handled
-   * immediately, but may modify state affecting later passes of the pipeline
+   * translating event messages to gltk message types.
    */
-  template <class Event>
-  void PushEvent(const Event& event);
+  void PushEvent(const std::unique_ptr<Event>& event);
+
+  /// Performs each pass of the pipeline
+  void DoFrame();
+
+ private:
+  /// Dispatch events to focus handlers
+  void ProcessEvents();
+
+  /// Render widgets to texture
+  void RenderTextures();
+
+  /// Render the scene
+  void RenderScene();
 };
 
 }  // namespace gltk
