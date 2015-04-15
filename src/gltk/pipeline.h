@@ -26,6 +26,8 @@
 #ifndef GLTK_PIPELINE_H_
 #define GLTK_PIPELINE_H_
 
+#include <gltk/events.h>
+
 namespace gltk {
 
 /// Encapsulates the gltk event dispatching and rendering pipline
@@ -37,7 +39,18 @@ namespace gltk {
  *      (recursively)
  *  3.  Render the final scene
  */
-class Pipeline {};
+class Pipeline {
+ public:
+  /// Dispatch the specified input event to the current event handler
+  /**
+   * This should be called by the native event handling system after
+   * translating event messages to gltk message types. The event is handled
+   * immediately, but may modify state affecting later passes of the pipeline
+   */
+  template <class Event>
+  void PushEvent(const Event& event);
+};
+
 }  // namespace gltk
 
 #endif  // GLTK_PIPELINE_H_

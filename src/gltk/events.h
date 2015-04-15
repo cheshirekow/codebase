@@ -26,6 +26,49 @@
 #ifndef GLTK_EVENTS_H_
 #define GLTK_EVENTS_H_
 
-namespace gltk {}  // namespace gltk
+#include <bitset>
+
+namespace gltk {
+
+struct StateBits {
+  unsigned int shift: 1;
+  unsigned int lock: 1;
+  unsigned int control: 1;
+  unsigned int mod0: 1;
+  unsigned int mod1: 1;
+  unsigned int mod2: 1;
+  unsigned int mod3: 1;
+  unsigned int mod4: 1;
+
+  unsigned int button0: 1;
+  unsigned int button1: 1;
+  unsigned int button2: 1;
+  unsigned int button3: 1;
+  unsigned int button4: 1;
+};
+
+struct ButtonEvent {
+  int x, y;  ///< x,y coordinates of pointer in window
+  int button;
+  StateBits state;
+};
+
+struct KeyEvent {
+  int keycode;
+  StateBits state;
+};
+
+struct MotionEvent {
+  int x, y;
+  StateBits state;
+};
+
+struct TouchEvent {
+  int x, y;
+  int touch_id;
+  StateBits state;
+};
+
+}  // namespace gltk
 
 #endif  // GLTK_EVENTS_H_

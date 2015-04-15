@@ -12,7 +12,7 @@ set(LIBRARY_HEADERS buffer.h
                     vertexarray.h)
 
 set(LIBRARY_SOURCES buffer.cc
-                    events.h
+                    events.cc
                     framebuffer.cc
                     pipeline.cc
                     program.cc
