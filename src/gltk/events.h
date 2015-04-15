@@ -47,6 +47,20 @@ struct StateBits {
   unsigned int button4: 1;
 };
 
+enum NotifyKeys {
+  kWindowMapped = 0,
+  kWindowUnmapped
+};
+
+struct NotifyEvent {
+  int type;
+};
+
+struct WindowConfigureEvent {
+  int width;
+  int height;
+};
+
 struct ButtonEvent {
   int x, y;  ///< x,y coordinates of pointer in window
   int button;
