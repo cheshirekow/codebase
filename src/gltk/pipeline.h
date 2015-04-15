@@ -64,7 +64,8 @@ class Pipeline {
    */
   void PushEvent(const std::unique_ptr<Event>& event);
 
-  /// Performs each pass of the pipeline
+  /// Performs each pass of the pipeline and renders to the screen if
+  /// required.
   void DoFrame();
 
  private:
