@@ -25,16 +25,34 @@
         float: right;
         border: 1px solid black;
       }
-    </style>
-    <script type="text/javascript">
 
+      .namespace {
+        font-weight: bold;
+        color: orange;
+      }
+
+      .class {
+        font-weight: bold;
+        color: red;
+      }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/polymer/0.5.5/polymer.min.js"></script>
+    <script type="text/javascript">
+//    document.getElementById("editor").addEventListener("input", function() {
+//    alert("input event fired");
+//}, false);
+      $(document).ready({
+        $(".editable").attr("contentEditable") = true
+      })
     </script>
   </head>
   <div class="editor">
     <div class="line">
       <div class="lineno-placeholder"> <span class="lineno">1</span> </div>
       <div class="line-content" contentEditable="true">
-        Hello world
+        Hello world <span class="namespace">foo</span>::<span class="class">Foo</span>();
       </div>
     </div>
     <div class="line">
