@@ -60,6 +60,7 @@ include_directories(src BEFORE SYSTEM)
 
 include_directories(BEFORE SYSTEM third_party/cppformat)
 include_directories(BEFORE SYSTEM third_party/gtest)
+include_directories(BEFORE SYSTEM third_party/meerkat)
 
 add_subdirectory(third_party)
 

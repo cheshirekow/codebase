@@ -1,7 +1,7 @@
 # Note(bialkowski): This listfile was not distributed with meerkat
 
-set(LIBRARY_HEADERS meerkat.h)
-set(LIBRARY_SOURCES meerkat.c)
+set(LIBRARY_HEADERS meerkat/meerkat.h)
+set(LIBRARY_SOURCES meerkat/meerkat.c)
 
 add_library(meerkat_static STATIC ${LIBRARY_SOURCES})
 add_library(meerkat_shared SHARED ${LIBRARY_SOURCES})
@@ -17,7 +17,4 @@ install(TARGETS meerkat_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib )
-
-set_target_properties(meerkat_shared meerkat_static PROPERTIES COMPILE_FLAGS
-    "-Wall -Wextra -Wshadow -pedantic")
 
