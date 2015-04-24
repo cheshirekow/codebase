@@ -33,10 +33,13 @@
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv) {
-  TCLAP::ValueArg<std::string> port(
-      "p", "port", "Port number to listen on ", true, "8080", "string");
-  TCLAP::ValueArg<std::string> db_path(
-      "d", "db_path", "Path to the compilation database", true, "./", "string");
+  TCLAP::ValueArg<std::string> port("p", "port", "Port number to listen on ",
+                                    true, "8080", "string");
+  TCLAP::ValueArg<std::string> db_path("d", "db_path",
+                                       "Path to the compilation database", true,
+                                       "./compilation_commands.json", "string");
+  TCLAP::ValueArg<std::string> file("f", "file", "The file to edit", true,
+                                    "foo.cc", "string");
 
   try {
     TCLAP::CmdLine cmd("Editor Proof of Concept", ' ', "0.1");
