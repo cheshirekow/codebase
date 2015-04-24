@@ -23,22 +23,25 @@
  *  @author Josh Bialkowski (jbialk@mit.edu)
  *  @brief
  */
+#include <fstream>
 #include <string>
 
 #include <cppformat/format.h>
 #include <glog/logging.h>
+#include <json_spirit/json_spirit.h>
 #include <meerkat/meerkat.h>
 #include <tclap/CmdLine.h>
 
 int main(int argc, char **argv) {
-  TCLAP::ValueArg<std::string> port_arg(
+  TCLAP::ValueArg<std::string> port(
       "p", "port", "Port number to listen on ", true, "8080", "string");
   TCLAP::ValueArg<std::string> db_path(
       "d", "db_path", "Path to the compilation database", true, "./", "string");
 
   try {
     TCLAP::CmdLine cmd("Editor Proof of Concept", ' ', "0.1");
-    cmd.add(port_arg);
+    cmd.add(port);
+    cmd.add(db_path);
     cmd.parse(argc, argv);
   } catch (TCLAP::ArgException &e) {
     LOG(FATAL) << "error: " << e.error() << " for arg " << e.argId()
@@ -46,12 +49,35 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  std::ifstream db_stream(db_path.getValue());
+  if (!db_stream.good()) {
+    LOG(FATAL) << "Failed to open compilation database" << db_path.getValue();
+    return 1;
+  }
+
+  json_spirit::mValue db_root;
+  json_spirit::read(db_stream, db_root);
+  if (!db_root.type() == json_spirit::array_type) {
+    LOG(FATAL) << "Compilation database root is not an array";
+    return 1;
+  }
+
+  for (auto &value : db_root.get_array()) {
+    if (value.type() == json_spirit::obj_type) {
+      for (std::string key : {"directory", "command", "file"}) {
+        fmt::print("{} : {}\n", key, value.get_obj()[key].get_str());
+      }
+    } else {
+      LOG(WARNING) << "Skipping non object db entry";
+    }
+  }
+
   struct mg_server *server = mg_create_server(NULL, NULL);
-  mg_set_option(server, "document_root", ".");  // Serve current directory
-  mg_set_option(server, "listening_port", port_arg.getValue().c_str());
+  mg_set_option(server, "document_root", ".");
+  mg_set_option(server, "listening_port", port.getValue().c_str());
 
   for (;;) {
-    mg_poll_server(server, 1000);  // Infinite loop, Ctrl-C to stop
+    mg_poll_server(server, 1000);
   }
   mg_destroy_server(&server);
 

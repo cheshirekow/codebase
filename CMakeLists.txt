@@ -61,6 +61,7 @@ include_directories(src BEFORE SYSTEM)
 include_directories(BEFORE SYSTEM third_party/cppformat)
 include_directories(BEFORE SYSTEM third_party/gtest)
 include_directories(BEFORE SYSTEM third_party/meerkat)
+include_directories(BEFORE SYSTEM third_party/json_spirit)
 
 add_subdirectory(third_party)
 
