@@ -10,7 +10,7 @@ set_target_properties(meerkat_static meerkat_shared
                       PROPERTIES OUTPUT_NAME meerkat)
 
 install(FILES ${LIBRARY_HEADERS}
-        DESTINATION include/cppmeerkat)
+        DESTINATION include/meerkat)
 
 install(TARGETS meerkat_static
                 meerkat_shared
