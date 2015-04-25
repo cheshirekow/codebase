@@ -58,8 +58,14 @@ std::string GetClangString(CXString str) {
 //highlightMap_[CXToken_Literal] = QBrush(QColor("red"));
 //highlightMap_[CXToken_Comment] = QBrush(QColor("blue"));
 
+struct VisitorContext {
+  std::string query_file;
+};
+
 CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent,
-                           CXClientData clientData) {
+                           CXClientData client_data) {
+  VisitorContext* context = static_cast<VisitorContext*>(client_data);
+
   CXFile file;
   unsigned int line;
   unsigned int column;
@@ -68,14 +74,10 @@ CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent,
   CXSourceLocation loc = clang_getCursorLocation(cursor);
   clang_getFileLocation(loc, &file, &line, &column, &offset);
 
-//    //
-//    // Only interested in highlighting tokens in selected file...
-//    //
-//    if ( QString::fromStdString(GetClangString(clang_getFileName(file))) !=
-//            mw->getCurrentPath() )
-//    {
-//        return CXChildVisit_Continue;
-//    }
+  if (GetClangString(clang_getFileName(file)) != context->query_file) {
+    // Skip files other than the one we're highlighting
+    return CXChildVisit_Continue;
+  }
 
   CXTranslationUnit tu = clang_Cursor_getTranslationUnit(cursor);
   CXSourceRange range = clang_getCursorExtent(cursor);
