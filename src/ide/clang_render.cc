@@ -1,28 +1,33 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
- *  This file is part of ide.
+ *  This file is part of clang-render.
  *
- *  ide is free software: you can redistribute it and/or modify
+ *  clang-render is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  ide is distributed in the hope that it will be useful,
+ *  clang-render is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with cpp-pthreads.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with clang-render.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   src/cpp-fcgi.cpp
- *
+ *  @file
  *  @date   Jan 6, 2013
  *  @author Josh Bialkowski (jbialk@mit.edu)
  *  @brief
  */
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
 #include <fstream>
 #include <string>
 
@@ -32,7 +37,7 @@
 #include <json_spirit/json_spirit.h>
 #include <tclap/CmdLine.h>
 
-#include <ide/string_to_argv.h>
+#include "ide/string_to_argv.h"
 
 bool name_matches(const std::string &compile_file,
                   const std::string &query_file) {
@@ -92,7 +97,8 @@ CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent,
       CXSourceLocation tl = clang_getTokenLocation(tu, tokens[i]);
 
       clang_getFileLocation(tl, &file, &line, &column, &offset);
-
+      fmt::print("{} : {}[{}]\n", GetClangString(clang_getFileName(file)), line,
+                 column);
 //            mw->highlightText(line, column, token.size(),
 //                clang_getTokenKind(tokens[i]));
     }
@@ -103,57 +109,85 @@ CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent,
 
 void DoRender(const std::string& compile_command,
                const std::string& query_file) {
+  // open the file for read
+  int fd = open(query_file.c_str(), O_RDONLY);
+
+  // get the length of the file
+  struct stat stat_buf;
+  fstat(fd, &stat_buf);
+  int file_size = stat_buf.st_size;
+
+  // map the file into memory
+  char* file_content = static_cast<char*>(
+      mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0 /* offset */));
+
   std::list<std::string> argl = StringToArgv(compile_command);
   // pop off call to compiler
   argl.pop_front();
 
   // filter out -o flag
   for (auto iter = argl.begin(); iter != argl.end(); ++iter) {
-    if (*iter == "-o") {
-      auto end = iter;
+    while (*iter == "-o" || *iter == "-c") {
+      auto begin = iter;
+      auto end = begin;
       ++end;
       ++end;
-      argl.erase(iter, end);
-      break;
+      argl.erase(begin, end);
+      iter  = end;
     }
+  }
+
+  fmt::print("Using compiler options:\n");
+  for (const std::string& arg : argl) {
+    fmt::print("   {}\n", arg);
   }
 
   // create argv argc
   std::vector<char*> argv;
-  argv.reserve(argl.size() + 1);
+  argv.reserve(argl.size());
   for (std::string& arg : argl) {
     argv.push_back(&arg[0]);
   }
-  argv.push_back(NULL);
 
   CXIndex index = clang_createIndex(0, 0);
-  CXTranslationUnit translation_unit = clang_parseTranslationUnit(
-      index, query_file.c_str(), argv.data(), 3, 0, 0, CXTranslationUnit_None);
+  CXTranslationUnit translation_unit =
+      clang_parseTranslationUnit(index, query_file.c_str(), argv.data(),
+                                 argv.size(), 0, 0, CXTranslationUnit_None);
   CXCursor startCursor = clang_getTranslationUnitCursor(translation_unit);
-  clang_visitChildren(startCursor, Visitor, nullptr);
+
+  VisitorContext context;
+  context.query_file = query_file;
+  clang_visitChildren(startCursor, Visitor, &context);
+
+  munmap(static_cast<void*>(file_content), file_size);
 }
 
 int main(int argc, char **argv) {
-  TCLAP::ValueArg<std::string> db_path("d", "db_path",
-                                       "Path to the compilation database", true,
-                                       "./compilation_commands.json", "string");
-  TCLAP::ValueArg<std::string> query_file("f", "file", "The file to render",
-                                          true, "foo.cc", "string");
+  std::string db_path;
+  std::string query_file;
 
   try {
+    TCLAP::ValueArg<std::string> db_path_arg(
+        "d", "db_path", "Path to the compilation database", true,
+        "./compilation_commands.json", "string");
+    TCLAP::ValueArg<std::string> query_file_arg(
+        "f", "file", "The file to render", true, "foo.cc", "string");
+
     TCLAP::CmdLine cmd("Editor Proof of Concept", ' ', "0.1");
-    cmd.add(db_path);
-    cmd.add(query_file);
+    cmd.add(db_path_arg);
+    cmd.add(query_file_arg);
     cmd.parse(argc, argv);
+    db_path = db_path_arg.getValue();
+    query_file = query_file_arg.getValue();
   } catch (TCLAP::ArgException &e) {
     LOG(FATAL) << "error: " << e.error() << " for arg " << e.argId()
                << std::endl;
     return 1;
   }
 
-  std::ifstream db_stream(db_path.getValue());
+  std::ifstream db_stream(db_path);
   if (!db_stream.good()) {
-    LOG(FATAL) << "Failed to open compilation database" << db_path.getValue();
+    LOG(FATAL) << "Failed to open compilation database" << db_path;
     return 1;
   }
 
@@ -164,11 +198,13 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  for (auto &value : db_root.get_array()) {
+  for (auto& value : db_root.get_array()) {
     if (value.type() == json_spirit::obj_type) {
-      if (name_matches(value.get_obj()["file"].get_str(),
-                       query_file.getValue())) {
-        fmt::print("Found file {} in database\n", query_file.getValue());
+      json_spirit::mObject obj = value.get_obj();
+      if (name_matches(obj["file"].get_str(), query_file)) {
+        fmt::print("Found file {} in database\n", query_file);
+        DoRender(obj["command"].get_str(), obj["file"].get_str());
+        return 0;
       }
     } else {
       LOG(WARNING) << "Skipping non object db entry";
