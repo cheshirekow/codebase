@@ -29,6 +29,8 @@
 #include <unistd.h>
 
 #include <fstream>
+#include <iostream>
+#include <set>
 #include <string>
 
 #include <clang-c/Index.h>
@@ -39,7 +41,7 @@
 
 #include "ide/string_to_argv.h"
 
-bool name_matches(const std::string &compile_file,
+bool NameMatches(const std::string &compile_file,
                   const std::string &query_file) {
   return compile_file.size() >= query_file.size() &&
          compile_file.substr(compile_file.size() - query_file.size(),
@@ -57,58 +59,83 @@ std::string GetClangString(CXString str) {
   }
 }
 
-//highlightMap_[CXToken_Punctuation] = QBrush(QColor("black"));
-//highlightMap_[CXToken_Keyword] = QBrush(QColor("green"));
-//highlightMap_[CXToken_Identifier] = QBrush(QColor("black"));
-//highlightMap_[CXToken_Literal] = QBrush(QColor("red"));
-//highlightMap_[CXToken_Comment] = QBrush(QColor("blue"));
 
-struct VisitorContext {
-  std::string query_file;
+
+#define MAP_ENUM(X) {X, #X}
+
+std::set<int> kHighlightSet = {
+  CXCursor_Namespace,
+  CXCursor_CXXMethod,
+  CXCursor_TypeRef,
+  CXCursor_NamespaceRef
 };
 
-CXChildVisitResult Visitor(CXCursor cursor, CXCursor parent,
-                           CXClientData client_data) {
-  VisitorContext* context = static_cast<VisitorContext*>(client_data);
+std::map<int,std::string> kCursorKindStr = {
+  MAP_ENUM(CXCursor_Namespace),
+  MAP_ENUM(CXCursor_CXXMethod),
+  MAP_ENUM(CXCursor_TypeRef),
+  MAP_ENUM(CXCursor_NamespaceRef),
+};
 
-  CXFile file;
-  unsigned int line;
-  unsigned int column;
-  unsigned int offset;
-
-  CXSourceLocation loc = clang_getCursorLocation(cursor);
-  clang_getFileLocation(loc, &file, &line, &column, &offset);
-
-  if (GetClangString(clang_getFileName(file)) != context->query_file) {
-    // Skip files other than the one we're highlighting
-    return CXChildVisit_Continue;
+void HtmlWrite(std::ostream& out, const char data) {
+  switch (data) {
+    case '&':
+      out << "&amp;";
+      break;
+    case '\"':
+      out << "&quot;";
+      break;
+    case '\'':
+      out << "&apos;";
+      break;
+    case '<':
+      out << "&lt;";
+      break;
+    case '>':
+      out << "&gt;";
+      break;
+    default:
+      out << data;
+      break;
   }
+}
 
-  CXTranslationUnit tu = clang_Cursor_getTranslationUnit(cursor);
-  CXSourceRange range = clang_getCursorExtent(cursor);
+void WriteHeader(std::ostream& out) {
+  out << "  <html>\n"
+         "    <head>\n"
+         "      <style type=\"text/css\">\n"
+         "        .CXCursor_TypeRef {\n"
+         "          font-weight: bold;\n"
+         "          color: red;\n"
+         "        }\n"
+         "\n"
+         "        .cxx {\n"
+         "          font-family: monospace;\n"
+         "          white-space: pre;\n"
+         "        }\n"
+         "      </style>\n"
+         "    </head>\n"
+         "    <body>\n"
+         "      <div class=\"cxx\">\n";
+}
 
-  CXToken* tokens;
-  unsigned int numTokens;
-  clang_tokenize(tu, range, &tokens, &numTokens);
-
-  if (numTokens > 0) {
-    for (unsigned int i = 0; i < numTokens - 1; i++) {
-      std::string token = GetClangString(clang_getTokenSpelling(tu, tokens[i]));
-      CXSourceLocation tl = clang_getTokenLocation(tu, tokens[i]);
-
-      clang_getFileLocation(tl, &file, &line, &column, &offset);
-      fmt::print("{} : {}[{}]\n", GetClangString(clang_getFileName(file)), line,
-                 column);
-//            mw->highlightText(line, column, token.size(),
-//                clang_getTokenKind(tokens[i]));
-    }
-  }
-
-  return CXChildVisit_Continue;
+void WriteFooter(std::ostream& out) {
+  out << "    </div>\n"
+         "  </body>\n"
+         "</html>\n";
 }
 
 void DoRender(const std::string& compile_command,
-               const std::string& query_file) {
+               const std::string& query_file,
+              const std::string& output_file) {
+
+  std::ofstream output_stream(output_file);
+  if (!output_stream.good()) {
+    LOG(FATAL) << "Failed to create output stream for " << output_file;
+    return;
+  }
+  WriteHeader(output_stream);
+
   // open the file for read
   int fd = open(query_file.c_str(), O_RDONLY);
 
@@ -153,18 +180,62 @@ void DoRender(const std::string& compile_command,
   CXTranslationUnit translation_unit =
       clang_parseTranslationUnit(index, query_file.c_str(), argv.data(),
                                  argv.size(), 0, 0, CXTranslationUnit_None);
-  CXCursor startCursor = clang_getTranslationUnitCursor(translation_unit);
+  CXFile file = clang_getFile(translation_unit, query_file.c_str());
+//  CXCursor startCursor = clang_getTranslationUnitCursor(translation_unit);
 
-  VisitorContext context;
-  context.query_file = query_file;
-  clang_visitChildren(startCursor, Visitor, &context);
+  unsigned line = 0;
+  unsigned column = 0;
+  for (char* current = file_content; current < file_content + file_size;
+       ++current) {
+    CXSourceLocation location =
+        clang_getLocation(translation_unit, file, line, column);
+    CXCursor cursor = clang_getCursor(translation_unit, location);
+    CXCursorKind cursor_kind = clang_getCursorKind(cursor);
+    // if it's something we want to highlight
+    if(kHighlightSet.count(cursor_kind) > 0) {
+      fmt::print(output_stream, "<span class=\"{}\">",
+                 kCursorKindStr[cursor_kind]);
+      CXSourceRange extent = clang_getCursorExtent(cursor);
+      CXSourceLocation end_location = clang_getRangeEnd(extent);
 
+      unsigned line_to;
+      unsigned column_to;
+      clang_getFileLocation(end_location, nullptr, &line_to, &column_to,
+                            nullptr);
+      for (; current <= file_content + file_size &&
+                 (line < line_to || column < column_to);
+           ++current) {
+        HtmlWrite(output_stream, *current);
+        if (*current == '\n') {
+          ++line;
+          column = 0;
+        } else {
+          ++column;
+        }
+      }
+
+      fmt::print(output_stream, "</span>");
+    }
+
+
+    HtmlWrite(output_stream, *current);
+    if (*current == '\n') {
+      ++line;
+      column = 0;
+    } else {
+      ++column;
+    }
+  }
+
+  WriteFooter(output_stream);
   munmap(static_cast<void*>(file_content), file_size);
+  close(fd);
 }
 
 int main(int argc, char **argv) {
   std::string db_path;
   std::string query_file;
+  std::string output_file;
 
   try {
     TCLAP::ValueArg<std::string> db_path_arg(
@@ -172,13 +243,17 @@ int main(int argc, char **argv) {
         "./compilation_commands.json", "string");
     TCLAP::ValueArg<std::string> query_file_arg(
         "f", "file", "The file to render", true, "foo.cc", "string");
+    TCLAP::ValueArg<std::string> output_file_arg(
+        "o", "output", "The file to write to", true, "foo.html", "string");
 
     TCLAP::CmdLine cmd("Editor Proof of Concept", ' ', "0.1");
     cmd.add(db_path_arg);
     cmd.add(query_file_arg);
+    cmd.add(output_file_arg);
     cmd.parse(argc, argv);
     db_path = db_path_arg.getValue();
     query_file = query_file_arg.getValue();
+    output_file = output_file_arg.getValue();
   } catch (TCLAP::ArgException &e) {
     LOG(FATAL) << "error: " << e.error() << " for arg " << e.argId()
                << std::endl;
@@ -201,9 +276,9 @@ int main(int argc, char **argv) {
   for (auto& value : db_root.get_array()) {
     if (value.type() == json_spirit::obj_type) {
       json_spirit::mObject obj = value.get_obj();
-      if (name_matches(obj["file"].get_str(), query_file)) {
+      if (NameMatches(obj["file"].get_str(), query_file)) {
         fmt::print("Found file {} in database\n", query_file);
-        DoRender(obj["command"].get_str(), obj["file"].get_str());
+        DoRender(obj["command"].get_str(), obj["file"].get_str(), output_file);
         return 0;
       }
     } else {
