@@ -34,6 +34,8 @@
 #include <memory>
 #include <cpp_nix/epoll.h>
 
+#include <gltk/pipeline.h>
+
 namespace gltk {
 namespace xlib {
 
@@ -58,22 +60,27 @@ class Window {
    * instance so that it may process X11 events when they occur.
    */
   static std::unique_ptr<Window> Create(
-      const std::shared_ptr<nix::Epoll>& epoll);
+      const std::shared_ptr<nix::Epoll>& epoll,
+      const std::shared_ptr<Pipeline>& pipeline);
 
   /// Reads all available messages in the xlib inbound queue and dispatches
   /// them to the appropriate handler
   void DispatchXEvents();
-  void DoDemo();
+
+  void MakeCurrent();
+  void SwapBuffers();
 
  private:
   /// construction only allowed through `Create()`
   Window(Display* display, GLXContext context, Colormap color_map,
-         ::Window window);
+         ::Window window, const std::shared_ptr<Pipeline>& pipeline);
 
   Display* display_;     ///< xserver connection
   GLXContext context_;  ///< glx context
   Colormap color_map_;  ///< x11 color map
   ::Window window_;        ///< x11 window id
+  std::shared_ptr<Pipeline> pipeline_; ///< pipeline
+
 };
 
 }  // namespace xlib

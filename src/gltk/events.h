@@ -31,27 +31,27 @@
 namespace gltk {
 
 struct StateBits {
-  unsigned int shift: 1;
-  unsigned int lock: 1;
-  unsigned int control: 1;
-  unsigned int mod0: 1;
-  unsigned int mod1: 1;
-  unsigned int mod2: 1;
-  unsigned int mod3: 1;
-  unsigned int mod4: 1;
+  unsigned int shift : 1;
+  unsigned int lock : 1;
+  unsigned int control : 1;
+  unsigned int mod0 : 1;
+  unsigned int mod1 : 1;
+  unsigned int mod2 : 1;
+  unsigned int mod3 : 1;
+  unsigned int mod4 : 1;
 
-  unsigned int button0: 1;
-  unsigned int button1: 1;
-  unsigned int button2: 1;
-  unsigned int button3: 1;
-  unsigned int button4: 1;
+  unsigned int button0 : 1;
+  unsigned int button1 : 1;
+  unsigned int button2 : 1;
+  unsigned int button3 : 1;
+  unsigned int button4 : 1;
 };
 
 enum NotifyKeys {
-  kWindowMapped = 0,
-  kWindowUnmapped
+  kWindowMapped = 0,  // NOFORMAT
+  kWindowUnmapped,
+  kInvalidNotify
 };
-
 
 enum EventType {
   kNotifyEvent,
@@ -60,38 +60,39 @@ enum EventType {
   kKeyEvent,
   kMotionEvent,
   kTouchEvent,
+  kInvalidEvent
 };
 
 struct Event {
   int event_type;
 };
 
-struct NotifyEvent {
+struct NotifyEvent : public Event {
   int notification;
 };
 
-struct WindowConfigureEvent {
+struct WindowConfigureEvent : public Event {
   int width;
   int height;
 };
 
-struct ButtonEvent {
+struct ButtonEvent : public Event {
   int x, y;  ///< x,y coordinates of pointer in window
   int button;
   StateBits state;
 };
 
-struct KeyEvent {
+struct KeyEvent : public Event {
   int keycode;
   StateBits state;
 };
 
-struct MotionEvent {
+struct MotionEvent : public Event {
   int x, y;
   StateBits state;
 };
 
-struct TouchEvent {
+struct TouchEvent : public Event {
   int x, y;
   int touch_id;
   StateBits state;

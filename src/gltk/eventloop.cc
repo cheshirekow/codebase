@@ -18,34 +18,41 @@
  */
 /**
  *  @file
- *  @date   Apr 15, 2015
+ *  @date   May 1, 2015
  *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief
  */
-#include <gltk/pipeline.h>
+
+#include <unistd.h>
+#include <glog/logging.h>
+#include <gltk/eventloop.h>
 
 namespace gltk {
 
-void Pipeline::PushEvent(const std::unique_ptr<Event>& event) {
+EventLoop::EventLoop(const std::shared_ptr<nix::Epoll>& epoll,
+                     const std::shared_ptr<Pipeline>& pipeline)
+    : epoll_(epoll), pipeline_(pipeline), should_quit_(false) {
+  int pipe_fds[2];
+  if (pipe(pipe_fds) != 0) {
+    PLOG(FATAL) << "Failed to create quit pipe";
+  }
 
+  pipe_read_fd_ = pipe_fds[0];
+  pipe_write_fd_ = pipe_fds[1];
+
+  nix::epoll::Callback callback = [this]() { this->should_quit_ = true; };
+  epoll_->Add(pipe_read_fd_, {{EPOLLIN, callback}});
 }
 
-void Pipeline::DoFrame() {
-  ProcessEvents();
-  RenderTextures();
-  RenderScene();
-}
+void EventLoop::Run() {
+  while (!should_quit_) {
+    epoll_->Wait(1000);
+    pipeline_->DoFrame();
+  }
+;}
 
-void Pipeline::ProcessEvents() {
-
-}
-
-void Pipeline::RenderTextures() {
-
-}
-
-void Pipeline::RenderScene() {
-
+void EventLoop::Quit() {
+  write(pipe_write_fd_, "goodbye", 7);
 }
 
 }  // namespace gltk

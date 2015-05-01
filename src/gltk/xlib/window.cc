@@ -98,7 +98,8 @@ namespace gltk {
 namespace xlib {
 
 std::unique_ptr<Window> Window::Create(
-    const std::shared_ptr<nix::Epoll> &epoll) {
+    const std::shared_ptr<nix::Epoll> &epoll,
+    const std::shared_ptr<Pipeline>& pipeline) {
   Display *display = XOpenDisplay(NULL);
 
   if (!display) {
@@ -289,11 +290,11 @@ std::unique_ptr<Window> Window::Create(
     LOG(INFO) << "Direct GLX rendering context obtained";
   }
 
-  return std::unique_ptr<Window>(new Window(display, ctx, cmap, win));
+  return std::unique_ptr<Window>(new Window(display, ctx, cmap, win, pipeline));
 }
 
 Window::Window(Display *display, GLXContext context, Colormap color_map,
-               ::Window window)
+               ::Window window, const std::shared_ptr<Pipeline> &pipeline)
     : display_(display),
       context_(context),
       color_map_(color_map),
@@ -342,21 +343,12 @@ void Window::DispatchXEvents() {
   }
 }
 
-void Window::DoDemo() {
-  LOG(INFO) << "Making context current";
+void Window::MakeCurrent() {
   glXMakeCurrent(display_, window_, context_);
+}
 
-  glClearColor(0, 0.5, 1, 1);
-  glClear(GL_COLOR_BUFFER_BIT);
+void Window::SwapBuffers() {
   glXSwapBuffers(display_, window_);
-
-  sleep(1);
-
-  glClearColor(1, 0.5, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glXSwapBuffers(display_, window_);
-
-  sleep(1);
 }
 
 }  // namespace xlib

@@ -18,34 +18,10 @@
  */
 /**
  *  @file
- *  @date   Apr 15, 2015
+ *  @date   May 1, 2015
  *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief
  */
-#include <gltk/pipeline.h>
 
-namespace gltk {
+#include <gltk/xlib/translate_event.h>
 
-void Pipeline::PushEvent(const std::unique_ptr<Event>& event) {
-
-}
-
-void Pipeline::DoFrame() {
-  ProcessEvents();
-  RenderTextures();
-  RenderScene();
-}
-
-void Pipeline::ProcessEvents() {
-
-}
-
-void Pipeline::RenderTextures() {
-
-}
-
-void Pipeline::RenderScene() {
-
-}
-
-}  // namespace gltk

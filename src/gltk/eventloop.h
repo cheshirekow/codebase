@@ -18,34 +18,43 @@
  */
 /**
  *  @file
- *  @date   Apr 15, 2015
+ *  @date   May 1, 2015
  *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief
  */
+
+#ifndef GLTK_EVENTLOOP_H_
+#define GLTK_EVENTLOOP_H_
+
+#include <atomic>
+#include <memory>
+#include <cpp_nix/epoll.h>
 #include <gltk/pipeline.h>
 
 namespace gltk {
 
-void Pipeline::PushEvent(const std::unique_ptr<Event>& event) {
+/// Manages the top-level event loop
+/**
+ *  At the top level the event loop has two passes:
+ *    1) Process all inbound events
+ *    2) Render a frame if necessary
+ */
+class EventLoop {
+ public:
+  EventLoop(const std::shared_ptr<nix::Epoll>& epoll,
+            const std::shared_ptr<Pipeline>& pipeline);
 
-}
+  void Run();
+  void Quit();
 
-void Pipeline::DoFrame() {
-  ProcessEvents();
-  RenderTextures();
-  RenderScene();
-}
-
-void Pipeline::ProcessEvents() {
-
-}
-
-void Pipeline::RenderTextures() {
-
-}
-
-void Pipeline::RenderScene() {
-
-}
+ private:
+  std::shared_ptr<nix::Epoll> epoll_;
+  std::shared_ptr<Pipeline> pipeline_;
+  std::atomic<bool> should_quit_;
+  int pipe_read_fd_;
+  int pipe_write_fd_;
+};
 
 }  // namespace gltk
+
+#endif  // GLTK_EVENTLOOP_H_

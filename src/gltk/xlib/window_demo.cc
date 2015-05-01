@@ -23,12 +23,27 @@
  *  @brief
  */
 
+#include <unistd.h>
 #include <gltk/xlib/window.h>
 
 int main(int argc, char *argv[]) {
   std::shared_ptr<nix::Epoll> epoll_ptr(new nix::Epoll());
+  std::shared_ptr<gltk::Pipeline> pipeline;
   std::unique_ptr<gltk::xlib::Window> window =
-      gltk::xlib::Window::Create(epoll_ptr);
-  window->DoDemo();
+      gltk::xlib::Window::Create(epoll_ptr, pipeline);
+
+  window->MakeCurrent();
+  glClearColor(0, 0.5, 1, 1);
+  glClear(GL_COLOR_BUFFER_BIT);
+  window->SwapBuffers();
+
+  sleep(1);
+
+  window->MakeCurrent();
+  glClearColor(1, 0.5, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT);
+  window->SwapBuffers();
+
+  sleep(1);
   return 0;
 }

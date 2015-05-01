@@ -18,34 +18,29 @@
  */
 /**
  *  @file
- *  @date   Apr 15, 2015
+ *  @date   May 1, 2015
  *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief
  */
-#include <gltk/pipeline.h>
+#ifndef GLTK_XLIB_TRANSLATE_EVENT_H_
+#define GLTK_XLIB_TRANSLATE_EVENT_H_
+
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
+#include <memory>
+#include <gltk/events.h>
 
 namespace gltk {
+namespace xlib {
 
-void Pipeline::PushEvent(const std::unique_ptr<Event>& event) {
+NotifyEvent TranslateEvent(const XMapEvent& e);
+NotifyEvent TranslateEvent(const XUnmapEvent& e);
+WindowConfigureEvent TranslateEvent(const XConfigureEvent& e);
+ButtonEvent TranslateEvent(const XButtonEvent& e);
+KeyEvent TranslateEvent(const XKeyEvent& e);
 
-}
-
-void Pipeline::DoFrame() {
-  ProcessEvents();
-  RenderTextures();
-  RenderScene();
-}
-
-void Pipeline::ProcessEvents() {
-
-}
-
-void Pipeline::RenderTextures() {
-
-}
-
-void Pipeline::RenderScene() {
-
-}
-
+}  // namespace xlib
 }  // namespace gltk
+
+#endif  // GLTK_XLIB_TRANSLATE_EVENT_H_

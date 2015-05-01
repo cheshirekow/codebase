@@ -2,8 +2,10 @@ include_directories(${glog_INCLUDE_DIRS}
                     ${OPENGL_INCLUDE_DIR}
                     ${x11_INCLUDE_DIRS})
 
-set(LIBRARY_HEADERS window.h)
-set(LIBRARY_SOURCES window.cc)
+set(LIBRARY_HEADERS translate_event.h
+                    window.h)
+set(LIBRARY_SOURCES translate_event.cc
+                    window.cc)
 
 
 add_library(gltk_xlib_static STATIC ${LIBRARY_SOURCES})

@@ -1,4 +1,5 @@
 set(LIBRARY_HEADERS buffer.h
+                    eventloop.h
                     events.h
                     framebuffer.h
                     gluintref.h
@@ -13,6 +14,7 @@ set(LIBRARY_HEADERS buffer.h
                     widget.h)
 
 set(LIBRARY_SOURCES buffer.cc
+                    eventloop.cc
                     events.cc
                     framebuffer.cc
                     pipeline.cc
@@ -38,6 +40,15 @@ install(TARGETS gltk_static
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib )
 
+macro(gltk_test test_name)
+  cc_test(${test_name} ${test_name}.cc)
+  target_link_libraries(${test_name} gltk_static
+                                     cpp_nix_static
+                                     ${glog_LDFLAGS})
+endmacro()
+
+gltk_test(eventloop_test)
+
 if((OPENGL_FOUND)
     AND (glew_FOUND)
     AND (glfw_FOUND))
@@ -50,7 +61,9 @@ if((OPENGL_FOUND)
       ${OPENGL_LIBRARY}
       ${glew_LDFLAGS}
       ${glfw_LDFLAGS}
-      gltk_shared )
+      gltk_shared
+      cpp_nix_shared
+      ${glog_LDFLAGS} )
 
     add_subdirectory(test01)
 else()
@@ -60,3 +73,4 @@ endif()
 if((OPENGL_FOUND) AND (x11_FOUND))
   add_subdirectory(xlib)
 endif()
+

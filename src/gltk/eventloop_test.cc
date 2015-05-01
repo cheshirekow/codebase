@@ -18,34 +18,30 @@
  */
 /**
  *  @file
- *  @date   Apr 15, 2015
+ *  @date   May 1, 2015
  *  @author Josh Bialkowski (josh.bialkowski@gmail.com)
  *  @brief
  */
-#include <gltk/pipeline.h>
+
+#include <sys/timerfd.h>
+#include <gtest/gtest.h>
+#include <gltk/eventloop.h>
 
 namespace gltk {
 
-void Pipeline::PushEvent(const std::unique_ptr<Event>& event) {
+TEST(EventLoopTest, SimpleTest) {
+  std::shared_ptr<nix::Epoll> epoll_ptr(new nix::Epoll());
+  std::shared_ptr<Pipeline> pipeline_ptr(new Pipeline());
+  EventLoop loop(epoll_ptr, pipeline_ptr);
 
-}
+  int timer_fd = timerfd_create(CLOCK_MONOTONIC, 0);
+  ::itimerspec spec{{1, 0}, {1, 0}};  // 1 second timeout
+  timerfd_settime(timer_fd, 0, &spec, NULL);
 
-void Pipeline::DoFrame() {
-  ProcessEvents();
-  RenderTextures();
-  RenderScene();
-}
+  auto on_timer_expiration = [&loop]() { loop.Quit(); };
+  epoll_ptr->Add(timer_fd, {{EPOLLIN, on_timer_expiration}});
 
-void Pipeline::ProcessEvents() {
-
-}
-
-void Pipeline::RenderTextures() {
-
-}
-
-void Pipeline::RenderScene() {
-
+  loop.Run();
 }
 
 }  // namespace gltk
