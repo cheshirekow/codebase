@@ -34,6 +34,7 @@
 #include <memory>
 #include <cpp_nix/epoll.h>
 
+#include <gltk/events.h>
 #include <gltk/pipeline.h>
 
 namespace gltk {

@@ -27,6 +27,7 @@
 #define GLTK_EVENTS_H_
 
 #include <bitset>
+#include <list>
 
 namespace gltk {
 
@@ -65,38 +66,49 @@ enum EventType {
 
 struct Event {
   int event_type;
+
+ protected:
+  Event(int event_type_in) : event_type(event_type_in) {}
 };
 
 struct NotifyEvent : public Event {
+  NotifyEvent() : Event(kNotifyEvent) {}
   int notification;
 };
 
 struct WindowConfigureEvent : public Event {
+  WindowConfigureEvent() : Event(kWindowConfigureEvent) {}
   int width;
   int height;
 };
 
 struct ButtonEvent : public Event {
+  ButtonEvent() : Event(kButtonEvent) {}
   int x, y;  ///< x,y coordinates of pointer in window
   int button;
   StateBits state;
 };
 
 struct KeyEvent : public Event {
+  KeyEvent() : Event(kKeyEvent) {}
   int keycode;
   StateBits state;
 };
 
 struct MotionEvent : public Event {
+  MotionEvent() : Event(kMotionEvent) {}
   int x, y;
   StateBits state;
 };
 
 struct TouchEvent : public Event {
+  TouchEvent() : Event(kTouchEvent){}
   int x, y;
   int touch_id;
   StateBits state;
 };
+
+typedef std::list<Event> EventQueue;
 
 }  // namespace gltk
 
