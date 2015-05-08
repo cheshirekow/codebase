@@ -53,7 +53,7 @@ def GetProjectRelativePath(query_path):
   return os.path.relpath(os.path.abspath(query_path), project_path)
 
 def GetProjectName(query_path):
-  return query_path.split(os.sep)[2]
+  return GetProjectRelativePath(query_path).split(os.sep)[1]
 
 def GetInclusionGuard(query_path):
    return re.subs(r'\W', '_', GetProjectRelativePath(query_path)).upper()
@@ -101,13 +101,13 @@ def FormatFile(file_path):
   temp_file.close()
   target_file.close()
 
-  with open(temp_file_path) as temp_file:
-    for line in temp_file:
-        print(line.rstrip())
+  os.rename(temp_file_path, file_path)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Reformat the file')
-  parser.add_argument('file_path', help='The file to format')
+  parser.add_argument('file_paths', help='The file to format', nargs='+')
   args = parser.parse_args()
 
-  FormatFile(args.file_path)
+  for file_path in args.file_paths:
+    if os.path.isfile(file_path):
+      FormatFile(file_path)

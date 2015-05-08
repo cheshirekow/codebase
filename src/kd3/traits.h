@@ -1,21 +1,22 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
+ *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
- *  This file is part of mpblocks.
+ *  This file is part of kd3.
  *
- *  mpblocks is free software: you can redistribute it and/or modify
+ *  kd3 is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  mpblocks is distributed in the hope that it will be useful,
+ *  kd3 is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 /**
  *  \file   mpblocks/kd_tree/Traits.h
  *
