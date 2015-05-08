@@ -1,5 +1,6 @@
 add_subdirectory(gtest)
 add_subdirectory(cppformat)
+add_subdirectory(kdtree)
 
 if(NOT (re2_FOUND))
   add_subdirectory(re2)  
