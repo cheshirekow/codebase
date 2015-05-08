@@ -16,6 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 /*
  *  \file   CSampler.cpp
  *
@@ -23,7 +24,6 @@
  *  \author Josh Bialkowski (jbialk@mit.edu)
  *  \brief
  */
-
 
 #include <mpblocks/nearest_neighbor/kd_tree.hpp>
 #include <mpblocks/nearest_neighbor/kd_tree/blocks.h>

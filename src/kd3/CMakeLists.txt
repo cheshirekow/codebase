@@ -1,4 +1,3 @@
-#    # adds the libsigc++ libraries to the list
 #    set(LIBS ${LIBS} ${SigC++_LIBRARIES})
     
 #    # adds samplerTest to the list of executables to generate

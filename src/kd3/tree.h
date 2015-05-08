@@ -17,8 +17,6 @@
  *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 /*
  *  @file   Tree.h
  *

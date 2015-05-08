@@ -33,8 +33,7 @@ COPYRIGHT_FMT = (
  *
  *  You should have received a copy of the GNU General Public License
  *  along with {project}.  If not, see <http://www.gnu.org/licenses/>.
- */
-""")
+ */""")
 
 COPYRIGHT_REGEX = re.compile(r'Copyright\s*\(C\)\s*(\d{4})')
 HEADER_FILE_REGEX = re.compile(r'\.hp{0,2}$')
