@@ -25,35 +25,33 @@
  *  @brief
  */
 
-#ifndef MPBLOCKS_KD_TREE_RANGESEARCH_H_
-#define MPBLOCKS_KD_TREE_RANGESEARCH_H_
+#ifndef KD3_RANGESEARCH_H_
+#define KD3_RANGESEARCH_H_
 
-#include <vector>
+#include <Eigen/Dense>
 
-namespace mpblocks {
-namespace kd_tree {
+namespace kd3 {
 
 template <class Traits>
 struct RangeSearchIface {
-  typedef typename Traits::Format_t Format_t;
-  typedef typename Traits::Node Node_t;
-  typedef typename Traits::HyperRect HyperRect_t;
+  typedef typename Traits::Scalar Scalar;
+  typedef typename Traits::Node Node;
+  typedef typename Traits::HyperRect HyperRect;
 
-  typedef Eigen::Matrix<Format_t, Traits::NDim, 1> Vector_t;
-  typedef Vector_t Point_t;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
 
   /// just ensure virtualness
   virtual ~RangeSearchIface() {}
 
   /// evalute if @p p is inside the range, and add @p n to the result set if
   /// it is
-  virtual void evaluate(const Point_t& q, Node_t* n) = 0;
+  virtual void Evaluate(const Point& q, Node* n) = 0;
 
   /// return true if the hyper rectangle intersects the range
-  virtual bool shouldRecurse(const HyperRect_t& h) = 0;
+  virtual bool ShouldRecurse(const HyperRect& h) = 0;
 };
 
-}  // namespace kd_tree
-}  // namespace mpblocks
+}  // namespace kd3
 
 #endif

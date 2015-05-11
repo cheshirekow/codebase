@@ -25,35 +25,35 @@
  *  @brief
  */
 
-#ifndef MPBLOCKS_KD_TREE_NEARESTSEARCH_H_
-#define MPBLOCKS_KD_TREE_NEARESTSEARCH_H_
+#ifndef KD3_NEARESTSEARCH_H_
+#define KD3_NEARESTSEARCH_H_
 
-namespace mpblocks {
-namespace kd_tree {
+#include <Eigen/Dense>
+
+namespace kd3 {
 
 /// Interface for nearest node type searches
 template <class Traits>
 struct NearestSearchIface {
-  typedef typename Traits::Format_t Format_t;
-  typedef typename Traits::Node Node_t;
-  typedef typename Traits::HyperRect HyperRect_t;
+  typedef typename Traits::Scalar Scalar;
+  typedef typename Traits::Node Node;
+  typedef typename Traits::HyperRect HyperRect;
 
-  typedef Eigen::Matrix<Format_t, Traits::NDim, 1> Vector_t;
-  typedef Vector_t Point_t;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
 
   /// just ensure virtualness
   virtual ~NearestSearchIface() {}
 
   /// evaluate the current point, and add the corresponding node to the
   /// result set if necessary
-  virtual void evaluate(const Point_t& q, const Point_t& p, Node_t* n) = 0;
+  virtual void Evaluate(const Point& q, const Point& p, Node* n) = 0;
 
   /// evaluate the hyper rectangle and return true if it is possible that
   /// we must recurse into it
-  virtual bool shouldRecurse(const Point_t& q, const HyperRect_t& h) = 0;
+  virtual bool ShouldRecurse(const Point& q, const HyperRect& h) = 0;
 };
 
-}  // namespace kd_tree
-}  // namespace mpblocks
+}  // namespace kd3
 
-#endif
+#endif  // KD3_NEARESTSEARCH_H_
