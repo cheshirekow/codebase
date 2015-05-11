@@ -28,11 +28,13 @@
 #ifndef KD3_TREE_H_
 #define KD3_TREE_H_
 
-#include <vector>
-#include <memory>
 #include <cassert>
-#include <iostream>
 #include <limits>
+#include <memory>
+#include <vector>
+
+#include <Eigen/Dense>
+#include <kd3/node.h>
 
 namespace kd3 {
 
@@ -46,47 +48,44 @@ template <class Traits>
 class Tree {
  public:
   /// number format, i.e. double, float
-  typedef typename Traits::Format_t Format_t;
+  typedef typename Traits::Scalar Scalar;
 
   /// the node class, should be defined as an inner class of Traits
-  typedef typename Traits::Node Node_t;
+  typedef typename Traits::Node Node;
 
   /// the hyper rectangle class shoudl be defined as an inner class of
   /// Traits, or a typedef in Traits
-  typedef typename Traits::HyperRect HyperRect_t;
+  typedef typename Traits::HyperRect HyperRect;
 
   /// a vector is the difference of two points
-  typedef Eigen::Matrix<Format_t, Traits::NDim, 1> Vector_t;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
 
   /// the storage type for points
-  typedef Vector_t Point_t;
+  typedef Vector Point;
 
   // these just shorten up some of the templated classes into smaller
   // names
-  typedef Tree<Traits> This_t;
-  typedef Node<Traits> NodeBase_t;
-  typedef ListBuilder<Traits> ListBuilder_t;
-  typedef NearestSearchIface<Traits> NNIface_t;
-  typedef RangeSearchIface<Traits> RangeIface_t;
+  typedef Tree<Traits> This;
+  typedef Node<Traits> NodeBase;
+  //  typedef ListBuilder<Traits> ListBuilder_t;
+  //  typedef NearestSearchIface<Traits> NNIface_t;
+  //  typedef RangeSearchIface<Traits> RangeIface_t;
 
  protected:
-  Node_t* m_root;          ///< root node of the tree (0 if empty)
-  ListBuilder_t m_lister;  ///< helper for building a list of all nodes
-  HyperRect_t m_rect;      ///< hyper rectangle for searches
-  int m_size;              ///< number of points
+  Node* root_;      ///< root node of the tree (0 if empty)
+  HyperRect rect_;  ///< hyper rectangle for searches
+  int32_t size_;        ///< number of points
 
-  HyperRect_t m_initRect;  ///< initial rectangle, probably 0,0,0...
-  HyperRect_t m_bounds;    ///< bounding rectangle
+  HyperRect workspace_;  ///< total rectangle
+  HyperRect bounds_;     ///< bounding rectangle
 
  public:
   /// constructs a new kd-tree
-  Tree();
+  Tree() : root_(nullptr), size_(0) {}
 
   /// destructs the tree and recursively frees all node data.
   /// note that nodes do not own their data if their data are pointers
-  ~Tree();
-
-  void set_initRect(const HyperRect_t& h);
+  ~Tree() {}
 
   /// insert a node into the kd tree. The node should be newly created
   /// and contain no children
@@ -98,69 +97,59 @@ class Tree {
    *
    *  @note   The tree does not take ownership of the node poitner
    */
-  void insert(Node_t*);
+  void Insert(Node* node);
 
   /// generic NN search, specific search depends on the implementing
   /// class of the NNIface
-  void findNearest(const Point_t& q, NNIface_t& search);
+//  void findNearest(const Point_t& q, NNIface_t& search);
 
   /// generic range search, specific search depends on the implementing
   /// class of the RangeIface
-  void findRange(RangeIface_t& search);
+//  void findRange(RangeIface_t& search);
 
   /// create a list of all the nodes in the tree, mostly only used for
   /// debug drawing
-  typename ListBuilder_t::List_t& buildList(bool bfs = true);
+//  typename ListBuilder_t::List_t& buildList(bool bfs = true);
 
   /// return the list after buildList has been called, the reference is
   /// the same one returned by buildList but you may want to build the
   /// list and then use it multiple times later
-  typename ListBuilder_t::List_t& getList() { return m_lister.getList(); }
+//  typename ListBuilder_t::List_t& getList() { return m_lister.getList(); }
 
   /// return the root node
-  Node_t* getRoot() { return m_root; }
+  Node* GetRoot() { return root_; }
 
   /// clearout the data structure, note: does not destroy any object
   /// references
-  void clear();
+  void Clear() {
+    root_ = 0;
+    size_ = 0;
+    bounds_ = HyperRect();
+  }
 
   /// return the number of points in the tree
-  int size();
+  int32_t GetSize() { return size_; }
 };
 
-
 template <class Traits>
-Tree<Traits>::Tree()
-    : m_root(0), m_size(0) {
-  clear();
-}
+void Tree<Traits>::Insert(Node* node) {
+  size_++;
+  NodeBase* node_base = static_cast<NodeBase*>(node);
+  const Point& pt = node_base->GetPoint();
+  bounds_.GrowToContain(pt);
 
-template <class Traits>
-Tree<Traits>::~Tree() {}
-
-template <class Traits>
-void Tree<Traits>::set_initRect(const HyperRect_t& h) {
-  m_initRect = h;
-}
-
-template <class Traits>
-void Tree<Traits>::insert(Node_t* n) {
-  m_size++;
-
-  const Point_t& pt = n->getPoint();
-  for (int i = 0; i < pt.size(); i++) {
-    if (pt[i] < m_bounds.minExt[i]) m_bounds.minExt[i] = pt[i];
-    if (pt[i] > m_bounds.maxExt[i]) m_bounds.maxExt[i] = pt[i];
-  }
-
-  if (m_root)
-    return static_cast<NodeBase_t*>(m_root)->insert(n);
-  else {
-    m_root = n;
-    return static_cast<NodeBase_t*>(m_root)->construct(0, 0);
+  HyperRect node_rect = workspace_;
+  if (root_) {
+    static_cast<NodeBase*>(root_)->Insert(node_rect, node);
+  } else {
+    root_ = node_;
+    static_cast<NodeBase*>(root_)
+        ->Construct(0, workspace_.GetLonestDimension());
   }
 }
 
+
+/*
 template <class Traits>
 void Tree<Traits>::findNearest(const Point_t& q, NNIface_t& search) {
   if (m_root) {
@@ -187,18 +176,8 @@ typename ListBuilder<Traits>::List_t& Tree<Traits>::buildList(bool bfs) {
 
   return m_lister.getList();
 }
+*/
 
-template <class Traits>
-void Tree<Traits>::clear() {
-  m_root = 0;
-  m_size = 0;
-  m_bounds = m_initRect;
-}
-
-template <class Traits>
-int Tree<Traits>::size() {
-  return m_size;
-}
 
 }  // namespace kd3
 
