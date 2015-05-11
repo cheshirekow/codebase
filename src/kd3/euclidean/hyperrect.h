@@ -75,6 +75,38 @@ struct HyperRect {
       }
     }
   }
+
+  /// Split the hyperrectangle on one axis at the specified value, making this
+  /// hyprerectangle refer to the half with values smaller than the split
+  void SplitLesser(uint8_t dim, Scalar value) { max_ext[dim] = value; }
+
+  /// Split the hyperrectangle on one axis at the specified value, making this
+  /// hyprerectangle refer to the half with values larger than the split
+  void SplitGreater(uint8_t dim, Scalar value) { min_ext[dim] = value; }
+
+  /// split the hyperrectangle at the given point along the given dimension
+  void Split(uint8_t dim, Scalar value, HyperRect<Traits>* left,
+             HyperRect<Traits>* right) const {
+    if (left) {
+      *left = *this;
+      left->max_ext[dim] = value;
+    }
+    if (right) {
+      *right = *this;
+      right->min_ext[dim] = value;
+    }
+  }
+
+  void GrowToContain(const Point& point) {
+    for (uint8_t i = 0; i < Traits::NDim; i++) {
+      if (point[i] < min_ext[i]) {
+        min_ext[i] = point[i];
+      }
+      if (point[i] > max_ext[i]) {
+        max_ext[i] = point[i];
+      }
+    }
+  }
 };
 
 template <class Traits>

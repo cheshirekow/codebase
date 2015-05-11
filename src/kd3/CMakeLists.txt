@@ -2,12 +2,9 @@ include_directories(${eigen3_INCLUDE_DIRS})
 
 add_library(kd3
             euclidean/hyperrect.h
-            euclidean/hyperrect.hpp
             kd3.cc
             node.h
-            node.hpp
-            tree.h
-            tree.hpp)
+            tree.h)
 
 add_subdirectory(euclidean)
 

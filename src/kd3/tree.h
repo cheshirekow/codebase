@@ -30,9 +30,11 @@
 
 #include <vector>
 #include <memory>
+#include <cassert>
+#include <iostream>
+#include <limits>
 
-namespace mpblocks {
-namespace kd_tree {
+namespace kd3 {
 
 /**
  *  @brief  a simple  KDtree class
@@ -126,7 +128,78 @@ class Tree {
   int size();
 };
 
-}  // namespace kd_tree
-}  // namespace mpblocks
+
+template <class Traits>
+Tree<Traits>::Tree()
+    : m_root(0), m_size(0) {
+  clear();
+}
+
+template <class Traits>
+Tree<Traits>::~Tree() {}
+
+template <class Traits>
+void Tree<Traits>::set_initRect(const HyperRect_t& h) {
+  m_initRect = h;
+}
+
+template <class Traits>
+void Tree<Traits>::insert(Node_t* n) {
+  m_size++;
+
+  const Point_t& pt = n->getPoint();
+  for (int i = 0; i < pt.size(); i++) {
+    if (pt[i] < m_bounds.minExt[i]) m_bounds.minExt[i] = pt[i];
+    if (pt[i] > m_bounds.maxExt[i]) m_bounds.maxExt[i] = pt[i];
+  }
+
+  if (m_root)
+    return static_cast<NodeBase_t*>(m_root)->insert(n);
+  else {
+    m_root = n;
+    return static_cast<NodeBase_t*>(m_root)->construct(0, 0);
+  }
+}
+
+template <class Traits>
+void Tree<Traits>::findNearest(const Point_t& q, NNIface_t& search) {
+  if (m_root) {
+    m_rect = m_bounds;
+    static_cast<NodeBase_t*>(m_root)->findNearest(q, m_rect, search);
+  }
+}
+
+template <class Traits>
+void Tree<Traits>::findRange(RangeIface_t& search) {
+  if (m_root) {
+    m_rect = m_bounds;
+    static_cast<NodeBase_t*>(m_root)->findRange(search, m_rect);
+  }
+}
+
+template <class Traits>
+typename ListBuilder<Traits>::List_t& Tree<Traits>::buildList(bool bfs) {
+  m_lister.reset();
+  if (bfs)
+    m_lister.buildBFS(m_root);
+  else
+    m_lister.buildDFS(m_root);
+
+  return m_lister.getList();
+}
+
+template <class Traits>
+void Tree<Traits>::clear() {
+  m_root = 0;
+  m_size = 0;
+  m_bounds = m_initRect;
+}
+
+template <class Traits>
+int Tree<Traits>::size() {
+  return m_size;
+}
+
+}  // namespace kd3
 
 #endif  // KD3_TREE_H_

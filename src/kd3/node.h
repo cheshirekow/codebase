@@ -66,12 +66,12 @@ class Node {
 
   typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
   typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
+  typedef Node<Traits> Base;
 
-  typedef Node<Traits> This;
-//  typedef ListPair<Traits> Pair_t;
+  //  typedef ListPair<Traits> Pair_t;
 
-//  typedef NearestSearchIface<Traits> NNIface;
-//  typedef RangeSearchIface<Traits> RangeIface;
+  //  typedef NearestSearchIface<Traits> NNIface;
+  //  typedef RangeSearchIface<Traits> RangeIface;
 
  protected:
   unsigned int i_;          ///< dimension that this node splits on, also
@@ -113,16 +113,191 @@ class Node {
    *  @param rect     hyper rectangle containing this node
    *  @param search   implementation of search
    */
-//  void FindNearest(const Point& q, HyperRect& rect, NNIface& search);
+  //  void FindNearest(const Point& q, HyperRect& rect, NNIface& search);
 
   /// find all nodes in the tree that lie inside the specified range
   /// ( can be arbitrary volume, which is implemented by the deriving
   /// class of the interface )
-//  void FindRange(RangeIface& search, HyperRect& rect);
+  //  void FindRange(RangeIface& search, HyperRect& rect);
 
-//  template <typename BackInserter>
-//  void Enumerate(HyperRect& container, BackInserter bs);
+  //  template <typename BackInserter>
+  //  void Enumerate(HyperRect& container, BackInserter bs);
 };
+
+template <class Traits>
+Node<Traits>::Node() {
+  parent_ = nullptr;
+  i_ = 0;
+  smaller_child_ = nullptr;
+  greater_child_ = nullptr;
+}
+
+template <class Traits>
+void Node<Traits>::Construct(Node* parent, unsigned int i) {
+  parent_ = parent;
+  i_ = i;
+  smaller_child_ = nullptr;
+  greater_child_ = nullptr;
+}
+
+template <class Traits>
+void Node<Traits>::Insert(HyperRect* hrect, Derived* node) {
+  Derived** ptr_child = 0;
+
+  // first, grab a pointer to which child pointer we should recurse
+  // into
+  if (static_cast<Base*>(node)->point_[i_] <= point_[i_])
+    hrect->SplitLesser(i_, point_[i_]);
+  ptr_child = &smaller_child;
+  else hrect->SplitGreater(i_, point_[i_]);
+  ptr_child = &greater_child;
+
+  // dereference the pointer
+  Derived*& child = *ptr_child;
+
+  // if the child exists (is not null) then recurse, otherwise
+  // create it and we're done
+  if (child)
+    return static_cast<This*>(child)->Insert(node);
+  else {
+    child = node;
+    static_cast<This*>(node)
+        ->Construct(static_cast<Derived*>(this), hrect->GetLongestDimension());
+  }
+}
+
+/*
+template <class Traits>
+void Node<Traits>::findNearest(const Point_t& q, HyperRect_t& rect,
+                               NNIface_t& search) {
+  Node_t* nearerNode;
+  Node_t* fartherNode;
+  Format_t* nearerHyperCoord;
+  Format_t* fartherHyperCoord;
+
+  // first, check to see if the left child or the right child is a
+  // would-be-ancester if the point were incerted in the graph
+  Format_t diff = q[m_i] - m_point[m_i];
+  if (diff <= 0.0) {
+    nearerNode = m_smallerChild;
+    fartherNode = m_greaterChild;
+
+    nearerHyperCoord = &(rect.maxExt[m_i]);
+    fartherHyperCoord = &(rect.minExt[m_i]);
+  }
+
+  else {
+    nearerNode = m_greaterChild;
+    fartherNode = m_smallerChild;
+
+    nearerHyperCoord = &(rect.minExt[m_i]);
+    fartherHyperCoord = &(rect.maxExt[m_i]);
+  }
+
+  // now, whichever child is the would-be-ancestor, recurse into them
+  // also, refine the hyperrectangle that contains the node by
+  // splitting it along the split-plane of this node
+  if (nearerNode) {
+    // copy out the old extent of they hyper-rectangle
+    Format_t oldHyperVal = *nearerHyperCoord;
+
+    // split the hyperrectangle by updating the extent with the
+    // value of this nodes split plane
+    *nearerHyperCoord = m_point[m_i];
+
+    // recurse into the nearer node
+    static_cast<This_t*>(nearerNode)->findNearest(q, rect, search);
+
+    // now that we've stepped back up into this node, restore the
+    // hyperrectangle
+    *nearerHyperCoord = oldHyperVal;
+  }
+
+  // evaluate this node and add it to the result set if necessary
+  search.evaluate(q, m_point, m_this);
+
+  // if the farther node exists, we might need to also check it's
+  // children
+  if (fartherNode) {
+    // refine the hyper-rectangle of the farther subtree
+    Format_t oldHyperVal = *fartherHyperCoord;
+    *fartherHyperCoord = m_point[m_i];
+
+    // check if we have to recurse into the farther subtree
+    if (search.shouldRecurse(q, rect))
+      static_cast<This_t*>(fartherNode)->findNearest(q, rect, search);
+
+    // undo refinement of the hyperrectangle
+    *fartherHyperCoord = oldHyperVal;
+  }
+}
+
+template <class Traits>
+void Node<Traits>::findRange(RangeIface_t& search, HyperRect_t& rect) {
+  // evaluate this node and add it to the result set if
+  // it lies inside the range
+  search.evaluate(m_point, m_this);
+
+  // now evaluate the two children and recurse if necessary
+  {
+    // copy out the old extent of they hyper-rectangle
+    Node_t* child = m_smallerChild;
+    Format_t* hyperCoord = &(rect.maxExt[m_i]);
+    Format_t oldHyperVal = *hyperCoord;
+
+    // split the hyperrectangle by updating the extent with the
+    // value of this nodes split plane
+    *hyperCoord = m_point[m_i];
+
+    // recurse into the nearer node
+    if (child && search.shouldRecurse(rect))
+      static_cast<This_t*>(child)->findRange(search, rect);
+
+    // now that we've stepped back up into this node, restore the
+    // hyperrectangle
+    *hyperCoord = oldHyperVal;
+  }
+
+  {
+    // copy out the old extent of they hyper-rectangle
+    Node_t* child = m_greaterChild;
+    Format_t* hyperCoord = &(rect.minExt[m_i]);
+    Format_t oldHyperVal = *hyperCoord;
+
+    // split the hyperrectangle by updating the extent with the
+    // value of this nodes split plane
+    *hyperCoord = m_point[m_i];
+
+    // recurse into the nearer node
+    if (child && search.shouldRecurse(rect))
+      static_cast<This_t*>(child)->findRange(search, rect);
+
+    // now that we've stepped back up into this node, restore the
+    // hyperrectangle
+    *hyperCoord = oldHyperVal;
+  }
+}
+
+template <class Traits>
+template <typename BackInserter>
+void Node<Traits>::enumerate(HyperRect_t& container, BackInserter bs) {
+  if (m_greaterChild) {
+    Pair_t* pair = new Pair_t();
+    container.copyTo(pair->container);
+    pair->container.minExt[m_i] = m_point[m_i];
+    pair->node = m_greaterChild;
+    bs = pair;
+  }
+
+  if (m_smallerChild) {
+    Pair_t* pair = new Pair_t();
+    container.copyTo(pair->container);
+    pair->container.maxExt[m_i] = m_point[m_i];
+    pair->node = m_smallerChild;
+    bs = pair;
+  }
+}
+*/
 
 }  // namespace kd3
 
