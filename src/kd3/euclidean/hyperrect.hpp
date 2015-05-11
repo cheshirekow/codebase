@@ -1,4 +1,21 @@
-/**
+/*
+ *  Copyright (C) 2011 Josh Bialkowski (josh.bialkowski@gmail.com)
+ *
+ *  This file is part of kd3.
+ *
+ *  kd3 is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  kd3 is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
+ */ /**
  *  @file
  *
  *  @date   Mar 26, 2011
@@ -6,31 +23,32 @@
  *  @brief
  */
 
-#ifndef MPBLOCKS_KD_TREE_EUCLIDEAN_HYPERRECT_HPP_
-#define MPBLOCKS_KD_TREE_EUCLIDEAN_HYPERRECT_HPP_
+#ifndef KD3_EUCLIDEAN_HYPERRECT_HPP_
+#define KD3_EUCLIDEAN_HYPERRECT_HPP_
 
 #include <limits>
+#include <kd3/euclidean/hyperrect.h>
 
-namespace mpblocks {
-namespace kd_tree {
+namespace kd3 {
 namespace euclidean {
 
 template <class Traits>
 HyperRect<Traits>::HyperRect() {
-  minExt.fill(0);
-  maxExt.fill(0);
+  min_ext_.fill(0);
+  max_ext_.fill(0);
 }
 
 template <class Traits>
-typename Traits::Format_t HyperRect<Traits>::dist2(const Point_t& point) {
-  Format_t dist2 = 0;
-  Format_t dist2i = 0;
+typename Traits::Scalar HyperRect<Traits>::GetSquaredDistanceTo(
+    const Point& point) {
+  Scalar dist2 = 0;
+  Scalar dist2i = 0;
 
   for (unsigned int i = 0; i < point.rows(); i++) {
-    if (point[i] < minExt[i])
-      dist2i = minExt[i] - point[i];
-    else if (point[i] > maxExt[i])
-      dist2i = maxExt[i] - point[i];
+    if (point[i] < min_ext_[i])
+      dist2i = min_ext_[i] - point[i];
+    else if (point[i] > max_ext_[i])
+      dist2i = max_ext_[i] - point[i];
     else
       dist2i = 0;
 
@@ -42,15 +60,15 @@ typename Traits::Format_t HyperRect<Traits>::dist2(const Point_t& point) {
 }
 
 template <class Traits>
-typename Traits::Format_t HyperRect<Traits>::measure() {
-  Format_t s = 1.0;
-  for (unsigned int i = 0; i < minExt.rows(); i++) s *= maxExt[i] - minExt[i];
-
+typename Traits::Scalar HyperRect<Traits>::GetMeasure() {
+  Scalar s = 1.0;
+  for (unsigned int i = 0; i < min_ext_.rows(); i++) {
+    s *= max_ext_[i] - min_ext_[i];
+  }
   return s;
 }
 
 }  // namespace euclidean
-}  // namespace kd_tree
-}  // namespace mpblocks
+}  // namespace kd3
 
-#endif
+#endif  // KD3_EUCLIDEAN_HYPERRECT_HPP_

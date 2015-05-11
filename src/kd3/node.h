@@ -25,11 +25,12 @@
  *  @brief
  */
 
-#ifndef MPBLOCKS_KD_TREE_NODE_H_
-#define MPBLOCKS_KD_TREE_NODE_H_
+#ifndef KD3_NODE_H_
+#define KD3_NODE_H_
 
-namespace mpblocks {
-namespace kd_tree {
+#include <Eigen/Dense>
+
+namespace kd3 {
 
 /// Base class for nodes in the kd tree
 /**
@@ -59,27 +60,26 @@ class Node {
  public:
   // these just shorten up some of the templated classes into smaller
   // names
-  typedef typename Traits::Format_t Format_t;
-  typedef typename Traits::Node Node_t;
-  typedef typename Traits::HyperRect HyperRect_t;
+  typedef typename Traits::Scalar Scalar;
+  typedef typename Traits::Node Derived;
+  typedef typename Traits::HyperRect HyperRect;
 
-  typedef Eigen::Matrix<Format_t, Traits::NDim, 1> Vector_t;
-  typedef Vector_t Point_t;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
 
-  typedef Node<Traits> This_t;
+  typedef Node<Traits> This;
   typedef ListPair<Traits> Pair_t;
 
-  typedef NearestSearchIface<Traits> NNIface_t;
-  typedef RangeSearchIface<Traits> RangeIface_t;
+  typedef NearestSearchIface<Traits> NNIface;
+  typedef RangeSearchIface<Traits> RangeIface;
 
  protected:
-  unsigned int m_i;        ///< dimension that this node splits on, also
-                           ///  index of hyperplane's constant component
-  Point_t m_point;         ///< the point that this node contains
-  Node_t* m_parent;        ///< parent node
-  Node_t* m_smallerChild;  ///< child node who's i'th value is smaller
-  Node_t* m_greaterChild;  ///< child node who's i'th value is larger
-  Node_t* m_this;
+  unsigned int i_;        ///< dimension that this node splits on, also
+                          ///  index of hyperplane's constant component
+  Point_t point_;         ///< the point that this node contains
+  Node_t* parent_;        ///< parent node
+  Node_t* smallerChild_;  ///< child node who's i'th value is smaller
+  Node_t* greaterChild_;  ///< child node who's i'th value is larger
 
  public:
   /// does nothing, see construct
@@ -123,7 +123,6 @@ class Node {
   void enumerate(HyperRect_t& container, BackInserter bs);
 };
 
-}  // namespace kd_tree
-}  // mpblocks
+}  // namespace kd3
 
-#endif
+#endif  // KD3_NODE_H_
