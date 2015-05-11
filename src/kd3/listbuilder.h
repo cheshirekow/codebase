@@ -113,18 +113,13 @@ void ListBuilder<Traits>::build(Node_t* root, Inserter_t ins) {
 }
 
 template <class Traits>
-void ListBuilder<Traits>::buildBFS(Node_t* root) {
-  build(root, std::back_inserter(m_deque));
+void ListBuilder<Traits>::BuildBFS(Node* root) {
+  Build(root, std::back_inserter(deque_));
 }
 
 template <class Traits>
-void ListBuilder<Traits>::buildDFS(Node_t* root) {
-  build(root, std::front_inserter(m_deque));
-}
-
-template <class Traits>
-std::list<ListPair<Traits>*>& ListBuilder<Traits>::getList() {
-  return m_list;
+void ListBuilder<Traits>::BuildDFS(Node* root) {
+  Build(root, std::front_inserter(deque_));
 }
 
 }  // namespace kd3
