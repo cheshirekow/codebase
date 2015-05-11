@@ -1,0 +1,1 @@
+cc_test(kd3_euclidean_hyperrect_test hyperrect_test.cc)

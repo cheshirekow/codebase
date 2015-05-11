@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2012 Josh Bialkowski (josh.bialkowski@gmail.com)
+ *  Copyright (C) 2011 Josh Bialkowski (josh.bialkowski@gmail.com)
  *
  *  This file is part of kd3.
  *
@@ -19,71 +19,60 @@
 
 /**
  *  @file
- *
  *  @date   Mar 26, 2011
  *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief
  */
 
-#ifndef MPBLOCKS_KD_TREE_NODE_HPP_
-#define MPBLOCKS_KD_TREE_NODE_HPP_
+#ifndef KD3_NODE_HPP_
+#define KD3_NODE_HPP_
 
 #include <limits>
+#include <kd3/node.h>
 
-namespace mpblocks {
-namespace kd_tree {
+namespace kd3 {
 
 template <class Traits>
 Node<Traits>::Node() {
-  m_parent = 0;
-  m_i = 0;
-  m_smallerChild = 0;
-  m_greaterChild = 0;
+  parent_ = nullptr;
+  i_ = 0;
+  smaller_child_ = nullptr;
+  greater_child_ = nullptr;
 }
 
 template <class Traits>
-void Node<Traits>::construct(Node_t* parent, unsigned int i) {
-  m_parent = parent;
-  m_i = i;
-  m_smallerChild = 0;
-  m_greaterChild = 0;
-  m_this = static_cast<Node_t*>(this);
+void Node<Traits>::Construct(Node* parent, unsigned int i) {
+  parent_ = parent;
+  i_ = i;
+  smaller_child_ = nullptr;
+  greater_child_ = nullptr;
 }
 
 template <class Traits>
-void Node<Traits>::setPoint(const Point_t& p) {
-  m_point = p;
-}
-
-template <class Traits>
-const typename Node<Traits>::Point_t& Node<Traits>::getPoint() {
-  return m_point;
-}
-
-template <class Traits>
-void Node<Traits>::insert(Node_t* node) {
-  Node_t** ptrChild = 0;
+void Node<Traits>::Insert(HyperRect* hrect, Derived* node) {
+  Derived** ptr_child = 0;
 
   // first, grab a pointer to which child pointer we should recurse
   // into
-  if (static_cast<This_t*>(node)->m_point[m_i] <= m_point[m_i])
-    ptrChild = &m_smallerChild;
+  if (static_cast<This*>(node)->point_[i_] <= point_[i_])
+    ptr_child = &smaller_child;
   else
-    ptrChild = &m_greaterChild;
+    ptr_child = &greater_child;
 
   // dereference the pointer
-  Node_t*& child = *ptrChild;
+  Derived*& child = *ptr_child;
 
   // if the child exists (is not null) then recurse, otherwise
   // create it and we're done
   if (child)
-    return static_cast<This_t*>(child)->insert(node);
+    return static_cast<This*>(child)->Insert(node);
   else {
     child = node;
-    static_cast<This_t*>(node)->construct(m_this, (m_i + 1) % m_point.rows());
+    static_cast<This*>(node)
+        ->Construct(static_cast<Derived*>(this), (i_ + 1) % point_.rows());
   }
 }
 
+/*
 template <class Traits>
 void Node<Traits>::findNearest(const Point_t& q, HyperRect_t& rect,
                                NNIface_t& search) {
@@ -214,8 +203,8 @@ void Node<Traits>::enumerate(HyperRect_t& container, BackInserter bs) {
     bs = pair;
   }
 }
+*/
 
-}  // namespace kd_tree
-}  // mpblocks
+}  // namespace kd2
 
-#endif
+#endif  // KD3_NODE_HPP_

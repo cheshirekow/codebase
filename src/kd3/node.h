@@ -68,18 +68,18 @@ class Node {
   typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
 
   typedef Node<Traits> This;
-  typedef ListPair<Traits> Pair_t;
+//  typedef ListPair<Traits> Pair_t;
 
-  typedef NearestSearchIface<Traits> NNIface;
-  typedef RangeSearchIface<Traits> RangeIface;
+//  typedef NearestSearchIface<Traits> NNIface;
+//  typedef RangeSearchIface<Traits> RangeIface;
 
  protected:
-  unsigned int i_;        ///< dimension that this node splits on, also
-                          ///  index of hyperplane's constant component
-  Point_t point_;         ///< the point that this node contains
-  Node_t* parent_;        ///< parent node
-  Node_t* smallerChild_;  ///< child node who's i'th value is smaller
-  Node_t* greaterChild_;  ///< child node who's i'th value is larger
+  unsigned int i_;          ///< dimension that this node splits on, also
+                            ///  index of hyperplane's constant component
+  Point point_;             ///< the point that this node contains
+  Derived* parent_;         ///< parent node
+  Derived* smaller_child_;  ///< child node who's i'th value is smaller
+  Derived* greater_child_;  ///< child node who's i'th value is larger
 
  public:
   /// does nothing, see construct
@@ -91,19 +91,20 @@ class Node {
    *  @param[in]  i       the index of the dimensions on which this node
    *                      splits the space
    */
-  void construct(Node_t* parent, unsigned int i);
+  void Construct(Node* parent, unsigned int i);
 
   /// fill point data (convenience method)
-  void setPoint(const Point_t& p);
+  void SetPoint(const Point& p) { point_ = p; }
 
   /// returns a Point_t of the point stored at this node
-  const Point_t& getPoint();
+  const Point& GetPoint() { return point_; }
 
   /// return the parent node
-  Node_t* getParent() { return m_parent; }
+  Derived* GetParent() { return parent_; }
 
-  /// recursively inserts point as a new node in the tree
-  void insert(Node_t*);
+  /// recursively inserts a new node in the tree, splitting the parent allong
+  /// the longest dimension
+  void Insert(HyperRect* hrect, Derived* node);
 
   /// perform a generic Nearest Neighbor query, different queries
   /// provide different implementations of the search structure
@@ -112,15 +113,15 @@ class Node {
    *  @param rect     hyper rectangle containing this node
    *  @param search   implementation of search
    */
-  void findNearest(const Point_t& q, HyperRect_t& rect, NNIface_t& search);
+//  void FindNearest(const Point& q, HyperRect& rect, NNIface& search);
 
   /// find all nodes in the tree that lie inside the specified range
   /// ( can be arbitrary volume, which is implemented by the deriving
   /// class of the interface )
-  void findRange(RangeIface_t& search, HyperRect_t& rect);
+//  void FindRange(RangeIface& search, HyperRect& rect);
 
-  template <typename BackInserter>
-  void enumerate(HyperRect_t& container, BackInserter bs);
+//  template <typename BackInserter>
+//  void Enumerate(HyperRect& container, BackInserter bs);
 };
 
 }  // namespace kd3
