@@ -24,31 +24,86 @@
  *  @brief
  */
 
-#ifndef MPBLOCKS_KD_TREE_EUCLIDEAN_DISTANCE_H_
-#define MPBLOCKS_KD_TREE_EUCLIDEAN_DISTANCE_H_
+#ifndef KD3_EUCLIDEAN_DISTANCE_H_
+#define KD3_EUCLIDEAN_DISTANCE_H_
 
-namespace mpblocks {
-namespace kd_tree {
+#include <cmath>
+#include <Eigen/Dense>
+#include <kd3/hyperrect.h>
+
+namespace kd3 {
 namespace euclidean {
+
+/// provides euclidean distance computation
+template <class Traits>
+class SquaredDistance {
+ public:
+  typedef typename Traits::Scalar Scalar;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
+  typedef kd3::HyperRect<Traits> HyperRect;
+
+ public:
+  /// return the euclidean distance between two points
+  Scalar operator()(const Point& pa, const Point& pb) {
+    return (pa - pb).squaredNorm();
+  }
+
+  /// return the euclidean distance between a point and hyper rectangle
+  Scalar operator()(const Point& p, const HyperRect& h) {
+    Scalar dist2 = 0;
+    Scalar dist2i = 0;
+
+    for (unsigned int i = 0; i < p.rows(); i++) {
+      if (p[i] < h.min_ext[i]) {
+        dist2i = h.min_ext[i] - p[i];
+      } else if (p[i] > h.max_ext[i]) {
+        dist2i = h.max_ext[i] - p[i];
+      } else {
+        dist2i = 0;
+      }
+      dist2 += dist2i * dist2i;
+    }
+
+    return dist2;
+  }
+};
 
 /// provides euclidean distance computation
 template <class Traits>
 class Distance {
  public:
-  typedef typename Traits::Format_t Format_t;
-  typedef Eigen::Matrix<Format_t, Traits::NDim, 1> Point_t;
-  typedef HyperRect<Traits> Hyper_t;
+  typedef typename Traits::Scalar Scalar;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
+  typedef kd3::HyperRect<Traits> HyperRect;
 
  public:
   /// return the euclidean distance between two points
-  Format_t operator()(const Point_t& pa, const Point_t& pb);
+  Scalar operator()(const Point& pa, const Point& pb) {
+    return (pa - pb).norm();
+  }
 
   /// return the euclidean distance between a point and hyper rectangle
-  Format_t operator()(const Point_t& p, const Hyper_t& h);
+  Scalar operator()(const Point& p, const HyperRect& h) {
+    Scalar dist2 = 0;
+    Scalar dist2i = 0;
+
+    for (unsigned int i = 0; i < p.rows(); i++) {
+      if (p[i] < h.min_ext[i]) {
+        dist2i = h.min_ext[i] - p[i];
+      } else if (p[i] > h.max_ext[i]) {
+        dist2i = h.max_ext[i] - p[i];
+      } else {
+        dist2i = 0;
+      }
+      dist2 += dist2i * dist2i;
+    }
+
+    return std::sqrt(dist2);
+  }
 };
 
+
 }  // namespace eucliean
-}  // namespace kd_tree
-}  // namespace mpblocks
+}  // namespace kd3
 
 #endif  // DEFAULTDISTANCE_H_

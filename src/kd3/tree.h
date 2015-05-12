@@ -35,6 +35,7 @@
 
 #include <Eigen/Dense>
 #include <kd3/node.h>
+#include <kd3/hyperrect.h>
 
 namespace kd3 {
 
@@ -55,7 +56,7 @@ class Tree {
 
   /// the hyper rectangle class shoudl be defined as an inner class of
   /// Traits, or a typedef in Traits
-  typedef typename Traits::HyperRect HyperRect;
+  typedef kd3::HyperRect<Traits> HyperRect;
 
   /// a vector is the difference of two points
   typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
@@ -66,7 +67,7 @@ class Tree {
   // these just shorten up some of the templated classes into smaller
   // names
   typedef Tree<Traits> This;
-  typedef Node<Traits> NodeBase;
+  typedef kd3::Node<Traits> NodeBase;
   //  typedef ListBuilder<Traits> ListBuilder_t;
   //  typedef NearestSearchIface<Traits> NNIface_t;
   //  typedef RangeSearchIface<Traits> RangeIface_t;

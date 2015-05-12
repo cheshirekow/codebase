@@ -1,7 +1,7 @@
 include_directories(${eigen3_INCLUDE_DIRS})
 
 add_library(kd3
-            euclidean/hyperrect.h
+            hyperrect.h
             kd3.cc
             node.h
             tree.h)

@@ -17,22 +17,19 @@
  *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   mpblocks/kd_tree/euclidean/Ball.h
- *
+ *  @file
  *  @date   Nov 20, 2012
  *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief
  */
 
-#ifndef MPBLOCKS_KD_TREE_EUCLIDEAN_BALL_H_
-#define MPBLOCKS_KD_TREE_EUCLIDEAN_BALL_H_
+#ifndef KD3_EUCLIDEAN_BALLSEARCH_H_
+#define KD3_EUCLIDEAN_BALLSEARCH_H_
 
-namespace mpblocks {
-namespace kd_tree {
+namespace kd3 {
 namespace euclidean {
 
-template <class Traits, template <class> class Allocator = std::allocator>
-class Ball : public RangeSearchIface<Traits> {
+template <class Traits>
+class BallSearch : public RangeSearchIface<Traits> {
  public:
   typedef typename Traits::Format_t Format_t;
   typedef typename Traits::Node Node_t;
@@ -77,7 +74,6 @@ class Ball : public RangeSearchIface<Traits> {
 };
 
 }  // namespace euclidean
-}  // namespace kd_tree
-}  // namespace mpblocks
+}  // namespace kd3
 
-#endif  // NEARESTNEIGHBOR_H_
+#endif  // KD3_EUCLIDEAN_BALLSEARCH_H_

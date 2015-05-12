@@ -77,21 +77,17 @@ class Node {
   unsigned int i_;          ///< dimension that this node splits on, also
                             ///  index of hyperplane's constant component
   Point point_;             ///< the point that this node contains
-  Derived* parent_;         ///< parent node
   Derived* smaller_child_;  ///< child node who's i'th value is smaller
   Derived* greater_child_;  ///< child node who's i'th value is larger
 
  public:
   /// does nothing, see construct
-  Node();
-
-  /// construct a new node
-  /**
-   *  @param[in]  parent  the parent node of this node (0 for root node)
-   *  @param[in]  i       the index of the dimensions on which this node
-   *                      splits the space
-   */
-  void Construct(Node* parent, unsigned int i);
+  Node() {
+    parent_ = nullptr;
+    i_ = 0;
+    smaller_child_ = nullptr;
+    greater_child_ = nullptr;
+  }
 
   /// fill point data (convenience method)
   void SetPoint(const Point& p) { point_ = p; }
@@ -125,44 +121,28 @@ class Node {
 };
 
 template <class Traits>
-Node<Traits>::Node() {
-  parent_ = nullptr;
-  i_ = 0;
-  smaller_child_ = nullptr;
-  greater_child_ = nullptr;
-}
-
-template <class Traits>
-void Node<Traits>::Construct(Node* parent, unsigned int i) {
-  parent_ = parent;
-  i_ = i;
-  smaller_child_ = nullptr;
-  greater_child_ = nullptr;
-}
-
-template <class Traits>
 void Node<Traits>::Insert(HyperRect* hrect, Derived* node) {
   Derived** ptr_child = 0;
 
   // first, grab a pointer to which child pointer we should recurse
   // into
-  if (static_cast<Base*>(node)->point_[i_] <= point_[i_])
+  if (static_cast<Base*>(node)->point_[i_] <= point_[i_]) {
     hrect->SplitLesser(i_, point_[i_]);
-  ptr_child = &smaller_child;
-  else hrect->SplitGreater(i_, point_[i_]);
-  ptr_child = &greater_child;
+    ptr_child = &smaller_child;
+  } else {
+    hrect->SplitGreater(i_, point_[i_]);
+    ptr_child = &greater_child;
+  }
 
-  // dereference the pointer
   Derived*& child = *ptr_child;
 
   // if the child exists (is not null) then recurse, otherwise
   // create it and we're done
   if (child)
-    return static_cast<This*>(child)->Insert(node);
+    static_cast<This*>(child)->Insert(node);
   else {
     child = node;
-    static_cast<This*>(node)
-        ->Construct(static_cast<Derived*>(this), hrect->GetLongestDimension());
+    static_cast<This*>(node)->i_ = hrect->GetLongestDimension();
   }
 }
 

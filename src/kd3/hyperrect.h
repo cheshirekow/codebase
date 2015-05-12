@@ -29,7 +29,6 @@
 #include <Eigen/Dense>
 
 namespace kd3 {
-namespace euclidean {
 
 /// an NDim dimensional hyperrectangle, represented as a min and max extent
 /**
@@ -49,10 +48,6 @@ struct HyperRect {
     min_ext.fill(0);
     max_ext.fill(0);
   }
-
-  /// find the nearest point in the hyper-rectangle to the query point and
-  /// return it's distance (squared)
-  Scalar GetSquaredDistanceTo(const Point& point) const;
 
   /// return the measure (volume) of the hyperrectangle
   Scalar GetMeasure() const {
@@ -109,28 +104,6 @@ struct HyperRect {
   }
 };
 
-template <class Traits>
-typename Traits::Scalar HyperRect<Traits>::GetSquaredDistanceTo(
-    const Point& point) const {
-  Scalar dist2 = 0;
-  Scalar dist2i = 0;
-
-  for (unsigned int i = 0; i < point.rows(); i++) {
-    if (point[i] < min_ext[i])
-      dist2i = min_ext[i] - point[i];
-    else if (point[i] > max_ext[i])
-      dist2i = max_ext[i] - point[i];
-    else
-      dist2i = 0;
-
-    dist2i *= dist2i;
-    dist2 += dist2i;
-  }
-
-  return dist2;
-}
-
-}  // namespace euclidean
 }  // namespace kd3
 
 #endif  // KD3_EUCLIDEAN_HYPERRECT_H_
