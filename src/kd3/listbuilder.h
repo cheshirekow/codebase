@@ -34,6 +34,19 @@
 
 namespace kd3 {
 
+/// pairs nodes of the Kd tree along with a hyperrectangle that is the
+/// bounding volume for the subtree rooted at that node
+template <class Traits>
+struct ListPair {
+  // these just shorten up some of the templated classes into smaller
+  // names
+  typedef typename Traits::Node Node;
+  typedef typename Traits::HyperRect HyperRect;
+
+  Node* node;
+  HyperRect container;
+};
+
 /// Enumerates an entire subtree, building a list of nodes along with
 /// the hyperectangle bounding the subtree at that node
 /**
@@ -51,16 +64,25 @@ class ListBuilder {
 
   // these just shorten up some of the templated classes into smaller
   // names
-  typedef ListPair<Traits> Pait;
-  typedef std::deque<Pair*> Deque;
-  typedef std::list<Pair*> List;
+  typedef ListPair<Traits> Pair;
+  typedef std::list<Pair> List;
+
+  List DFS(Node* root) {
+    ListBuilder builder;
+    builder.BuildDFS(root);
+    return builder.list_;
+  }
+
+  List BFS(Node* root) {
+    ListBuilder builder;
+    builder.BuildBFS(root);
+    return builder.list_;
+  }
 
  private:
-  Deque deque_;
+  List deque_;
   List list_;
-  HyperRect hyper_;
 
- public:
   /// build an enumeration of the tree
   /**
    *  @tparam Inserter_t  type of the insert iterator
@@ -69,59 +91,29 @@ class ListBuilder {
    *                  should be an insertion iterator
    */
   template <typename Inserter>
-  void Build(Node* root, Inserter ins);
+  void Build(const HyperRect& hrect, Node* root, Inserter ins) {
+    deque_.emplace_back({root, hrect});
+
+    while (deque_.size() > 0) {
+      list_.splice(list.end(), deque_, deque_.begin(), deque_.begin()++);
+      const Pair& pair = list_.back();
+      pair.node.Enumerate(pair.container, ins);
+    }
+  }
 
   /// enumerate a subtree in breadth-first manner
-  void BuildBFS(Node* root);
+  void BuildBFS(Node* root) {
+    Build(root, std::back_inserter(deque_));
+  }
 
   /// enumerate a subtree in depth-first manner
-  void BuildDFS(Node* root);
-
-  /// return the list
-  List& GetList();
+  void BuildDFS(Node* root) {
+    Build(root, std::front_inserter(deque_));
+  }
 };
 
-template <class Traits>
-void ListBuilder<Traits>::reset() {
-  for (typename Deque_t::iterator ipPair = m_deque.begin();
-       ipPair != m_deque.end(); ipPair++)
-    delete *ipPair;
 
-  for (typename List_t::iterator ipPair = m_list.begin();
-       ipPair != m_list.end(); ipPair++)
-    delete *ipPair;
-
-  m_list.clear();
-  m_deque.clear();
-  m_hyper.makeInfinite();
-}
-
-template <class Traits>
-template <typename Inserter_t>
-void ListBuilder<Traits>::build(Node_t* root, Inserter_t ins) {
-  Pair_t* rootPair = new Pair_t();
-  rootPair->node = root;
-  m_hyper.copyTo(rootPair->container);
-  m_deque.push_back(rootPair);
-
-  while (m_deque.size() > 0) {
-    Pair_t* pair = m_deque.front();
-    m_deque.pop_front();
-    m_list.push_back(pair);
-    pair->node->enumerate(pair->container, ins);
-  }
-}
-
-template <class Traits>
-void ListBuilder<Traits>::BuildBFS(Node* root) {
-  Build(root, std::back_inserter(deque_));
-}
-
-template <class Traits>
-void ListBuilder<Traits>::BuildDFS(Node* root) {
-  Build(root, std::front_inserter(deque_));
-}
 
 }  // namespace kd3
 
-#endif // KD3_LISTBUILDER_H_
+#endif  // KD3_LISTBUILDER_H_
