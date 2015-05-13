@@ -17,64 +17,47 @@
  *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- *  @file   ListBuilder.h
- *
- *  @date   Feb 17, 2012
- *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief
- */
-
 #ifndef KD3_LISTBUILDER_H_
 #define KD3_LISTBUILDER_H_
 
-#include <deque>
 #include <list>
+#include <tuple>
 #include <Eigen/Dense>
 
 namespace kd3 {
-
-/// pairs nodes of the Kd tree along with a hyperrectangle that is the
-/// bounding volume for the subtree rooted at that node
-template <class Traits>
-struct ListPair {
-  // these just shorten up some of the templated classes into smaller
-  // names
-  typedef typename Traits::Node Node;
-  typedef typename Traits::HyperRect HyperRect;
-
-  Node* node;
-  HyperRect container;
-};
 
 /// Enumerates an entire subtree, building a list of nodes along with
 /// the hyperectangle bounding the subtree at that node
 /**
  *  @note lists can be built in breadth first or depth first order
+ *  @TODO make a generator version for range based loops with no storage
+ *        requirements
  */
-template <class Traits>
-class ListBuilder {
+template <typename Scalar, int ndim_>
+class TreeEnumerator {
  public:
-  typedef typename Traits::Scalar Scalar;
-  typedef typename Traits::Node Node;
-  typedef typename Traits::HyperRect HyperRect;
-
+  typedef kd3::Node<Scalar, ndim_> Node;
+  typedef kd3::HyperRect<Scalar, ndim_> HyperRect;
   typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
   typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
 
-  // these just shorten up some of the templated classes into smaller
-  // names
-  typedef ListPair<Traits> Pair;
+  /// pairs nodes of the Kd tree along with a hyperrectangle that is the
+  /// bounding volume for the subtree rooted atalong that node
+  struct Pair {
+    Node<Scalar, ndim_>* node;
+    HyperRect<Scalar, ndim_> container;
+  };
+
   typedef std::list<Pair> List;
 
   List DFS(Node* root) {
-    ListBuilder builder;
+    TreeEnumerator builder;
     builder.BuildDFS(root);
     return builder.list_;
   }
 
   List BFS(Node* root) {
-    ListBuilder builder;
+    TreeEnumerator builder;
     builder.BuildBFS(root);
     return builder.list_;
   }
@@ -97,22 +80,20 @@ class ListBuilder {
     while (deque_.size() > 0) {
       list_.splice(list.end(), deque_, deque_.begin(), deque_.begin()++);
       const Pair& pair = list_.back();
+      HyperRect left_container, right_container;
+      pair.node->Split(pair.container, &left, &right);
+      ins({pair.node->left_child(), left_container});
+      ins({pair.node->right_child(), right_container});
       pair.node.Enumerate(pair.container, ins);
     }
   }
 
   /// enumerate a subtree in breadth-first manner
-  void BuildBFS(Node* root) {
-    Build(root, std::back_inserter(deque_));
-  }
+  void BuildBFS(Node* root) { Build(root, std::back_inserter(deque_)); }
 
   /// enumerate a subtree in depth-first manner
-  void BuildDFS(Node* root) {
-    Build(root, std::front_inserter(deque_));
-  }
+  void BuildDFS(Node* root) { Build(root, std::front_inserter(deque_)); }
 };
-
-
 
 }  // namespace kd3
 

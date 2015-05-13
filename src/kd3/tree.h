@@ -31,116 +31,92 @@
 
 namespace kd3 {
 
-/**
- *  @brief  a simple  KDtree class
- *  @tparam Traits    traits class for kd-tree specifying numer type, dimension
- *                    and the derived class for the node structure
- *  @see    kd_tree:Traits
- */
-template <class Traits>
+/// A simple kd-tree implementation
+template <typename Scalar, int ndim_>
 class Tree {
  public:
-  /// number format, i.e. double, float
-  typedef typename Traits::Scalar Scalar;
-
-  /// the node class, should be defined as an inner class of Traits
-  typedef typename Traits::Node Node;
-
-  /// the hyper rectangle class shoudl be defined as an inner class of
-  /// Traits, or a typedef in Traits
-  typedef kd3::HyperRect<Traits> HyperRect;
-
   /// a vector is the difference of two points
   typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
 
   /// the storage type for points
-  typedef Vector Point;
-
-  // these just shorten up some of the templated classes into smaller
-  // names
-  typedef Tree<Traits> This;
-  typedef kd3::Node<Traits> NodeBase;
-  //  typedef ListBuilder<Traits> ListBuilder_t;
-  //  typedef NearestSearchIface<Traits> NNIface_t;
-  //  typedef RangeSearchIface<Traits> RangeIface_t;
+  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
 
  protected:
-  Node* root_;      ///< root node of the tree (0 if empty)
-  HyperRect rect_;  ///< hyper rectangle for searches
-  int32_t size_;        ///< number of points
+  Node<Scalar, ndim_>* root_;  ///< root node of the tree (0 if empty)
+  int32_t size_;               ///< number of pointsSplit
 
-  HyperRect workspace_;  ///< total rectangle
-  HyperRect bounds_;     ///< bounding rectangle
+  HyperRect<Scalar, ndim_> workspace_;  ///< total rectangle
+  HyperRect<Scalar, ndim_> bounds_;     ///< bounding rectangle
 
  public:
   /// constructs a new kd-tree
   Tree() : root_(nullptr), size_(0) {}
 
-  /// destructs the tree and recursively frees all node data.
-  /// note that nodes do not own their data if their data are pointers
+  /// constructs a new kd-tree with a workspace
+  Tree(const HyperRect<Scalar, ndim_>& workspace)
+      : root_(nullptr), size_(0), workspace_(workspace) {}
+
+  /// note that the tree does not own node data, and so will not free it
   ~Tree() {}
+
+  /// Set the workspace, which is used as the initial hyper-rectangle for
+  /// insertion queries
+  void SetWorkspace(const HyperRect<Scalar, ndim_>& workspace) {
+    workspace_ = workspace;
+  }
 
   /// insert a node into the kd tree. The node should be newly created
   /// and contain no children
   /**
-   *  @param[in]  point   the k-dimensional point to insert into the
-   *                      graph
-   *  @param[in]  data    the data to store at the newly created node
-   *                      (will most-likely contain *point)
-   *
    *  @note   The tree does not take ownership of the node poitner
    */
-  void Insert(Node* node);
+  void Insert(Node<Scalar, ndim_>* node);
 
   /// generic NN search, specific search depends on the implementing
   /// class of the NNIface
-//  void findNearest(const Point_t& q, NNIface_t& search);
+  //  void findNearest(const Point_t& q, NNIface_t& search);
 
   /// generic range search, specific search depends on the implementing
   /// class of the RangeIface
-//  void findRange(RangeIface_t& search);
+  //  void findRange(RangeIface_t& search);
 
   /// create a list of all the nodes in the tree, mostly only used for
   /// debug drawing
-//  typename ListBuilder_t::List_t& buildList(bool bfs = true);
+  //  typename ListBuilder_t::List_t& buildList(bool bfs = true);
 
   /// return the list after buildList has been called, the reference is
   /// the same one returned by buildList but you may want to build the
   /// list and then use it multiple times later
-//  typename ListBuilder_t::List_t& getList() { return m_lister.getList(); }
+  //  typename ListBuilder_t::List_t& getList() { return m_lister.getList(); }
 
   /// return the root node
-  Node* GetRoot() { return root_; }
+  Node<Scalar, ndim_>* root() { return root_; }
+
+  /// return the number of points in the tree
+  int32_t size() { return size_; }
 
   /// clearout the data structure, note: does not destroy any object
   /// references
   void Clear() {
     root_ = 0;
     size_ = 0;
-    bounds_ = HyperRect();
+    bounds_ = HyperRect<Scalar, ndim_>();
   }
-
-  /// return the number of points in the tree
-  int32_t GetSize() { return size_; }
 };
 
-template <class Traits>
-void Tree<Traits>::Insert(Node* node) {
+template <typename Scalar, int ndim_>
+void Tree<Scalar, ndim_>::Insert(Node<Scalar, ndim_>* node) {
   size_++;
-  NodeBase* node_base = static_cast<NodeBase*>(node);
-  const Point& pt = node_base->GetPoint();
+  const Point& pt = node->GetPoint();
   bounds_.GrowToContain(pt);
 
-  HyperRect node_rect = workspace_;
+  HyperRect<Scalar, ndim_> node_rect = workspace_;
   if (root_) {
-    static_cast<NodeBase*>(root_)->Insert(node_rect, node);
+    root_->Insert(node_rect, node);
   } else {
     root_ = node_;
-    static_cast<NodeBase*>(root_)
-        ->Construct(0, workspace_.GetLonestDimension());
   }
 }
-
 
 /*
 template <class Traits>
@@ -170,7 +146,6 @@ typename ListBuilder<Traits>::List_t& Tree<Traits>::buildList(bool bfs) {
   return m_lister.getList();
 }
 */
-
 
 }  // namespace kd3
 

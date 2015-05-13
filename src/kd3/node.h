@@ -67,10 +67,16 @@ class Node {
   void SetPoint(const Point& p) { point_ = p; }
 
   /// returns the point stored at this node
-  const Point& point() { return point_; }
+  const Point& point() const { return point_; }
 
-  const ThisType* smaller_child() { return smaller_child_; }
-  const ThisType* greater_child() { return greater_child_; }
+  uint8_t split_index() const { return i_; }
+  const ThisType* smaller_child() const { return smaller_child_; }
+  const ThisType* greater_child() const { return greater_child_; }
+
+  /// split a hyperrectangle at this node
+  void Split(const HyperRect& source, HyperRect* left, HyperRect* right) {
+    source.Split(i_, point_[i_], left, right);
+  }
 
   /// recursively inserts a new node in the tree, splitting the parent along
   /// the longest dimension
