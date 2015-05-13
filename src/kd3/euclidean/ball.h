@@ -17,19 +17,62 @@
  *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- *  @file   mpblocks/kd_tree/euclidean/Ball.hpp
- *
+ *  @file
  *  @date   Nov 20, 2012
  *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief
  */
 
-#ifndef MPBLOCKS_KD_TREE_EUCLIDEAN_BALL_HPP_
-#define MPBLOCKS_KD_TREE_EUCLIDEAN_BALL_HPP_
+#ifndef KD3_EUCLIDEAN_BALLSEARCH_H_
+#define KD3_EUCLIDEAN_BALLSEARCH_H_
 
-namespace mpblocks {
-namespace kd_tree {
+namespace kd3 {
 namespace euclidean {
+
+template <class Traits>
+class BallSearch : public RangeSearchIface<Traits> {
+ public:
+  typedef typename Traits::Format_t Format_t;
+  typedef typename Traits::Node Node_t;
+
+  typedef Distance<Traits> Distance_t;
+  typedef HyperRect<Traits> HyperRect_t;
+  typedef Key<Traits> Key_t;
+  typedef typename Key_t::Compare KeyCompare_t;
+  typedef Allocator<Key_t> Allocator_t;
+
+  typedef Eigen::Matrix<Format_t, Traits::NDim, 1> Point_t;
+  typedef std::vector<Node_t*, Allocator_t> List_t;
+
+ protected:
+  Point_t m_center;
+  Format_t m_radius;
+  List_t m_list;
+  Distance_t m_dist2Fn;
+
+ public:
+  Ball(const Point_t& center = Point_t::Zero(), Format_t radius = 1);
+
+  virtual ~Ball(){};
+
+  // clear the queue
+  void reset();
+
+  // clear the queue and change k
+  void reset(const Point_t& center, Format_t radius);
+
+  // return the result
+  const List_t& result();
+
+  /// calculates Euclidean distance from @p q to @p p, and if its less
+  /// than the current best replaces the current best node with @p n
+  virtual void evaluate(const Point_t& p, Node_t* n);
+
+  /// evaluate the Euclidean distance from @p q to it's closest point in
+  /// @p r and if that distance is less than the current best distance,
+  /// return true
+  virtual bool shouldRecurse(const HyperRect_t& r);
+};
+
 
 template <class Traits, template <class> class Allocator>
 Ball<Traits, Allocator>::Ball(const Point_t& center, Format_t radius) {
@@ -71,8 +114,8 @@ bool Ball<Traits, Allocator>::shouldRecurse(const HyperRect_t& r) {
   return (dist2 < m_radius * m_radius);
 }
 
-}  // namespace euclidean
-}  // namespace kd_tree
-}  // namespace mpblocks
 
-#endif  // NEARESTNEIGHBOR_H_
+}  // namespace euclidean
+}  // namespace kd3
+
+#endif  // KD3_EUCLIDEAN_BALLSEARCH_H_

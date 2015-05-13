@@ -35,12 +35,11 @@ namespace kd3 {
 namespace euclidean {
 
 /// provides euclidean distance computation
-template <class Traits>
+template <typename Scalar, int ndim_>
 class SquaredDistance {
  public:
-  typedef typename Traits::Scalar Scalar;
-  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
-  typedef kd3::HyperRect<Traits> HyperRect;
+  typedef Eigen::Matrix<Scalar, ndim_, 1> Point;
+  typedef kd3::HyperRect<Scalar, ndim_> HyperRect;
 
  public:
   /// return the euclidean distance between two points
@@ -69,12 +68,11 @@ class SquaredDistance {
 };
 
 /// provides euclidean distance computation
-template <class Traits>
+template <typename Scalar, int ndim_>
 class Distance {
  public:
-  typedef typename Traits::Scalar Scalar;
-  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
-  typedef kd3::HyperRect<Traits> HyperRect;
+  typedef Eigen::Matrix<Scalar, ndim_, 1> Point;
+  typedef kd3::HyperRect<Scalar, ndim_> HyperRect;
 
  public:
   /// return the euclidean distance between two points
@@ -106,4 +104,4 @@ class Distance {
 }  // namespace eucliean
 }  // namespace kd3
 
-#endif  // DEFAULTDISTANCE_H_
+#endif  // KD3_EUCLIDEAN_DISTANCE_H_

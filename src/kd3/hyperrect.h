@@ -16,14 +16,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  @file
- *  @date   Mar 26, 2011
- *  @author Josh Bialkowski (jbialk@mit.edu)
- */
 
-#ifndef KD3_EUCLIDEAN_HYPERRECT_H_
-#define KD3_EUCLIDEAN_HYPERRECT_H_
+#ifndef KD3_HYPERRECT_H_
+#define KD3_HYPERRECT_H_
 
 #include <cstdint>
 #include <Eigen/Dense>
@@ -35,10 +30,9 @@ namespace kd3 {
  *  implemented by storing the minimum and maximum extent of the hyper-rectangle
  *  in all dimensions
  */
-template <class Traits>
+template <typename Scalar, int ndim_>
 struct HyperRect {
-  typedef typename Traits::Scalar Scalar;
-  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
+  typedef Eigen::Matrix<Scalar, ndim_, 1> Point;
 
   Point min_ext;  ///< minimum extent of hyper-rectangle
   Point max_ext;  ///< maximum extent of hyper-rectangle
@@ -48,6 +42,9 @@ struct HyperRect {
     min_ext.fill(0);
     max_ext.fill(0);
   }
+
+  HyperRect(const Point& min_ext_in, const Point& max_ext_in)
+      : min_ext(min_ext_in), max_ext(max_ext_in) {}
 
   /// return the measure (volume) of the hyperrectangle
   Scalar GetMeasure() const {
@@ -64,7 +61,7 @@ struct HyperRect {
   /// return the index of the longest dimension
   uint8_t GetLongestDimension() const {
     uint8_t i_max = 0;
-    for (uint8_t i = 1; i < Traits::NDim; i++) {
+    for (uint8_t i = 1; i < ndim_; i++) {
       if (GetLength(i) > GetLength(i_max)) {
         i_max = i;
       }
@@ -80,8 +77,8 @@ struct HyperRect {
   void SplitGreater(uint8_t dim, Scalar value) { min_ext[dim] = value; }
 
   /// split the hyperrectangle at the given point along the given dimension
-  void Split(uint8_t dim, Scalar value, HyperRect<Traits>* left,
-             HyperRect<Traits>* right) const {
+  void Split(uint8_t dim, Scalar value, HyperRect<Scalar, ndim_>* left,
+             HyperRect<Scalar, ndim_>* right) const {
     if (left) {
       *left = *this;
       left->max_ext[dim] = value;
@@ -93,7 +90,7 @@ struct HyperRect {
   }
 
   void GrowToContain(const Point& point) {
-    for (uint8_t i = 0; i < Traits::NDim; i++) {
+    for (uint8_t i = 0; i < ndim_; i++) {
       if (point[i] < min_ext[i]) {
         min_ext[i] = point[i];
       }
@@ -106,4 +103,4 @@ struct HyperRect {
 
 }  // namespace kd3
 
-#endif  // KD3_EUCLIDEAN_HYPERRECT_H_
+#endif  // KD3_HYPERRECT_H_

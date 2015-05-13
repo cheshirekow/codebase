@@ -6,6 +6,13 @@ add_library(kd3
             node.h
             tree.h)
 
+macro(kd3_test test_name)
+  cc_test(kd3_${test_name} ${test_name}.cc)
+endmacro()
+
+kd3_test(hyperrect_test)
+kd3_test(node_test)
+
 add_subdirectory(euclidean)
 
 #    set(LIBS ${LIBS} ${SigC++_LIBRARIES})

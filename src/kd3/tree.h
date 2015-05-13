@@ -17,14 +17,6 @@
  *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  @file   Tree.h
- *
- *  @date   Mar 26, 2011
- *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief  basically a c++ rewrite of http://code.google.com/p/kdtree/
- */
-
 #ifndef KD3_TREE_H_
 #define KD3_TREE_H_
 
