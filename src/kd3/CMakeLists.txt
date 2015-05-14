@@ -1,6 +1,7 @@
 include_directories(${eigen3_INCLUDE_DIRS})
 
 add_library(kd3
+            enumerator.h
             hyperrect.h
             kd3.cc
             node.h
@@ -12,6 +13,7 @@ endmacro()
 
 kd3_test(hyperrect_test)
 kd3_test(node_test)
+kd3_test(tree_test)
 
 add_subdirectory(euclidean)
 

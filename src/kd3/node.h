@@ -63,6 +63,13 @@ class Node {
     greater_child_ = nullptr;
   }
 
+  Node(const Point& point) {
+    point_ = point;
+    i_ = 0;
+    smaller_child_ = nullptr;
+    greater_child_ = nullptr;
+  }
+
   /// fill point data (convenience method)
   void SetPoint(const Point& p) { point_ = p; }
 
@@ -74,7 +81,7 @@ class Node {
   const ThisType* greater_child() const { return greater_child_; }
 
   /// split a hyperrectangle at this node
-  void Split(const HyperRect& source, HyperRect* left, HyperRect* right) {
+  void Split(const HyperRect& source, HyperRect* left, HyperRect* right) const {
     source.Split(i_, point_[i_], left, right);
   }
 
@@ -100,9 +107,6 @@ class Node {
   /// ( can be arbitrary volume, which is implemented by the deriving
   /// class of the interface )
   //  void FindRange(RangeIface& search, HyperRect& rect);
-
-  //  template <typename BackInserter>
-  //  void Enumerate(HyperRect& container, BackInserter bs);
 };
 
 template <typename Scalar, int ndim_>
@@ -240,26 +244,6 @@ void Node<Traits>::findRange(RangeIface_t& search, HyperRect_t& rect) {
     // now that we've stepped back up into this node, restore the
     // hyperrectangle
     *hyperCoord = oldHyperVal;
-  }
-}
-
-template <class Traits>
-template <typename BackInserter>
-void Node<Traits>::enumerate(HyperRect_t& container, BackInserter bs) {
-  if (m_greaterChild) {
-    Pair_t* pair = new Pair_t();
-    container.copyTo(pair->container);
-    pair->container.minExt[m_i] = m_point[m_i];
-    pair->node = m_greaterChild;
-    bs = pair;
-  }
-
-  if (m_smallerChild) {
-    Pair_t* pair = new Pair_t();
-    container.copyTo(pair->container);
-    pair->container.maxExt[m_i] = m_point[m_i];
-    pair->node = m_smallerChild;
-    bs = pair;
   }
 }
 */

@@ -17,8 +17,8 @@
  *  along with kd3.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KD3_LISTBUILDER_H_
-#define KD3_LISTBUILDER_H_
+#ifndef KD3_ENUMERATOR_H_
+#define KD3_ENUMERATOR_H_
 
 #include <list>
 #include <tuple>
@@ -29,72 +29,62 @@ namespace kd3 {
 /// Enumerates an entire subtree, building a list of nodes along with
 /// the hyperectangle bounding the subtree at that node
 /**
- *  @note lists can be built in breadth first or depth first order
  *  @TODO make a generator version for range based loops with no storage
  *        requirements
  */
 template <typename Scalar, int ndim_>
-class TreeEnumerator {
+class Enumerator {
  public:
   typedef kd3::Node<Scalar, ndim_> Node;
   typedef kd3::HyperRect<Scalar, ndim_> HyperRect;
-  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
-  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
+  typedef Eigen::Matrix<Scalar, ndim_, 1> Vector;
+  typedef Eigen::Matrix<Scalar, ndim_, 1> Point;
 
   /// pairs nodes of the Kd tree along with a hyperrectangle that is the
   /// bounding volume for the subtree rooted atalong that node
   struct Pair {
-    Node<Scalar, ndim_>* node;
-    HyperRect<Scalar, ndim_> container;
+    const Node* node;
+    HyperRect container;
+
+    Pair(const Node* node, const HyperRect& container)
+        : node(node), container(container) {}
   };
 
-  typedef std::list<Pair> List;
-
-  List DFS(Node* root) {
-    TreeEnumerator builder;
-    builder.BuildDFS(root);
-    return builder.list_;
-  }
-
-  List BFS(Node* root) {
-    TreeEnumerator builder;
-    builder.BuildBFS(root);
+  static std::list<Pair> BFS(const Node* root, const HyperRect& hrect) {
+    Enumerator builder;
+    builder.Build(root, hrect);
     return builder.list_;
   }
 
  private:
-  List deque_;
-  List list_;
+  std::list<Pair> deque_;
+  std::list<Pair> list_;
 
   /// build an enumeration of the tree
   /**
-   *  @tparam Inserter_t  type of the insert iterator
+   *  @tparam Inserter  type of the insert iterator
    *  @param  root    root of the subtree to build
    *  @param  ins     the inserter where we put nodes we enumerate
    *                  should be an insertion iterator
    */
-  template <typename Inserter>
-  void Build(const HyperRect& hrect, Node* root, Inserter ins) {
-    deque_.emplace_back({root, hrect});
+  void Build(const Node* root, const HyperRect& hrect) {
+    deque_.emplace_back(root, hrect);
 
     while (deque_.size() > 0) {
-      list_.splice(list.end(), deque_, deque_.begin(), deque_.begin()++);
+      auto begin_iter = deque_.begin();
+      auto end_iter = deque_.end();
+      ++end_iter;
+      list_.splice(list_.end(), deque_, begin_iter, end_iter);
       const Pair& pair = list_.back();
       HyperRect left_container, right_container;
-      pair.node->Split(pair.container, &left, &right);
-      ins({pair.node->left_child(), left_container});
-      ins({pair.node->right_child(), right_container});
-      pair.node.Enumerate(pair.container, ins);
+      pair.node->Split(pair.container, &left_container, &right_container);
+      deque_.emplace_back(pair.node->smaller_child(), left_container);
+      deque_.emplace_back(pair.node->greater_child(), right_container);
     }
   }
 
-  /// enumerate a subtree in breadth-first manner
-  void BuildBFS(Node* root) { Build(root, std::back_inserter(deque_)); }
-
-  /// enumerate a subtree in depth-first manner
-  void BuildDFS(Node* root) { Build(root, std::front_inserter(deque_)); }
 };
 
 }  // namespace kd3
 
-#endif  // KD3_LISTBUILDER_H_
+#endif  // KD3_ENUMERATOR_H_

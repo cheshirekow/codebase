@@ -28,6 +28,7 @@
 #include <Eigen/Dense>
 #include <kd3/node.h>
 #include <kd3/hyperrect.h>
+#include <kd3/enumerator.h>
 
 namespace kd3 {
 
@@ -36,10 +37,10 @@ template <typename Scalar, int ndim_>
 class Tree {
  public:
   /// a vector is the difference of two points
-  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Vector;
+  typedef Eigen::Matrix<Scalar, ndim_, 1> Vector;
 
   /// the storage type for points
-  typedef Eigen::Matrix<Scalar, Traits::NDim, 1> Point;
+  typedef Eigen::Matrix<Scalar, ndim_, 1> Point;
 
  protected:
   Node<Scalar, ndim_>* root_;  ///< root node of the tree (0 if empty)
@@ -80,14 +81,9 @@ class Tree {
   /// class of the RangeIface
   //  void findRange(RangeIface_t& search);
 
-  /// create a list of all the nodes in the tree, mostly only used for
-  /// debug drawing
-  //  typename ListBuilder_t::List_t& buildList(bool bfs = true);
-
-  /// return the list after buildList has been called, the reference is
-  /// the same one returned by buildList but you may want to build the
-  /// list and then use it multiple times later
-  //  typename ListBuilder_t::List_t& getList() { return m_lister.getList(); }
+  std::list<typename Enumerator<Scalar, ndim_>::Pair> Enumerate() {
+    return Enumerator<Scalar, ndim_>::BFS(root_, workspace_);
+  }
 
   /// return the root node
   Node<Scalar, ndim_>* root() { return root_; }
@@ -107,14 +103,14 @@ class Tree {
 template <typename Scalar, int ndim_>
 void Tree<Scalar, ndim_>::Insert(Node<Scalar, ndim_>* node) {
   size_++;
-  const Point& pt = node->GetPoint();
+  const Point& pt = node->point();
   bounds_.GrowToContain(pt);
 
   HyperRect<Scalar, ndim_> node_rect = workspace_;
   if (root_) {
-    root_->Insert(node_rect, node);
+    root_->Insert(&node_rect, node);
   } else {
-    root_ = node_;
+    root_ = node;
   }
 }
 

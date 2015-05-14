@@ -66,6 +66,7 @@ struct HyperRect {
         i_max = i;
       }
     }
+    return i_max;
   }
 
   /// Split the hyperrectangle on one axis at the specified value, making this
