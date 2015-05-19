@@ -1,4 +1,5 @@
-add_executable(lcmgen main.c
+cc_executable(lcmgen
+              SOURCES main.c
 				              lcmgen.c
 				              lcmgen.h
 				              getopt.c
@@ -10,19 +11,11 @@ add_executable(lcmgen main.c
 				              emit_java.c
 				              emit_csharp.c
 				              emit_python.c
-				              emit_lua.c)
+                      emit_lua.c
+              TARGET_DEPENDS lcm_static)
 
 set(cflags_list -Wno-deprecated-declarations
                 -Wno-format-zero-length
                 -std=gnu99)
 string (REGEX REPLACE ";" " " cflags_str "${cflags_list}")
-set_target_properties(lcmgen PROPERTIES COMPILE_FLAGS "${cflags_str}")
-
-target_link_libraries(lcmgen lcm_static ${glib_LDFLAGS})
-
-install(TARGETS lcmgen
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-        
-
+set_target_properties(lcmgen_exe PROPERTIES COMPILE_FLAGS "${cflags_str}")

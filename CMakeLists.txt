@@ -60,9 +60,9 @@ find_all(cheshirekow
 
 include(UseJava)
 include(UseLCM)
+include(cc_rules)
 
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-
 enable_testing()
 
 include_directories(src)
@@ -72,17 +72,6 @@ include_directories(BEFORE SYSTEM third_party/gtest)
 include_directories(BEFORE SYSTEM third_party/lcm)
 
 add_subdirectory(third_party)
-
-set(GTEST_LIBS
-  gtest
-  gtest_main
-  pthread)
-
-macro(cc_test TEST_NAME)
-  add_executable(${TEST_NAME} ${ARGN})
-  target_link_libraries(${TEST_NAME} ${GTEST_LIBS})
-  add_test(${TEST_NAME} ${TEST_NAME})
-endmacro()
 
 # Configuration options
 set(FIBER_USE_VARIADIC_TEMPLATES TRUE CACHE BOOL
