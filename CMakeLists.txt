@@ -58,6 +58,10 @@ find_all(cheshirekow
          PACKAGE Soci COMPONENTS sqlite3
          PACKAGE Threads)
 
+# for some reason cmake does not conform it's own standard with the Threads
+# find module
+set(THREADS_LIBRARIES ${CMAKE_THREADS_LIBS_INIT})
+
 include(UseJava)
 include(UseLCM)
 include(cc_rules)

@@ -1,74 +1,44 @@
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.yaml
                ${CMAKE_CURRENT_BINARY_DIR}/config.yaml)
-                             
-if((fuse_FOUND)
-    AND (Boost_FOUND)
-    AND (THREADS_FOUND)
-    AND (libcrypto++_FOUND)
-    AND (protobuf_FOUND)
-    AND (ProtobufCompiler_FOUND)
-    AND (re2_FOUND)
-    AND (tclap_FOUND) 
-    AND (yaml-cpp_FOUND)
-    AND (SOCI_FOUND)
-    AND (sigc++_FOUND))
-                                                                    
-  include_directories(${fuse_INCLUDE_DIRS}
-                      ${Boost_INCLUDE_DIRS}
-                      ${THREADS_INCLUDE_DIRS}
-                      ${protobuf_INCLUDE_DIRS}
-                      ${libcrypto++_INCLUDE_DIRS}
-                      ${re2_INCLUDE_DIRS}
-                      ${tclap_INCLUDE_DIRS}
-                      ${yaml-cpp_INCLUDE_DIRS}
-                      ${SOCI_INCLUDE_DIRS}
-                      ${sigc++_INCLUDE_DIRS}
-                      ${CMAKE_CURRENT_SOURCE_DIR})
-    
 
-  set(LIBS ${LIBS} 
-      ${CMAKE_THREAD_LIBS_INIT}
-      ${Boost_LIBRARIES}
-      ${fuse_LDFLAGS}
-      ${protobuf_LDFLAGS}
-      ${THREADS_LIBRARIES}
-      ${libcrypto++_LDFLAGS}
-      ${re2_LDFLAGS}
-      ${yaml-cpp_LDFLAGS}
-      ${sigc++_LDFLAGS}
-      ${SOCI_LIBRARY}
-      ${SOCI_sqlite3_PLUGIN}
-      cpp_pthreads_static)
+
+set(cmake_depends Boost THREADS SOCI SOCI_sqlite3)
+set(pkg_depends fuse libcrypto++ re2 sigc++ tclap yamlcpp)
+
+check_found(depends ${cmake_depends} ${pkg_depends})
+if(depends_FOUND)
+  cc_executable(obfs_backend
+                SOURCES main.cpp
+                        fuse_operations.cpp
+                        Backend.cpp
+                        Connection.cpp
+                        Database.cpp
+                        FileContext.cpp
+                        FuseContext.cpp
+                        LongJob.cpp
+                        MessageHandler.cpp
+                        MountPoint.cpp
+                        SocketListener.cpp
+                        VersionVector.cpp
+                        ../jobs/SendTree.cpp
+                        ../jobs/SendFile.cpp
+                        ../messages.cpp
+                        ../FdSet.cpp
+                        ../FileDescriptor.cpp
+                        ../Marshall.cpp
+                        ../NotifyPipe.cpp
+                        ../SelectSpec.cpp
+                        ../TimeVal.cpp
+                        ../TimeSpec.cpp
+                CMAKE_DEPENDS ${cmake_depends}
+                PKG_DEPENDS ${pkg_depends}
+                TARGET_DEPENDS cpp_pthreads_static)
+  target_link_libraries(obfs_backend_exe ${SOCI_sqlite3_PLUGIN})
         
-  add_executable(obfs_backend 
-                 main.cpp
-                 fuse_operations.cpp
-                 Backend.cpp
-                 Connection.cpp
-                 Database.cpp
-                 FileContext.cpp
-                 FuseContext.cpp
-                 LongJob.cpp
-                 MessageHandler.cpp
-                 MountPoint.cpp
-                 SocketListener.cpp
-                 VersionVector.cpp
-                 ../jobs/SendTree.cpp
-                 ../jobs/SendFile.cpp
-                 ../messages.cpp
-                 ../FdSet.cpp
-                 ../FileDescriptor.cpp
-                 ../Marshall.cpp
-                 ../NotifyPipe.cpp
-                 ../SelectSpec.cpp
-                 ../TimeVal.cpp
-                 ../TimeSpec.cpp
-                 ${MESSAGES_PB_CC})
-  set_target_properties(obfs_backend PROPERTIES 
+  set_target_properties(obfs_backend_exe PROPERTIES
                         COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
-  target_link_libraries(obfs_backend ${LIBS})
 else()
-  message( WARNING "Can't build obfs_backend")
+  message(WARNING "Can't build obfs_backend, missing ${depends_MISSING}")
 endif()
 
 

@@ -122,3 +122,25 @@ macro(find_all FINDALL_OUTPUT_PREFIX)
     endif()
   endforeach()
 endmacro()
+
+# Verify a set of packages are found
+# usage:
+# check_found(<OUTPUT_PREFIX>
+#             PREFIX [PREFIX2 [PREFIX3 [...]]])
+# returns (into calling scope)
+#    <OUTPUT_PREFIX>_FOUND  is true if <PREFIX>_FOUND is true for all <PREFIX>
+#    <OUTPUT_PREFIX>_MISSING is a list of all inputs for which found was false
+function(check_found output_prefix)
+  set(missing_list)
+  set(all_found TRUE)
+  foreach(prefix ${ARGN})
+    if(NOT ${prefix}_FOUND)
+      list(APPEND missing_list ${prefix})
+      set(all_found FALSE)
+    endif()
+  endforeach()
+
+  string(REGEX REPLACE ";" " " missing_str "${missing_list}")
+  set(${output_prefix}_FOUND ${all_found} PARENT_SCOPE)
+  set(${output_prefix}_MISSING ${missing_str} PARENT_SCOPE)
+endfunction()
