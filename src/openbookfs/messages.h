@@ -16,67 +16,50 @@
  *  You should have received a copy of the GNU General Public License
  *  along with openbook.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  @file   src/messages.h
- *
- *  @date   Feb 8, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief  
- */
 
-#ifndef OPENBOOK_MESSAGES_H_
-#define OPENBOOK_MESSAGES_H_
+#ifndef OPENBOOKFS_MESSAGES_H_
+#define OPENBOOKFS_MESSAGES_H_
 
 #include "messages.pb.h"
 #include "msg_gen/MessageId.h"
 #include "msg_gen/MessageMap.h"
 #include "msg_gen/MessageStr.h"
 
-namespace   openbook {
+namespace openbook {
 namespace filesystem {
 
-
 /// priority queues
-enum MessagePrio
-{
-    PRIO_NOW    = 0, // for normal messages
-    PRIO_SYNC   = 1, // for sync / version messages
-    PRIO_XFER   = 2  // for data transfer
+enum MessagePrio {
+  PRIO_NOW = 0,   // for normal messages
+  PRIO_SYNC = 1,  // for sync / version messages
+  PRIO_XFER = 2   // for data transfer
 };
 
 /// parses a byte into a MessageId
-MessageId parseMessageId( char byte );
+MessageId parseMessageId(char byte);
 
 /// all messages are subclasses of googles protocol buffer messages
 typedef google::protobuf::Message Message;
 
 /// Encapsulates a generic message pointer with it's MessageId so that it
 /// can later be cast to the right type
-struct TypedMessage
-{
-    MessageId   type;   ///< tells us how to cast the message
-    Message*    msg;    ///< base class pointer to the message
+struct TypedMessage {
+  MessageId type;  ///< tells us how to cast the message
+  Message* msg;    ///< base class pointer to the message
 
-    /// fill constructor with defaults
-    TypedMessage( MessageId type=MSG_INVALID, Message* msg=0):
-        type(type),
-        msg(msg)
-    {}
+  /// fill constructor with defaults
+  TypedMessage(MessageId type = MSG_INVALID, Message* msg = 0)
+      : type(type), msg(msg) {}
 };
 
-
 /// upcasts a generic message pointer to it's derived type
-template < MessageId ID >
-typename MessageType<ID>::type* message_cast( Message* msg )
-{
-    typedef typename MessageType<ID>::type  UpType;
-    return static_cast< UpType* >( msg );
+template <MessageId ID>
+typename MessageType<ID>::type* message_cast(Message* msg) {
+  typedef typename MessageType<ID>::type UpType;
+  return static_cast<UpType*>(msg);
 }
 
+}  // namespace filesystem
+}  // namespace openbook
 
-} // namespace filesystem
-} // namespace openbook
-
-
-
-#endif // MESSAGES_H_
+#endif  // OPENBOOKFS_MESSAGES_H_

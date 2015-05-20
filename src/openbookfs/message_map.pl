@@ -29,48 +29,46 @@ use File::Basename;
 my $dirname = dirname(__FILE__);
 
 # maps enum strings to class names
-$messageMap = 
-[
-    ['QUIT'              ,'Quit'],
-    ['PING'              ,'Ping'],
-    ['PONG'              ,'Pong'],
-    ['SET_DISPLAY_NAME'  ,'SetDisplayName'],
-    ['SET_DATA_DIR'      ,'SetDataDir'],
-    ['SET_LOCAL_SOCKET'  ,'SetLocalSocket'],
-    ['SET_REMOTE_SOCKET' ,'SetRemoteSocket'],
-    ['SET_CLIENT_SOCKET' ,'SetClientSocket'],
-    ['SET_MAX_CONN'      ,'SetMaxConnections'],
-    ['LOAD_CONFIG'       ,'LoadConfig'],
-    ['SAVE_CONFIG'       ,'SaveConfig'], 
-    ['ATTEMPT_CONNECT'   ,'AttemptConnection'],
-    ['ADD_MOUNT_POINT'   ,'AddMountPoint'],
-    ['REMOVE_MOUNT_POINT','RemoveMountPoint'],
-    ['UI_REPLY'          ,'UserInterfaceReply'],
-    ['GET_BACKEND_INFO'  ,'GetBackendInfo'],
-    ['PEER_LIST'         ,'PeerList'],
-    ['MOUNT_LIST'        ,'MountList'],
-    ['START_SYNC'        ,'StartSync'],
-    ['LEADER_ELECT'      ,'LeaderElect'],
-    ['DH_PARAMS'         ,'DiffieHellmanParams'],
-    ['KEY_EXCHANGE'      ,'KeyExchange'],
-    ['CEK'               ,'ContentKey'],
-    ['AUTH_REQ'          ,'AuthRequest'],
-    ['AUTH_CHALLENGE'    ,'AuthChallenge'],
-    ['AUTH_SOLN'         ,'AuthSolution'],
-    ['AUTH_RESULT'       ,'AuthResult'],
-    ['SUBSCRIBE'         ,'Subscribe'],
-    ['UNSUBSCRIBE'       ,'Unsubscribe'],
-    ['ID_MAP'            ,'IdMap'],
-    ['NODE_INFO'         ,'NodeInfo'],
-    ['SEND_TREE'         ,'SendTree'],
-    ['SEND_FILE'         ,'SendFile'],
-    ['NEW_VERSION'       ,'NewVersion'],
-    ['REQUEST_FILE'      ,'RequestFile'],
-    ['FILE_CHUNK'        ,'FileChunk'],
-    ['DIR_CHUNK'         ,'DirChunk'],
-    ['INVALID'           ,'Invalid'],
+$messageMap = [
+  ['QUIT'              ,'Quit'],
+  ['PING'              ,'Ping'],
+  ['PONG'              ,'Pong'],
+  ['SET_DISPLAY_NAME'  ,'SetDisplayName'],
+  ['SET_DATA_DIR'      ,'SetDataDir'],
+  ['SET_LOCAL_SOCKET'  ,'SetLocalSocket'],
+  ['SET_REMOTE_SOCKET' ,'SetRemoteSocket'],
+  ['SET_CLIENT_SOCKET' ,'SetClientSocket'],
+  ['SET_MAX_CONN'      ,'SetMaxConnections'],
+  ['LOAD_CONFIG'       ,'LoadConfig'],
+  ['SAVE_CONFIG'       ,'SaveConfig'],
+  ['ATTEMPT_CONNECT'   ,'AttemptConnection'],
+  ['ADD_MOUNT_POINT'   ,'AddMountPoint'],
+  ['REMOVE_MOUNT_POINT','RemoveMountPoint'],
+  ['UI_REPLY'          ,'UserInterfaceReply'],
+  ['GET_BACKEND_INFO'  ,'GetBackendInfo'],
+  ['PEER_LIST'         ,'PeerList'],
+  ['MOUNT_LIST'        ,'MountList'],
+  ['START_SYNC'        ,'StartSync'],
+  ['LEADER_ELECT'      ,'LeaderElect'],
+  ['DH_PARAMS'         ,'DiffieHellmanParams'],
+  ['KEY_EXCHANGE'      ,'KeyExchange'],
+  ['CEK'               ,'ContentKey'],
+  ['AUTH_REQ'          ,'AuthRequest'],
+  ['AUTH_CHALLENGE'    ,'AuthChallenge'],
+  ['AUTH_SOLN'         ,'AuthSolution'],
+  ['AUTH_RESULT'       ,'AuthResult'],
+  ['SUBSCRIBE'         ,'Subscribe'],
+  ['UNSUBSCRIBE'       ,'Unsubscribe'],
+  ['ID_MAP'            ,'IdMap'],
+  ['NODE_INFO'         ,'NodeInfo'],
+  ['SEND_TREE'         ,'SendTree'],
+  ['SEND_FILE'         ,'SendFile'],
+  ['NEW_VERSION'       ,'NewVersion'],
+  ['REQUEST_FILE'      ,'RequestFile'],
+  ['FILE_CHUNK'        ,'FileChunk'],
+  ['DIR_CHUNK'         ,'DirChunk'],
+  ['INVALID'           ,'Invalid'],
 ];
-
 
 print "Enum String:\n";
 print enum_string();
@@ -90,12 +88,11 @@ print handler_string();
 create_MessageHandler_inc();
 
 # creats MessageId enum header file
-sub create_MessageId_h()
-{
+sub create_MessageId_h() {
     my $relDir   = "msg_gen";
     my $fileName = "MessageId.h";
     my $macro    = header_macro("$relDir/$fileName");
-    my $fullpath = "$dirname/../src/$relDir/$fileName";
+    my $fullpath = "$dirname/$relDir/$fileName";
     my $copyright= copyright_string();
     my $comment  = filecomment_string("$relDir/$fileName");
     my $content  = enum_string();
@@ -130,7 +127,7 @@ sub create_MessageMap_h()
     my $relDir   = "msg_gen";
     my $fileName = "MessageMap.h";
     my $macro    = header_macro("$relDir/$fileName");
-    my $fullpath = "$dirname/../src/$relDir/$fileName";
+    my $fullpath = "$dirname/$relDir/$fileName";
     my $copyright= copyright_string();
     my $comment  = filecomment_string("$relDir/$fileName");
     my $content  = map_string();
@@ -183,7 +180,7 @@ sub create_MessageStr_h()
     my $relDir   = "msg_gen";
     my $fileName = "MessageStr.h";
     my $macro    = header_macro("$relDir/$fileName");
-    my $fullpath = "$dirname/../src/$relDir/$fileName";
+    my $fullpath = "$dirname/$relDir/$fileName";
     my $copyright= copyright_string();
     my $comment  = filecomment_string("$relDir/$fileName");
     my $fh;
@@ -219,7 +216,7 @@ sub create_MessageStr_cpp()
     my $relDir   = "msg_gen";
     my $fileName = "MessageStr.cpp";
     my $macro    = header_macro("$relDir/$fileName");
-    my $fullpath = "$dirname/../src/$relDir/$fileName";
+    my $fullpath = "$dirname/$relDir/$fileName";
     my $copyright= copyright_string();
     my $comment  = filecomment_string("$relDir/$fileName");
     my $content  = name_string();
@@ -262,7 +259,7 @@ sub create_MessageHandler_inc()
 {
     my $relDir   = "msg_gen";
     my $fileName = "MessageHandler.inc";
-    my $fullpath = "$dirname/../src/$relDir/$fileName";
+    my $fullpath = "$dirname/$relDir/$fileName";
     my $fh;
     open ($fh, ">", $fullpath ) 
        or die "Failed to open $fullpath for writing\n";

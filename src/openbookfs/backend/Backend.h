@@ -16,13 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with openbook.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  @file   src/backend/Backend.h
- *
- *  @date   Apr 9, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief  
- */
 
 #ifndef OPENBOOK_FS_BACKEND_H_
 #define OPENBOOK_FS_BACKEND_H_

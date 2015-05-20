@@ -6,7 +6,8 @@ set(cmake_depends Boost THREADS SOCI SOCI_sqlite3)
 set(pkg_depends fuse libcrypto++ re2 sigc++ tclap yamlcpp)
 
 check_found(depends ${cmake_depends} ${pkg_depends})
-if(depends_FOUND)
+if(FALSE AND (depends_FOUND))
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR})
   cc_executable(obfs_backend
                 SOURCES main.cpp
                         fuse_operations.cpp
