@@ -1,14 +1,23 @@
 if(fontconfig_FOUND)
-  include_directories(${fontconfig_INCLUDE_DIRS})
-    
-  set(LIBRARY_HEADERS AssignmentPair.h
+  if((freetype2_FOUND) AND (sigc++_FOUND))
+    set(extra_depends  freetype2 sigc++)
+    set(extra_sources  freetype.cpp)
+    message( STATUS
+            "-----\n"
+            "building cpp_fontconfig with freetype support\n"
+            "-----\n")
+  endif()
+
+
+  cc_library(cpp_fontconfig
+              HEADERS AssignmentPair.h
                       Atomic.h
                       Blanks.h
                       Cache.h
                       CharSet.h
                       common.h
                       Config.h
-                      constant.h
+                      Constant.h
                       cpp_fontconfig.h
                       CPtr.h
                       file.h
@@ -27,9 +36,8 @@ if(fontconfig_FOUND)
                       String.h
                       StrList.h
                       StrSet.h
-                      TypeMap.h)
-
-  set(LIBRARY_SOURCES Atomic.cpp
+                      TypeMap.h
+              SOURCES Atomic.cpp
                       Blanks.cpp
                       CharSet.cpp
                       Cache.cpp
@@ -48,34 +56,14 @@ if(fontconfig_FOUND)
                       String.cpp
                       StrList.cpp
                       StrSet.cpp
-                      TypeMap.cpp)
-            
-            
-  if((freetype2_FOUND) AND (sigc++_FOUND))
-    include_directories(${freetype2_INCLUDE_DIRS}
-                        ${sigc++_INCLUDE_DIRS})
-    set(LIBRARY_SOURCES ${LIBRARY_SOURCES} freetype.cpp)
-    message( STATUS
-            "-----\n"
-            "building cpp_fontconfig with freetype support\n"
-            "-----\n")
-  endif()
-            
-  add_library(cpp_fontconfig_shared SHARED ${LIBRARY_SOURCES})
-  add_library(cpp_fontconfig_static STATIC ${LIBRARY_SOURCES})
-  
-  install(FILES ${LIBRARY_HEADERS}
-          DESTINATION include/cpp_fontconfig)
-  
-  install(TARGETS cpp_fontconfig_shared cpp_fontconfig_static
-          RUNTIME DESTINATION bin
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib)
-  
-  add_executable(fontconfig_tutorial tutorial.cpp)
-  target_link_libraries(fontconfig_tutorial 
-                        cpp_fontconfig_static 
-                        ${fontconfig_LIBRARIES})
+                      TypeMap.cpp
+                      ${extra_sources}
+              PKG_DEPENDS fontconfig
+                      ${extra_depends})
+
+  cc_executable(fontconfig_tutorial
+                SOURCES tutorial.cpp
+                TARGET_DEPENDS cpp_fontconfig_static)
 else()
   message(WARNING "Not building cpp_fontconfig") 
 endif()

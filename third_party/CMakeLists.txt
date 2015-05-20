@@ -1,5 +1,6 @@
-add_subdirectory(gtest)
 add_subdirectory(cppformat)
+add_subdirectory(gtest)
+add_subdirectory(lcm)
 add_subdirectory(json_spirit)
 add_subdirectory(meerkat)
 

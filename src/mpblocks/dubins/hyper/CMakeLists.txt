@@ -17,7 +17,7 @@ if((cairomm_FOUND)
 
   set(LIBS ${LIBS}
       mpblocks_gtk
-      mpblocks_path_util
+      mpblocks_path_util_static
       ${GTKmm_LDFLAGS}
       ${cairomm_LDFLAGS}
       ${TinyXML2_LDFLAGS}

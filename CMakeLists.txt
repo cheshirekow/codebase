@@ -15,7 +15,11 @@ set(VERSION_STRING "${VERSION_STRING}.${${CMAKE_PROJECT_NAME}_VERSION_BUGFIX}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/Modules")
 
-include("${CMAKE_SOURCE_DIR}/cmake/Modules/FindAll.cmake")
+SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+SET(LCMGEN_OUTPUT_PATH ${PROJECT_BINARY_DIR}/include)
+
+include(FindAll)
 
 find_all(cheshirekow
          PKG cairomm-xlib-1.0 PREFIX cairomm
@@ -23,8 +27,10 @@ find_all(cheshirekow
          PKG fontconfig
          PKG freetype2
          PKG fuse
+         PKG glib-2.0 PREFIX glib
          PKG glew
          PKG gtkmm-3.0 PREFIX GTKmm
+         PKG gthread-2.0 PREFIX gthread
          PKG libcrypto++ 
          PKG libglfw PREFIX glfw
          PKG libglog PREFIX glog
@@ -47,34 +53,25 @@ find_all(cheshirekow
          PACKAGE OpenGL
          PACKAGE CUDA
          PACKAGE FastCGI
+         PACKAGE Java
          PACKAGE ProtobufCompiler
          PACKAGE Soci COMPONENTS sqlite3
          PACKAGE Threads)
 
-set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+include(UseJava)
+include(UseLCM)
+include(cc_rules)
 
+set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 enable_testing()
 
-include_directories(include BEFORE SYSTEM)
-include_directories(src BEFORE SYSTEM)
-
+include_directories(src)
+include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(BEFORE SYSTEM third_party/cppformat)
 include_directories(BEFORE SYSTEM third_party/gtest)
-include_directories(BEFORE SYSTEM third_party/meerkat)
-include_directories(BEFORE SYSTEM third_party/json_spirit)
+include_directories(BEFORE SYSTEM third_party/lcm)
 
 add_subdirectory(third_party)
-
-set(GTEST_LIBS
-  gtest
-  gtest_main
-  pthread)
-
-macro(cc_test TEST_NAME)
-  add_executable(${TEST_NAME} ${ARGN})
-  target_link_libraries(${TEST_NAME} ${GTEST_LIBS})
-  add_test(${TEST_NAME} ${TEST_NAME})
-endmacro()
 
 # Configuration options
 set(FIBER_USE_VARIADIC_TEMPLATES TRUE CACHE BOOL
@@ -92,3 +89,6 @@ configure_file("${PROJECT_SOURCE_DIR}/doxy.config.in"
 add_custom_target(doc
                   COMMAND doxygen ${PROJECT_BINARY_DIR}/doxy.config
                   WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
+
+message("lcmgen_ALL: ${lcmgen_ALL}")
+add_custom_target(lcmtypes DEPENDS ${lcmgen_ALL})
