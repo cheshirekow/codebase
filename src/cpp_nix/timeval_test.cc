@@ -24,31 +24,29 @@
  */
 
 #include <gtest/gtest.h>
-
 #include <cpp_nix/timeval.h>
 
-TEST(TimevalTest,ComparisonOperators){
-  timeval a{1,2};
-  timeval b{3,4};
-  EXPECT_LT(a,b);
-  EXPECT_LE(a,b);
-  EXPECT_GT(b,a);
-  EXPECT_GE(b,a);
+TEST(TimevalTest, ComparisonOperators) {
+  timeval a { 1, 2 };
+  timeval b { 3, 4 };
+  EXPECT_LT(a, b);
+  EXPECT_LE(a, b);
+  EXPECT_GT(b, a);
+  EXPECT_GE(b, a);
 }
 
-
-TEST(TimevalTest,EqualityOfConvertedType){
-  timeval a{1,2};
+TEST(TimevalTest, EqualityOfConvertedType) {
+  timeval a { 1, 2 };
   nix::Timeval cpp = a;
-  EXPECT_EQ(a,cpp);
-  EXPECT_LE(a,cpp);
-  EXPECT_GE(a,cpp);
+  EXPECT_EQ(a, cpp);
+  EXPECT_LE(a, cpp);
+  EXPECT_GE(a, cpp);
 }
 
-TEST(TimevalTest,Arithmetic){
-  timeval zero{0,0};
-  timeval one{1,1};
-  timeval two{2,2};
+TEST(TimevalTest, Arithmetic) {
+  timeval zero { 0, 0 };
+  timeval one { 1, 1 };
+  timeval two { 2, 2 };
 
   timeval a = zero + zero;
   EXPECT_EQ(zero + zero, zero);
@@ -60,10 +58,10 @@ TEST(TimevalTest,Arithmetic){
   EXPECT_EQ(one - one, zero);
 }
 
-TEST(TimevalTest,AdditionOverflowHandled){
-  EXPECT_EQ((timeval{0,999999}) + (timeval{0,1}), (timeval{1,0}));
+TEST(TimevalTest, AdditionOverflowHandled) {
+  EXPECT_EQ((timeval { 0, 999999 }) + (timeval { 0, 1 }), (timeval { 1, 0 }));
 }
 
-TEST(TimevalTest,SubtractionUndeflowHandled){
-  EXPECT_EQ((timeval{1,0}) - (timeval{0,999999}), (timeval{0,1}));
+TEST(TimevalTest, SubtractionUndeflowHandled) {
+  EXPECT_EQ((timeval { 1, 0 }) - (timeval { 0, 999999 }), (timeval { 0, 1 }));
 }

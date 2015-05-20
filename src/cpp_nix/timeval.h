@@ -104,4 +104,4 @@ inline bool operator>=(const timeval& a, const timeval& b) {
   }
 }
 
-#endif // TIMEVAL_H_
+#endif  // CPP_NIX_TIMEVAL_H_

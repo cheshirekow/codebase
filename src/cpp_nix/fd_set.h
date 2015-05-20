@@ -23,8 +23,8 @@
  *  @brief  
  */
 
-#ifndef CPP_NIX_FDSET_H_
-#define CPP_NIX_FDSET_H_
+#ifndef CPP_NIX_FD_SET_H_
+#define CPP_NIX_FD_SET_H_
 
 #include <vector>
 #include <cstdlib>
@@ -39,8 +39,8 @@ class FdSet : public fd_set {
   /// reference to an element in a bitset
   class Ref {
    private:
-    fd_set* m_set;
-    int m_fd;
+    fd_set* set_;
+    int fd_;
 
     friend class FdSet;
     Ref(fd_set* set, int fd);
@@ -54,8 +54,8 @@ class FdSet : public fd_set {
   /// reference to an element in a bitset
   class ConstRef {
    private:
-    const fd_set* m_set;
-    int m_fd;
+    const fd_set* set_;
+    int fd_;
 
     friend class FdSet;
     ConstRef(const fd_set* set, int fd);
@@ -75,4 +75,4 @@ class FdSet : public fd_set {
 
 }  // namespace nix
 
-#endif // FDSET_H_
+#endif  // CPP_NIX_FD_SET_H_

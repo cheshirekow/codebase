@@ -28,19 +28,19 @@
 namespace nix {
 
 FdSet::Ref::Ref(fd_set* set, int fd)
-    : m_set(set),
-      m_fd(fd) {
+    : set_(set),
+      fd_(fd) {
 }
 
 FdSet::Ref::operator bool() const {
-  return FD_ISSET(m_fd, m_set);
+  return FD_ISSET(fd_, set_);
 }
 
 FdSet::Ref& FdSet::Ref::operator=(bool x) {
   if (x)
-    FD_SET(m_fd, m_set);
+    FD_SET(fd_, set_);
   else
-    FD_CLR(m_fd, m_set);
+    FD_CLR(fd_, set_);
   return *this;
 }
 
@@ -54,12 +54,12 @@ FdSet::Ref& FdSet::Ref::flip() {
 }
 
 FdSet::ConstRef::ConstRef(const fd_set* set, int fd)
-    : m_set(set),
-      m_fd(fd) {
+    : set_(set),
+      fd_(fd) {
 }
 
 FdSet::ConstRef::operator bool() const {
-  return FD_ISSET(m_fd, m_set);
+  return FD_ISSET(fd_, set_);
 }
 
 void FdSet::clear() {

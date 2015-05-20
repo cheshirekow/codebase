@@ -43,31 +43,31 @@ enum {
 typedef std::map<int, int> SelectMap;
 
 class SelectSurrogate {
- private:
-  SelectMap* m_select_map;
-  int m_fd;
-
  public:
   SelectSurrogate(SelectMap* select_map, int fd)
-      : m_select_map(select_map),
-        m_fd(fd) {
+      : select_map_(select_map),
+        fd_(fd) {
   }
 
   operator int() {
-    return (*m_select_map)[m_fd];
+    return (*select_map_)[fd_];
   }
 
   const SelectSurrogate& operator=(int spec) const {
     if ((spec & (SELECT_READ | SELECT_WRITE | SELECT_EXCEPT)) == 0) {
-      SelectMap::iterator fd_iter = m_select_map->find(m_fd);
-      if (fd_iter != m_select_map->end()) {
-        m_select_map->erase(fd_iter);
+      SelectMap::iterator fd_iter = select_map_->find(fd_);
+      if (fd_iter != select_map_->end()) {
+        select_map_->erase(fd_iter);
       }
     } else {
-      (*m_select_map)[m_fd] = spec;
+      (*select_map_)[fd_] = spec;
     }
     return *this;
   }
+
+ private:
+  SelectMap* select_map_;
+  int fd_;
 };
 
 class SelectSet {
@@ -90,4 +90,4 @@ class SelectSet {
 
 }  // namespace nix
 
-#endif
+#endif  // CPP_NIX_SELECT_SET_H_

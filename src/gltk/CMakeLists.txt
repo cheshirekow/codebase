@@ -1,37 +1,21 @@
-set(LIBRARY_HEADERS buffer.h
-                    framebuffer.h
-                    gluintref.h
-                    gltk.h
-                    program.h
-                    refcounted.h
-                    refptr.h
-                    shader.h
-                    texture.h
-                    vertexarray.h)
-
-set(LIBRARY_SOURCES buffer.cc
-                    framebuffer.cc
-                    program.cc
-                    refcounted.cc
-                    shader.cc
-                    texture.cc
-                    vertexarray.cc)
-
-add_library(gltk_static STATIC ${LIBRARY_SOURCES})
-add_library(gltk_shared SHARED ${LIBRARY_SOURCES})
-
-set_target_properties(gltk_static gltk_shared
-                      PROPERTIES OUTPUT_NAME gltk)
-
-install(FILES ${LIBRARY_HEADERS}
-        DESTINATION include/gltk)
-
-install(TARGETS gltk_static
-                gltk_shared
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib )
-
+cc_library(gltk
+           HEADERS buffer.h
+                   framebuffer.h
+                   gluintref.h
+                   gltk.h
+                   program.h
+                   refcounted.h
+                   refptr.h
+                   shader.h
+                   texture.h
+                   vertexarray.h
+           SOURCES buffer.cc
+                   framebuffer.cc
+                   program.cc
+                   refcounted.cc
+                   shader.cc
+                   texture.cc
+                   vertexarray.cc)
 if((OPENGL_FOUND)
     AND (glew_FOUND)
     AND (glfw_FOUND))
@@ -44,7 +28,7 @@ if((OPENGL_FOUND)
       ${OPENGL_LIBRARY}
       ${glew_LDFLAGS}
       ${glfw_LDFLAGS}
-      gltk_shared )
+      gltk_shared)
 
     add_subdirectory(test01)
 else()

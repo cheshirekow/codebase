@@ -97,23 +97,23 @@ set(BIGTESTS dfa_test
              random_test)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-add_library(re2_static STATIC ${CCFILES})
-add_library(re2_shared SHARED ${CCFILES})
 
-set_target_properties(re2_static re2_shared
-                      PROPERTIES OUTPUT_NAME re2)
+cc_library(re2
+           HEADERS ${HFILES}
+           SOURCES ${CCFILES})
 
-add_library(re2_testlib STATIC ${TESTCCFILES})
+cc_library(re2_testlib SOURCES ${TESTCCFILES}
+           TARGET_DEPENDS re2)
 
 set(LIBS
     ${CMAKE_THREAD_LIBS_INIT}
-    ${THREADS_LIBRARIES}
-    re2_testlib re2_static)
+    ${THREADS_LIBRARIES})
 
-foreach(TEST ${TESTS})
-  add_executable(${TEST} re2/testing/${TEST}.cc)
-  target_link_libraries(${TEST} ${LIBS})
-  add_test(${TEST} ${TEST})
+foreach(test ${TESTS})
+  cc_test(re2_${test}
+           SOURCES re2/testing/${test}.cc
+           TARGET_DEPENDS re2_testlib_static)
+  target_link_libraries(re2_${test}_exe ${LIBS})
 endforeach()
 
 #foreach(TEST ${BIGTESTS})

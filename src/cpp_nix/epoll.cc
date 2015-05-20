@@ -43,11 +43,11 @@ Subscription::Subscription() {
   registration_.events = 0;
 }
 
-void Subscription::AddCallbacks(const std::map<int,Callback>& callbacks) {
-  for(auto& pair : callbacks) {
+void Subscription::AddCallbacks(const std::map<int, Callback>& callbacks) {
+  for (auto& pair : callbacks) {
     // turn on the bit telling epoll we care about this event
     registration_.events |= pair.first;
-    
+
     // store the callback for this event, perhaps over-writing an existing
     // event
     callbacks_[pair.first] = pair.second;
@@ -56,8 +56,8 @@ void Subscription::AddCallbacks(const std::map<int,Callback>& callbacks) {
 
 void Subscription::RemoveCallbacks(int events) {
   registration_.events &= ~events;
-  for(auto it = callbacks_.cbegin(); it != callbacks_.cend(); /* no iter */) {
-    if(it->first & events) {
+  for (auto it = callbacks_.cbegin(); it != callbacks_.cend(); /* no iter */) {
+    if (it->first & events) {
       callbacks_.erase(it++);
     } else {
       ++it;
@@ -66,10 +66,10 @@ void Subscription::RemoveCallbacks(int events) {
 }
 
 void Subscription::Dispatch(int events) {
-  for(auto& pair : callbacks_) {
+  for (auto& pair : callbacks_) {
     // if the event bitfield (pair.first) is active in the events bitvector
     // returned by epoll, then dispatch the callback
-    if(events & pair.first) {
+    if (events & pair.first) {
       pair.second();
     }
   }
@@ -95,52 +95,53 @@ int Epoll::GetFd() const {
   return epfd_;
 }
 
-int Epoll::Add(int fd, const std::map<int,epoll::Callback>& callbacks) {
+int Epoll::Add(int fd, const std::map<int, epoll::Callback>& callbacks) {
   bool existing_subscription = subscriptions_.count(fd);
   subscriptions_[fd].AddCallbacks(callbacks);
-  if(existing_subscription) {
-    return epoll_ctl(epfd_, EPOLL_CTL_MOD, fd, 
-                     subscriptions_[fd].GetRegistration());    
+  if (existing_subscription) {
+    return epoll_ctl(epfd_, EPOLL_CTL_MOD, fd,
+                     subscriptions_[fd].GetRegistration());
   } else {
-    return epoll_ctl(epfd_, EPOLL_CTL_ADD, fd, 
+    return epoll_ctl(epfd_, EPOLL_CTL_ADD, fd,
                      subscriptions_[fd].GetRegistration());
   }
 }
 
 int Epoll::Remove(int fd, int events) {
   auto iter = subscriptions_.find(fd);
-  if(iter == subscriptions_.end()) {
-    LOG(WARNING) << "Attempt to remove events from  non-registred file "
-                    "descriptor";
+  if (iter == subscriptions_.end()) {
+    LOG(WARNING)<< "Attempt to remove events from  non-registred file "
+    "descriptor";
     return 1;
   } else {
     epoll::Subscription& subscription = iter->second;
     subscription.RemoveCallbacks(events);
-    if(subscription.NumCallbacks() == 0) {
+    if (subscription.NumCallbacks() == 0) {
       subscriptions_.erase(iter);
       return epoll_ctl(epfd_, EPOLL_CTL_DEL, fd, NULL);
     }
   }
+  return 0;
 }
 
 int Epoll::Wait(int timeout) const {
   event_buffer_.resize(subscriptions_.size());
-  int retval = epoll_wait(epfd_, event_buffer_.data(), event_buffer_.size(),  
+  int retval = epoll_wait(epfd_, event_buffer_.data(), event_buffer_.size(),
                           timeout);
-  for(int i=0; i < retval; i++) {
-    static_cast<epoll::Subscription*>(event_buffer_[i].data.ptr)
-      ->Dispatch (event_buffer_[i].events);
+  for (int i = 0; i < retval; i++) {
+    static_cast<epoll::Subscription*>(event_buffer_[i].data.ptr)->Dispatch(
+        event_buffer_[i].events);
   }
   return retval;
 }
 
 int Epoll::Pwait(int timeout, const sigset_t *sigmask) const {
   event_buffer_.resize(subscriptions_.size());
-  int retval= epoll_pwait(epfd_, event_buffer_.data(), event_buffer_.size(), 
-                          timeout, sigmask);
-  for(int i=0; i < retval; i++) {
-    static_cast<epoll::Subscription*>(event_buffer_[i].data.ptr)
-      ->Dispatch (event_buffer_[i].events);
+  int retval = epoll_pwait(epfd_, event_buffer_.data(), event_buffer_.size(),
+                           timeout, sigmask);
+  for (int i = 0; i < retval; i++) {
+    static_cast<epoll::Subscription*>(event_buffer_[i].data.ptr)->Dispatch(
+        event_buffer_[i].events);
   }
   return retval;
 }

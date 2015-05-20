@@ -24,36 +24,39 @@
  */
 #include <cpp_nix/notify_pipe.h>
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
-#include <fcntl.h>
-#include <unistd.h>
+
+#include <glog/logging.h>
 
 namespace nix {
 
 NotifyPipe::NotifyPipe() {
-  if (pipe(m_fd)){
-    //ex()() << "Failed to open a pipe\n";
+  if (pipe(fd_)) {
+    PLOG(FATAL) << "Failed to open a pipe";
   }
 
   // make the read end nonblocking
-  if (fcntl(GetReadFd(), F_SETFL, O_NONBLOCK)){
-    //ex()() << "Failed to make pipe nonblocking";
+  if (fcntl(GetReadFd(), F_SETFL, O_NONBLOCK)) {
+    PLOG(WARNING) << "Failed to make pipe non-blocking";
   }
 }
 
 NotifyPipe::~NotifyPipe() {
   for (int i = 0; i < 2; i++)
-    close(m_fd[i]);
+    close(fd_[i]);
 }
 
 int NotifyPipe::GetWriteFd() {
-  return m_fd[1];
+  return fd_[1];
 }
 
 int NotifyPipe::GetReadFd() {
-  return m_fd[0];
+  return fd_[0];
 }
 
 int NotifyPipe::Notify() {
@@ -66,9 +69,9 @@ int NotifyPipe::Clear() {
 
   // read until there's nothing left
   int bytes_read = 0;
-  while (result > 0){
+  while (result > 0) {
     result = read(GetReadFd(), &c, 1);
-    if(result >= 0){
+    if (result >= 0) {
       bytes_read += result;
     }
   }
