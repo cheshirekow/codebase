@@ -1,8 +1,8 @@
 if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-  cc_test(redblack_test redblack_test.cc)
-  target_link_libraries(redblack_test
-                        mpblocks_util)
+  cc_include(Boost)
+  cc_test(redblack_test
+           SOURCES redblack_test.cc
+           TARGET_DEPENDS mpblocks_util_static)
 else()
   message(WARNING "wont build redblack_test" )
 endif()
