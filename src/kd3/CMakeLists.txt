@@ -1,21 +1,25 @@
-include_directories(${eigen3_INCLUDE_DIRS})
+if(eigen3_FOUND)
+  cc_include(eigen3)
 
-add_library(kd3
-            enumerator.h
-            hyperrect.h
-            kd3.cc
-            node.h
-            tree.h)
+  cc_library(kd3
+             HEADERS enumerator.h
+                     hyperrect.h
+                     kd3.cc
+                     node.h
+                     tree.h)
 
-macro(kd3_test test_name)
-  cc_test(kd3_${test_name} ${test_name}.cc)
-endmacro()
+  macro(kd3_test test_name)
+    cc_test(kd3_${test_name} SOURCES ${test_name}.cc)
+  endmacro()
 
-kd3_test(hyperrect_test)
-kd3_test(node_test)
-kd3_test(tree_test)
+  kd3_test(hyperrect_test)
+  kd3_test(node_test)
+  kd3_test(tree_test)
 
-add_subdirectory(euclidean)
+  add_subdirectory(euclidean)
+else()
+  message(WARNING "Can't build kd3")
+endif()
 
 #    set(LIBS ${LIBS} ${SigC++_LIBRARIES})
     
