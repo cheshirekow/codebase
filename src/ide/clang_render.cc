@@ -30,6 +30,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <list>
 #include <set>
 #include <string>
 
@@ -63,18 +64,28 @@ std::string GetClangString(CXString str) {
 
 #define MAP_ENUM(X) {X, #X}
 
-std::set<int> kHighlightSet = {
-  CXCursor_Namespace,
-  CXCursor_CXXMethod,
-  CXCursor_TypeRef,
-  CXCursor_NamespaceRef
-};
+static const int kHighlightEnd = 0;
 
 std::map<int,std::string> kCursorKindStr = {
-  MAP_ENUM(CXCursor_Namespace),
+  {kHighlightEnd, "HIGHLIGHT_END"},
   MAP_ENUM(CXCursor_CXXMethod),
   MAP_ENUM(CXCursor_TypeRef),
   MAP_ENUM(CXCursor_NamespaceRef),
+  MAP_ENUM(CXCursor_MemberRef),
+  MAP_ENUM(CXCursor_LabelRef),
+  MAP_ENUM(CXCursor_IntegerLiteral),
+  MAP_ENUM(CXCursor_FloatingLiteral),
+  MAP_ENUM(CXCursor_ImaginaryLiteral),
+  MAP_ENUM(CXCursor_StringLiteral),
+  MAP_ENUM(CXCursor_CharacterLiteral),
+  MAP_ENUM(CXCursor_CXXTypeidExpr),
+  MAP_ENUM(CXCursor_CXXBoolLiteralExpr),
+  MAP_ENUM(CXCursor_CXXNullPtrLiteralExpr),
+  MAP_ENUM(CXCursor_CXXThisExpr),
+  MAP_ENUM(CXCursor_MacroDefinition),
+  MAP_ENUM(CXCursor_MacroExpansion),
+  MAP_ENUM(CXCursor_CXXStaticCastExpr),
+  MAP_ENUM(CXCursor_PreprocessingDirective),
 };
 
 void HtmlWrite(std::ostream& out, const char data) {
@@ -103,17 +114,7 @@ void HtmlWrite(std::ostream& out, const char data) {
 void WriteHeader(std::ostream& out) {
   out << "  <html>\n"
          "    <head>\n"
-         "      <style type=\"text/css\">\n"
-         "        .CXCursor_TypeRef {\n"
-         "          font-weight: bold;\n"
-         "          color: red;\n"
-         "        }\n"
-         "\n"
-         "        .cxx {\n"
-         "          font-family: monospace;\n"
-         "          white-space: pre;\n"
-         "        }\n"
-         "      </style>\n"
+         "      <link rel=\"stylesheet\" type=\"text/css\" href=\"clang_style.css\"/>"
          "    </head>\n"
          "    <body>\n"
          "      <div class=\"cxx\">\n";
@@ -123,6 +124,53 @@ void WriteFooter(std::ostream& out) {
   out << "    </div>\n"
          "  </body>\n"
          "</html>\n";
+}
+
+struct Visitor {
+  CXFile source_file;
+  std::map<unsigned,std::list<int>> highlights;
+};
+
+bool clang_File_isEqual(CXFile file1, CXFile file2) {
+  CXFileUniqueID id1, id2;
+  clang_getFileUniqueID(file1, &id1);
+  clang_getFileUniqueID(file2, &id2);
+  for (int i = 0; i < 3; i++) {
+    if (id1.data[i] != id2.data[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+CXChildVisitResult Visit(CXCursor cursor, CXCursor parent, CXClientData client_data) {
+  CXCursorKind cursor_kind = clang_getCursorKind(cursor);
+  if (kCursorKindStr.count(cursor_kind) == 0) {
+    return CXChildVisit_Recurse;
+  }
+
+  Visitor* visitor = static_cast<Visitor*>(client_data);
+  CXSourceRange extent = clang_getCursorExtent(cursor);
+
+  CXFile file;
+  unsigned int start_offset;
+  CXSourceLocation start_location = clang_getRangeStart(extent);
+  clang_getFileLocation(start_location, &file, nullptr, nullptr,
+                        &start_offset);
+
+  if (!clang_File_isEqual(file, visitor->source_file)) {
+    return CXChildVisit_Continue;
+  }
+
+  unsigned int end_offset;
+  CXSourceLocation end_location = clang_getRangeEnd(extent);
+  clang_getFileLocation(end_location, &file, nullptr, nullptr,
+                        &end_offset);
+
+  visitor->highlights[start_offset].push_back(cursor_kind);
+  visitor->highlights[end_offset].push_front(kHighlightEnd);
+
+  return CXChildVisit_Recurse;
 }
 
 void DoRender(const std::string& compile_command,
@@ -180,51 +228,27 @@ void DoRender(const std::string& compile_command,
   CXTranslationUnit translation_unit =
       clang_parseTranslationUnit(index, query_file.c_str(), argv.data(),
                                  argv.size(), 0, 0, CXTranslationUnit_None);
-  CXFile file = clang_getFile(translation_unit, query_file.c_str());
-//  CXCursor startCursor = clang_getTranslationUnitCursor(translation_unit);
+  CXCursor tu_cursor = clang_getTranslationUnitCursor(translation_unit);
+  Visitor visitor;
+  visitor.source_file = clang_getFile(translation_unit, query_file.c_str());
+  clang_visitChildren(tu_cursor, &Visit, &visitor);
 
-  unsigned line = 0;
-  unsigned column = 0;
-  for (char* current = file_content; current < file_content + file_size;
-       ++current) {
-    CXSourceLocation location =
-        clang_getLocation(translation_unit, file, line, column);
-    CXCursor cursor = clang_getCursor(translation_unit, location);
-    CXCursorKind cursor_kind = clang_getCursorKind(cursor);
-    // if it's something we want to highlight
-    if(kHighlightSet.count(cursor_kind) > 0) {
-      fmt::print(output_stream, "<span class=\"{}\">",
-                 kCursorKindStr[cursor_kind]);
-      CXSourceRange extent = clang_getCursorExtent(cursor);
-      CXSourceLocation end_location = clang_getRangeEnd(extent);
-
-      unsigned line_to;
-      unsigned column_to;
-      clang_getFileLocation(end_location, nullptr, &line_to, &column_to,
-                            nullptr);
-      for (; current <= file_content + file_size &&
-                 (line < line_to || column < column_to);
-           ++current) {
-        HtmlWrite(output_stream, *current);
-        if (*current == '\n') {
-          ++line;
-          column = 0;
+  for (int i_char = 0; i_char < file_size; ++i_char) {
+    auto map_iter = visitor.highlights.find(i_char);
+    if (map_iter != visitor.highlights.end()) {
+      for (auto highlight_kind : map_iter->second) {
+        if (highlight_kind == kHighlightEnd) {
+          fmt::print(output_stream, "</span>");
         } else {
-          ++column;
+          fmt::print(output_stream, "<span class=\"{}\">",
+                     kCursorKindStr[highlight_kind]);
         }
       }
-
-      fmt::print(output_stream, "</span>");
     }
-
-
-    HtmlWrite(output_stream, *current);
-    if (*current == '\n') {
-      ++line;
-      column = 0;
-    } else {
-      ++column;
-    }
+    HtmlWrite(output_stream, file_content[i_char]);
+  }
+  for (char* current = file_content; current < file_content + file_size;
+       ++current) {
   }
 
   WriteFooter(output_stream);
@@ -246,7 +270,7 @@ int main(int argc, char **argv) {
     TCLAP::ValueArg<std::string> output_file_arg(
         "o", "output", "The file to write to", true, "foo.html", "string");
 
-    TCLAP::CmdLine cmd("Editor Proof of Concept", ' ', "0.1");
+    TCLAP::CmdLine cmd("Clang Render", ' ', "0.1");
     cmd.add(db_path_arg);
     cmd.add(query_file_arg);
     cmd.add(output_file_arg);

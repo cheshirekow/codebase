@@ -1,0 +1,45 @@
+ .CXCursor_NamespaceRef {
+  font-weight: bold;
+  color: #D68C00;
+}
+
+.CXCursor_TypeRef {
+  font-weight: bold;
+  color: #B80600;
+}
+
+.CXCursor_CXXMethod {
+  font-weight: bold;
+}
+
+.CXCursor_MemberRef {
+  color: #0000FF;
+}
+
+.CXCursor_IntegerLiteral, 
+.CXCursor_FloatingLiteral,
+.CXCursor_ImaginaryLiteral {
+  color: black;
+}
+
+.CXCursor_StringLiteral,
+.CXCursor_CharacterLiteral {
+  color: #097409;
+}
+
+.CXCursor_MacroDefinition,
+.CXCursor_MacroExpansion {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.CXCursor_PreprocessingDirective {
+  font-weight: bold;
+  color: #870097;
+}
+
+.cxx {
+  font-family: monospace;
+  white-space: pre;
+}
+ 
