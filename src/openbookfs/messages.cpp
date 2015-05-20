@@ -16,13 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with openbook.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  @file   src/messages.cpp
- *
- *  @date   Feb 11, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief  
- */
 
 #include "messages.h"
 #include "ExceptionStream.h"
