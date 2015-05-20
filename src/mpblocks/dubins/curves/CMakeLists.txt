@@ -21,7 +21,7 @@ if((cairomm_FOUND)
       ${TinyXML2_LDFLAGS}
       ${yamlcpp_LDFLAGS}
       mpblocks_gtk
-      mpblocks_path_util)
+      mpblocks_path_util_static)
 
   set(SRCS
       main.cc
