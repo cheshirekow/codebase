@@ -11,6 +11,9 @@ cc_library(edelsbrunner96
                    simplex.hpp
                    triangulation.h
                    triangulation.hpp)
+
+add_subdirectory(demos)
+
 # All thests for this library are a single source file and link the library
 # itself
 macro(edelsbrunner96_test test_name)

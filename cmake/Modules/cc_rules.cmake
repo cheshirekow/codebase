@@ -1,3 +1,18 @@
+# checks that xxx_FOUND is true for all required prefixes, and prints a
+# warning message if they are not
+function(cc_require)
+  set(required_MISSING "")
+  set(required_FOUND TRUE)
+  foreach(prefix ${ARGN})
+    if(NOT ${prefix}_FOUND)
+      list(APPEND required_MISSING ${prefix})
+      set(required_FOUND FALSE)
+    endif()
+  endforeach()
+  set(required_FOUND ${required_FOUND} PARENT_SCOPE)
+  set(required_MISSING ${required_MISSING} PARENT_SCOPE)
+endfunction()
+
 # include pkg_INCLUDE_DIRS for each pkg in the list
 macro(cc_include)
   foreach(pkg ${ARGN})
@@ -20,7 +35,8 @@ endmacro()
 function(cc_library target_name)
   set(zero_value_args )
   set(one_value_args PACKAGE)
-  set(multi_value_args SOURCES HEADERS PKG_DEPENDS CMAKE_DEPENDS TARGET_DEPENDS)
+  set(multi_value_args SOURCES HEADERS PKG_DEPENDS CMAKE_DEPENDS TARGET_DEPENDS
+                       RAW_DEPENDS)
   cmake_parse_arguments(cc "${zero_value_args}" "${one_value_args}"
                         "${multi_value_args}" ${ARGN} )
 
@@ -67,6 +83,11 @@ function(cc_library target_name)
     target_link_libraries(${target_name}_shared ${dep}_shared)
   endforeach()
 
+  if(${cc_RAW_DEPENDS})
+    target_link_libraries(${target_name}_static ${cc_RAW_DEPENDS})
+    target_link_libraries(${target_name}_shared ${cc_RAW_DEPENDS})
+  endif()
+
   # set the output file basename the same for static and shared
   set_target_properties(${target_name}_static
                         ${target_name}_shared
@@ -95,7 +116,8 @@ endfunction()
 function(cc_executable target_name)
   set(zero_value_args )
   set(one_value_args PACKAGE)
-  set(multi_value_args SOURCES PKG_DEPENDS CMAKE_DEPENDS TARGET_DEPENDS)
+  set(multi_value_args SOURCES PKG_DEPENDS CMAKE_DEPENDS TARGET_DEPENDS
+                       RAW_DEPENDS)
   cmake_parse_arguments(cc "${zero_value_args}" "${one_value_args}"
                         "${multi_value_args}" ${ARGN} )
 
@@ -123,7 +145,8 @@ function(cc_executable target_name)
   endforeach()
 
   # link libraries that are build as part of this project
-  target_link_libraries(${target_name}_exe ${cc_TARGET_DEPENDS})
+  target_link_libraries(${target_name}_exe ${cc_TARGET_DEPENDS}
+                                           ${cc_RAW_DEPENDS})
 
   # install targets
   install(TARGETS ${target_name}_exe
