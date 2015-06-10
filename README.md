@@ -15,6 +15,10 @@ Project Documentation
   <th>Description</th>
 </tr>
 <tr>
+  <td>[ck_gtk](@ref_ck_gtk_page)</td>
+  <td>C++ utilities for GTK</td>
+</tr>
+<tr>
   <td>[cpp_fcgi](@ref cpp_fcgi_page)</td>
   <td>FastCGI wrappers in C++</td>
 </tr>

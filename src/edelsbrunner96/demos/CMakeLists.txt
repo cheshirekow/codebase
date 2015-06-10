@@ -14,14 +14,14 @@ if(required_FOUND)
                 SOURCES demo_2d.cc
                 CMAKE_DEPENDS Boost
                 PKG_DEPENDS GTKmm cairomm TinyXML2 yamlcpp re2
-                TARGET_DEPENDS mpblocks_gtk mpblocks_path_util_static
+                TARGET_DEPENDS ck_gtk_static mpblocks_path_util_static
                 RAW_DEPENDS ${CMAKE_THREAD_LIBS_INIT})
 
   cc_executable(edelsbrunner96_barycentric_demo_2d
                 SOURCES barycentric_demo_2d.cc
                 CMAKE_DEPENDS Boost
                 PKG_DEPENDS GTKmm cairomm TinyXML2 yamlcpp re2
-                TARGET_DEPENDS mpblocks_gtk mpblocks_path_util_static
+                TARGET_DEPENDS ck_gtk_static mpblocks_path_util_static
                 RAW_DEPENDS ${CMAKE_THREAD_LIBS_INIT})
 else()
   message(WARNING "Can't build edelsbrunner96 demos, missing "
