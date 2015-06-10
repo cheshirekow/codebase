@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_STATICSTACK_H_
-#define MPBLOCKS_CLARKSON93_STATICSTACK_H_
+#ifndef CLARKSON93_STATIC_STACK_H_
+#define CLARKSON93_STATIC_STACK_H_
 
 #include <mpblocks/clarkson93.h>
 #include <vector>
@@ -170,4 +170,4 @@ struct Stack<T,void>:
 
 
 
-#endif // STATICSTACK_H_
+#endif  // CLARKSON93_STATIC_STACK_H_

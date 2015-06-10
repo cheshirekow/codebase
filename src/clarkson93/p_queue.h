@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_PQUEUE_H_
-#define MPBLOCKS_CLARKSON93_PQUEUE_H_
+#ifndef CLARKSON93_P_QUEUE_H_
+#define CLARKSON93_P_QUEUE_H_
 
 #include <queue>
 #include <mpblocks/clarkson93.h>
@@ -51,4 +51,4 @@ class P_Queue
 } // namespace clarkson93
 } // namespace mpblocks
 
-#endif  // MPBLOCKS_CLARKSON93_PQUEUE_H_
+#endif  // CLARKSON93_P_QUEUE_H_

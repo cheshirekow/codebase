@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_BITMEMBER_H_
-#define MPBLOCKS_CLARKSON93_BITMEMBER_H_
+#ifndef CLARKSON93_BIT_MEMBER_H_
+#define CLARKSON93_BIT_MEMBER_H_
 
 #include <bitset>
 
@@ -57,4 +57,4 @@ struct BitMember:
 
 
 
-#endif // BITMEMBER_H_
+#endif  // CLARKSON93_BIT_MEMBER_H_

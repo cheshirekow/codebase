@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_INDEXED_H_
-#define MPBLOCKS_CLARKSON93_INDEXED_H_
+#ifndef CLARKSON93_INDEXED_H_
+#define CLARKSON93_INDEXED_H_
 
 
 
@@ -106,4 +106,4 @@ bool operator>( const Indexed<Index_t,Value_t>& a,
 
 
 
-#endif // INDEXED_H_
+#endif  // CLARKSON93_INDEXED_H_

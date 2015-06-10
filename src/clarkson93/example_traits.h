@@ -17,8 +17,8 @@
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MPBLOCKS_CLARKSON93_EXAMPLETRAITS_H_
-#define MPBLOCKS_CLAKRSON93_EXAMPLETRAITS_H_
+#ifndef CLARKSON93_EXAMPLE_TRAITS_H_
+#define CLARKSON93_EXAMPLE_TRAITS_H_
 
 #include <mpblocks/clarkson93.h>
 
@@ -192,4 +192,4 @@ struct ExampleTraits
 
 
 
-#endif // EXAMPLETRAITS_H_
+#endif  // CLARKSON93_EXAMPLE_TRAITS_H_

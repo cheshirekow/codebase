@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_EXAMPLETRAITS2_H_
-#define MPBLOCKS_CLAKRSON93_EXAMPLETRAITS2_H_
+#ifndef CLARKSON93_EXAMPLE_TRAITS2_H_
+#define CLARKSON93_EXAMPLE_TRAITS2_H_
 
 #include <mpblocks/clarkson93.h>
 
@@ -195,4 +195,4 @@ struct ExampleTraits2
 
 
 
-#endif // EXAMPLETRAITS_H_
+#endif  // CLARKSON93_EXAMPLE_TRAITS2_H_

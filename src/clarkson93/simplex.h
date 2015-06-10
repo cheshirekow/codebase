@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_SIMPLEX_H_
-#define MPBLOCKS_CLARKSON93_SIMPLEX_H_
+#ifndef CLARKSON93_SIMPLEX_H_
+#define CLARKSON93_SIMPLEX_H_
 
 #include <mpblocks/clarkson93.h>
 
@@ -155,4 +155,4 @@ class DefaultSimplex:
 
 
 
-#endif // SIMPLEX_H_
+#endif  // CLARKSON93_SIMPLEX_H_

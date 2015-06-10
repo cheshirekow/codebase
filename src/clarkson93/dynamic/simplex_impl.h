@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_DYNAMIC_SIMPLEX_HPP_
-#define MPBLOCKS_CLARKSON93_DYNAMIC_SIMPLEX_HPP_
+#ifndef CLARKSON93_DYNAMIC_SIMPLEX_IMPL_H_
+#define CLARKSON93_DYNAMIC_SIMPLEX_IMPL_H_
 
 #include <mpblocks/clarkson93.hpp>
 
@@ -110,4 +110,4 @@ bool SimplexBase<Traits>::isVisible( const Point& x )
 
 
 
-#endif // SIMPLEX_HPP_
+#endif  // CLARKSON93_DYNAMIC_SIMPLEX_IMPL_H_

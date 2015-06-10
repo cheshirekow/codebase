@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_TRIANGULATION_H_
-#define MPBLOCKS_CLARKSON93_TRIANGULATION_H_
+#ifndef CLARKSON93_TRIANGULATION_H_
+#define CLARKSON93_TRIANGULATION_H_
 
 #include <mpblocks/clarkson93.h>
 #include <set>
@@ -224,4 +224,4 @@ const OptLevel< OptLevelGet<Traits>::Value >
 
 
 
-#endif // TRIANGULATION_H_
+#endif  // CLARKSON93_TRIANGULATION_H_

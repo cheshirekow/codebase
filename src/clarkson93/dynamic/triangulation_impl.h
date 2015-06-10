@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef MPBLOCKS_CLARKSON93_DYNAMIC_TRIANGULATION_HPP_
-#define MPBLOCKS_CLARKSON93_DYNAMIC_TRIANGULATION_HPP_
+#ifndef CLARKSON93_DYNAMIC_TRIANGULATION_IMPL_H_
+#define CLARKSON93_DYNAMIC_TRIANGULATION_IMPL_H_
 
 #include <mpblocks/clarkson93.hpp>
 
@@ -616,4 +616,4 @@ void Triangulation<Traits>::alter_x_visible(PointRef x)
 
 
 
-#endif // TRIANGULATION_HPP_
+#endif  // CLARKSON93_DYNAMIC_TRIANGULATION_IMPL_H_
