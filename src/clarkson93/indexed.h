@@ -16,14 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  @file   clarkson93/Indexed.h
- *
- *  @date   Jun 20, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief  
- */
-
 #ifndef MPBLOCKS_CLARKSON93_INDEXED_H_
 #define MPBLOCKS_CLARKSON93_INDEXED_H_
 

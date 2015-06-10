@@ -16,14 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  @file   /home/josh/Codes/cpp/mpblocks2/convex_hull/include/mpblocks/clarkson93/ExampleTraits.h
- *
- *  @date   Jun 22, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
- *  @brief  
- */
-
 #ifndef MPBLOCKS_CLARKSON93_EXAMPLETRAITS2_H_
 #define MPBLOCKS_CLAKRSON93_EXAMPLETRAITS2_H_
 

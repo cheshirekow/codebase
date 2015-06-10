@@ -16,12 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  @file
- *  @date   Aug 17, 2012
- *  @author Josh Bialkowski (jbialk@mit.edu)
- */
-
 #ifndef MPBLOCKS_CLARKSON93_HORIZONRIDGE_H_
 #define MPBLOCKS_CLARKSON93_HORIZONRIDGE_H_
 

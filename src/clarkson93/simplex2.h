@@ -16,14 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  \file   mpblocks/clarkson93/Simplex.h
- *
- *  \date   Aug 17, 2012
- *  \author Josh Bialkowski (jbialk@mit.edu)
- *  \brief  
- */
-
 #ifndef MPBLOCKS_CLARKSON93_SIMPLEX2_H_
 #define MPBLOCKS_CLARKSON93_SIMPLEX2_H_
 

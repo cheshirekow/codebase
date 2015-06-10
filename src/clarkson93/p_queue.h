@@ -16,12 +16,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- *  @file
- *  @date   Jun 23, 2013
- *  @author Josh Bialkowski (jbialk@mit.edu)
- */
-
 #ifndef MPBLOCKS_CLARKSON93_PQUEUE_H_
 #define MPBLOCKS_CLARKSON93_PQUEUE_H_
 
