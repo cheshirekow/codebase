@@ -1,20 +1,20 @@
 /*
  *  Copyright (C) 2012 Josh Bialkowski (jbialk@mit.edu)
  *
- *  This file is part of mpblocks.
+ *  This file is part of edelsbrunner96.
  *
- *  mpblocks is free software: you can redistribute it and/or modify
+ *  edelsbrunner96 is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  mpblocks is distributed in the hope that it will be useful,
+ *  edelsbrunner96 is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with mpblocks.  If not, see <http://www.gnu.org/licenses/>.
+ *  along with edelsbrunner96.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
  *  @file
@@ -36,7 +36,9 @@
 #include <re2/re2.h>
 
 #include <edelsbrunner96/edelsbrunner96.hpp>
-#include <mpblocks/gtk.hpp>
+#include <ck_gtk/eigen_cairo_impl.h>
+#include <ck_gtk/layout_map.h>
+#include <ck_gtk/pan_zoom_view.h>
 #include <mpblocks/util/path_util.h>
 
 
@@ -118,8 +120,8 @@ struct Traits {
 class Main {
  private:
   Gtk::Main gtkmm_;  //< note: must be first
-  gtk::LayoutMap layout_;
-  gtk::PanZoomView view_;
+  ck_gtk::LayoutMap layout_;
+  ck_gtk::PanZoomView view_;
   sigc::connection point_tool_cnx_;
 
   Traits::Storage storage_;
@@ -129,13 +131,13 @@ class Main {
   Main();
 
   ~Main() {
-    layout_.saveValues(path_util::GetPreferencesPath() +
+    layout_.SaveValues(path_util::GetPreferencesPath() +
                        "/edelsbrunner96_demo_2d.yaml");
   }
 
   void OnMouseMotionView(GdkEventMotion* event) {
-    layout_.get<Gtk::Adjustment>("view_x")->set_value(event->x);
-    layout_.get<Gtk::Adjustment>("view_y")->set_value(event->y);
+    layout_.Get<Gtk::Adjustment>("view_x")->set_value(event->x);
+    layout_.Get<Gtk::Adjustment>("view_y")->set_value(event->y);
   }
 
   void AddPoint(GdkEventButton* event) {
@@ -165,13 +167,13 @@ class Main {
 
  private:
  public:
-  void Run() { gtkmm_.run(*(layout_.widget<Gtk::Window>("main"))); }
+  void Run() { gtkmm_.run(*(layout_.GetWidget<Gtk::Window>("main"))); }
   void Draw(const Cairo::RefPtr<Cairo::Context>& ctx);
 };
 
 Main::Main() {
   std::vector<std::string> paths = {
-      path_util::GetSourcePath() + "/src/edelsbrunner96/demo_2d.glade",
+      path_util::GetSourcePath() + "/src/edelsbrunner96/demos/demo_2d.glade",
       path_util::GetResourcePath() + "/edelsbrunner96_demo_2d.glade"};
 
   bool layout_loaded = false;
@@ -186,12 +188,12 @@ Main::Main() {
     exit(1);
   }
 
-  view_.SetOffsetAdjustments(layout_.get<Gtk::Adjustment>("view_offset_x"),
-                             layout_.get<Gtk::Adjustment>("view_offset_y"));
-  view_.SetScaleAdjustments(layout_.get<Gtk::Adjustment>("view_scale"),
-                            layout_.get<Gtk::Adjustment>("view_scale_rate"));
+  view_.SetOffsetAdjustments(layout_.Get<Gtk::Adjustment>("view_offset_x"),
+                             layout_.Get<Gtk::Adjustment>("view_offset_y"));
+  view_.SetScaleAdjustments(layout_.Get<Gtk::Adjustment>("view_scale"),
+                            layout_.Get<Gtk::Adjustment>("view_scale_rate"));
 
-  Gtk::Box* view_box = layout_.get<Gtk::Box>("view_box");
+  Gtk::Box* view_box = layout_.Get<Gtk::Box>("view_box");
   if (view_box) {
     view_box->pack_start(view_, true, true);
     view_box->reorder_child(view_, 0);
@@ -204,7 +206,7 @@ Main::Main() {
   try {
     std::string default_file =
         path_util::GetPreferencesPath() + "/edelsbrunner96_demo_2d.yaml";
-    layout_.loadValues(default_file);
+    layout_.LoadValues(default_file);
   } catch (const YAML::BadFile& ex) {
     std::cerr << "No default settings available";
   }
@@ -218,14 +220,14 @@ Main::Main() {
        {"draw_sites", "draw_circumcircles", "draw_delaunay", "draw_voronoi",
         "draw_active_cell", "draw_vertex_labels", "draw_simplex_labels",
         "draw_neighbor_labels"}) {
-    layout_.get<Gtk::CheckButton>(chk_key)->signal_toggled().connect(
+    layout_.Get<Gtk::CheckButton>(chk_key)->signal_toggled().connect(
         sigc::mem_fun(&view_, &Gtk::DrawingArea::queue_draw));
   }
 
   for (const std::string adj_key :
        {"site_radius", "site_stroke_width", "circumcircle_stroke_width",
         "delaunay_edge_width", "voronoi_edge_width"}) {
-    layout_.get<Gtk::Adjustment>(adj_key)->signal_value_changed().connect(
+    layout_.Get<Gtk::Adjustment>(adj_key)->signal_value_changed().connect(
         sigc::mem_fun(&view_, &Gtk::DrawingArea::queue_draw));
   }
 
@@ -233,27 +235,27 @@ Main::Main() {
        {"site_fill_color", "site_stroke_color", "circumcircle_fill_color",
         "circumcircle_stroke_color", "delaunay_edge_color",
         "voronoi_edge_color", "active_triangle_color"}) {
-    layout_.get<Gtk::ColorButton>(color_key)->signal_color_set().connect(
+    layout_.Get<Gtk::ColorButton>(color_key)->signal_color_set().connect(
         sigc::mem_fun(&view_, &Gtk::DrawingArea::queue_draw));
   }
 
-  layout_.get<Gtk::Button>("reset")->signal_clicked().connect(
+  layout_.Get<Gtk::Button>("reset")->signal_clicked().connect(
       sigc::mem_fun(this, &Main::Reset));
 
   // activate pan-zoom by default
-  layout_.get<Gtk::ToggleButton>("pan_zoom")->set_active(true);
+  layout_.Get<Gtk::ToggleButton>("pan_zoom")->set_active(true);
 }
 
 void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
-  gtk::EigenCairo ectx(ctx);
-  if (layout_.get<Gtk::CheckButton>("draw_circumcircles")->get_active()) {
+  ck_gtk::EigenCairo ectx(ctx);
+  if (layout_.Get<Gtk::CheckButton>("draw_circumcircles")->get_active()) {
     Gdk::RGBA fill_color =
-        layout_.get<Gtk::ColorButton>("circumcircle_fill_color")->get_rgba();
+        layout_.Get<Gtk::ColorButton>("circumcircle_fill_color")->get_rgba();
     Gdk::RGBA stroke_color =
-        layout_.get<Gtk::ColorButton>("circumcircle_stroke_color")->get_rgba();
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
+        layout_.Get<Gtk::ColorButton>("circumcircle_stroke_color")->get_rgba();
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
     double stroke_width =
-        layout_.get<Gtk::Adjustment>("circumcircle_stroke_width")->get_value() /
+        layout_.Get<Gtk::Adjustment>("circumcircle_stroke_width")->get_value() /
         10000;
 
     ctx->set_line_width(stroke_width * scale);
@@ -274,12 +276,12 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     }
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_delaunay")->get_active()) {
+  if (layout_.Get<Gtk::CheckButton>("draw_delaunay")->get_active()) {
     Gdk::RGBA stroke_color =
-        layout_.get<Gtk::ColorButton>("delaunay_edge_color")->get_rgba();
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
+        layout_.Get<Gtk::ColorButton>("delaunay_edge_color")->get_rgba();
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
     double stroke_width =
-        layout_.get<Gtk::Adjustment>("delaunay_edge_width")->get_value() /
+        layout_.Get<Gtk::Adjustment>("delaunay_edge_width")->get_value() /
         10000;
 
     ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
@@ -302,11 +304,11 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     }
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_voronoi")->get_active()) {
-    Gdk::RGBA stroke_color = layout_.get<Gtk::ColorButton>("voronoi_edge_color")
+  if (layout_.Get<Gtk::CheckButton>("draw_voronoi")->get_active()) {
+    Gdk::RGBA stroke_color = layout_.Get<Gtk::ColorButton>("voronoi_edge_color")
         ->get_rgba();
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
-    double stroke_width = layout_.get<Gtk::Adjustment>("voronoi_edge_width")
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
+    double stroke_width = layout_.Get<Gtk::Adjustment>("voronoi_edge_width")
         ->get_value() / 10000;
 
     ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
@@ -338,15 +340,15 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     }
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_sites")->get_active()) {
-    Gdk::RGBA fill_color = layout_.get<Gtk::ColorButton>("site_fill_color")
+  if (layout_.Get<Gtk::CheckButton>("draw_sites")->get_active()) {
+    Gdk::RGBA fill_color = layout_.Get<Gtk::ColorButton>("site_fill_color")
         ->get_rgba();
-    Gdk::RGBA stroke_color = layout_.get<Gtk::ColorButton>("site_stroke_color")
+    Gdk::RGBA stroke_color = layout_.Get<Gtk::ColorButton>("site_stroke_color")
         ->get_rgba();
-    double radius = layout_.get<Gtk::Adjustment>("site_radius")->get_value()
+    double radius = layout_.Get<Gtk::Adjustment>("site_radius")->get_value()
         / 1000;
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
-    double stroke_width = layout_.get<Gtk::Adjustment>("site_stroke_width")
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
+    double stroke_width = layout_.Get<Gtk::Adjustment>("site_stroke_width")
         ->get_value() / 10000;
 
     ctx->set_line_width(stroke_width * scale);
@@ -362,7 +364,7 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
   Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(ctx);
   Pango::FontDescription font_desc("Sans 6");
   layout->set_font_description(font_desc);
-  if (layout_.get<Gtk::CheckButton>("draw_vertex_labels")->get_active()) {
+  if (layout_.Get<Gtk::CheckButton>("draw_vertex_labels")->get_active()) {
     ctx->set_source_rgb(0, 0, 0);
     for (std::size_t i = 0; i < storage_.points.size(); i++) {
       ectx.move_to(storage_.points[i]);
@@ -376,7 +378,7 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     }
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_simplex_labels")->get_active()) {
+  if (layout_.Get<Gtk::CheckButton>("draw_simplex_labels")->get_active()) {
     ctx->set_source_rgb(0, 0, 0);
     for (std::size_t i = 0; i < storage_.simplices.size(); i++) {
       if (storage_.free.count(i)) {
@@ -408,7 +410,7 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     }
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_neighbor_labels")->get_active()) {
+  if (layout_.Get<Gtk::CheckButton>("draw_neighbor_labels")->get_active()) {
     ctx->set_source_rgb(0, 0, 0);
     for (std::size_t i = 0; i < storage_.simplices.size(); i++) {
       if (storage_.free.count(i)) {

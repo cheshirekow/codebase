@@ -100,7 +100,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 cc_library(re2
            HEADERS ${HFILES}
-           SOURCES ${CCFILES})
+           SOURCES ${CCFILES}
+           RAW_DEPENDS ${CMAKE_THREAD_LIBS_INIT})
 
 cc_library(re2_testlib SOURCES ${TESTCCFILES}
            TARGET_DEPENDS re2)
