@@ -21,7 +21,8 @@ if((Boost_FILESYSTEM_FOUND)
   cc_executable(mpblocks_dubins_planner_demo SOURCES main.cc
                 CMAKE_DEPENDS Boost
                 PKG_DEPENDS eigen3 GTKmm cairomm TinyXML2 yamlcpp re2
-                TARGET_DEPENDS mpblocks_gtk mpblocks_path_util_static)
+                TARGET_DEPENDS mpblocks_gtk mpblocks_path_util_static
+                RAW_DEPENDS ${CMAKE_THREAD_LIBS_INIT})
 else()
   message(WARNING "Cant build dubins planner demo.")
 endif()

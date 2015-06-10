@@ -1,3 +1,4 @@
+add_subdirectory(ck_gtk)
 add_subdirectory(cpp_fcgi)
 add_subdirectory(cpp_fontconfig)
 add_subdirectory(cpp_freetype)

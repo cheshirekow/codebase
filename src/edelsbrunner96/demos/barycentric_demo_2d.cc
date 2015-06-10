@@ -22,7 +22,6 @@
  *  @author Josh Bialkowski (jbialk@mit.edu)
  */
 
-
 #include <cmath>
 #include <iomanip>
 #include <iostream>
@@ -36,9 +35,10 @@
 #include <re2/re2.h>
 
 #include <edelsbrunner96/edelsbrunner96.hpp>
-#include <mpblocks/gtk.hpp>
+#include <ck_gtk/eigen_cairo_impl.h>
+#include <ck_gtk/layout_map.h>
+#include <ck_gtk/pan_zoom_view.h>
 #include <mpblocks/util/path_util.h>
-
 
 using namespace mpblocks;
 
@@ -65,8 +65,8 @@ struct Traits {
 class Main {
  private:
   Gtk::Main gtkmm_;  //< note: must be first
-  gtk::LayoutMap layout_;
-  gtk::PanZoomView view_;
+  ck_gtk::LayoutMap layout_;
+  ck_gtk::PanZoomView view_;
 
   Traits::Storage storage_;
   Traits::Simplex simplex_;
@@ -79,30 +79,30 @@ class Main {
   Main();
 
   ~Main() {
-    layout_.saveValues(path_util::GetPreferencesPath() +
+    layout_.SaveValues(path_util::GetPreferencesPath() +
                        "/edelsbrunner96_barycentric_demo_2d.yaml");
   }
 
   void OnMouseMotionView(GdkEventMotion* event) {
     if (event->state & GDK_BUTTON1_MASK) {
       Eigen::Vector2d point(event->x, event->y);
-      layout_.get<Gtk::Adjustment>("view_x")->set_value(point[0]);
-      layout_.get<Gtk::Adjustment>("view_y")->set_value(point[1]);
+      layout_.Get<Gtk::Adjustment>("view_x")->set_value(point[0]);
+      layout_.Get<Gtk::Adjustment>("view_y")->set_value(point[1]);
       if (points_.size() >= 3) {
         auto i = points_.begin();
         simplex_.V[0] = &(*i++);
         simplex_.V[1] = &(*i++);
         simplex_.V[2] = &(*i++);
         auto L = simplex_.BarycentricCoordinates(storage_, point);
-        layout_.get<Gtk::Adjustment>("lambda_0")->set_value(L[0]);
-        layout_.get<Gtk::Adjustment>("lambda_1")->set_value(L[1]);
-        layout_.get<Gtk::Adjustment>("lambda_2")->set_value(L[2]);
+        layout_.Get<Gtk::Adjustment>("lambda_0")->set_value(L[0]);
+        layout_.Get<Gtk::Adjustment>("lambda_1")->set_value(L[1]);
+        layout_.Get<Gtk::Adjustment>("lambda_2")->set_value(L[2]);
         nearest_feature_.clear();
         query_point_ = point;
         auto dist = edelsbrunner96::SimplexDistance<Traits>(
             storage_, point, &simplex_, &nearest_point_,
             std::back_inserter(nearest_feature_));
-        layout_.get<Gtk::Adjustment>("simplex_distance")->set_value(dist);
+        layout_.Get<Gtk::Adjustment>("simplex_distance")->set_value(dist);
         view_.queue_draw();
       }
     }
@@ -133,14 +133,14 @@ class Main {
 
  private:
  public:
-  void Run() { gtkmm_.run(*(layout_.widget<Gtk::Window>("main"))); }
+  void Run() { gtkmm_.run(*(layout_.GetWidget<Gtk::Window>("main"))); }
   void Draw(const Cairo::RefPtr<Cairo::Context>& ctx);
 };
 
 Main::Main() {
   std::vector<std::string> paths = {
       path_util::GetSourcePath() +
-          "/src/edelsbrunner96/barycentric_demo_2d.glade",
+          "/src/edelsbrunner96/demos/barycentric_demo_2d.glade",
       path_util::GetResourcePath() +
           "/edelsbrunner96_barycentric_demo_2d.glade"};
 
@@ -156,12 +156,12 @@ Main::Main() {
     exit(1);
   }
 
-  view_.SetOffsetAdjustments(layout_.get<Gtk::Adjustment>("view_offset_x"),
-                             layout_.get<Gtk::Adjustment>("view_offset_y"));
-  view_.SetScaleAdjustments(layout_.get<Gtk::Adjustment>("view_scale"),
-                            layout_.get<Gtk::Adjustment>("view_scale_rate"));
+  view_.SetOffsetAdjustments(layout_.Get<Gtk::Adjustment>("view_offset_x"),
+                             layout_.Get<Gtk::Adjustment>("view_offset_y"));
+  view_.SetScaleAdjustments(layout_.Get<Gtk::Adjustment>("view_scale"),
+                            layout_.Get<Gtk::Adjustment>("view_scale_rate"));
 
-  Gtk::Box* view_box = layout_.get<Gtk::Box>("view_box");
+  Gtk::Box* view_box = layout_.Get<Gtk::Box>("view_box");
   if (view_box) {
     view_box->pack_start(view_, true, true);
     view_box->reorder_child(view_, 0);
@@ -172,9 +172,9 @@ Main::Main() {
 
   // load default settings if available
   try {
-    std::string default_file = path_util::GetPreferencesPath()
-        + "/edelsbrunner96_barycentric_demo_2d.yaml";
-    layout_.loadValues(default_file);
+    std::string default_file = path_util::GetPreferencesPath() +
+                               "/edelsbrunner96_barycentric_demo_2d.yaml";
+    layout_.LoadValues(default_file);
   } catch (const YAML::BadFile& ex) {
     std::cerr << "No default settings available";
   }
@@ -187,14 +187,14 @@ Main::Main() {
   for (const std::string chk_key :
        {"draw_sites", "draw_edges", "draw_nearest_feature",
         "draw_distance_segment"}) {
-    layout_.get<Gtk::CheckButton>(chk_key)->signal_toggled().connect(
+    layout_.Get<Gtk::CheckButton>(chk_key)->signal_toggled().connect(
         sigc::mem_fun(&view_, &Gtk::DrawingArea::queue_draw));
   }
 
   for (const std::string adj_key :
        {"site_radius", "site_stroke_width", "edge_stroke_width",
         "feature_radius", "distance_stroke_width", "feature_stroke_width"}) {
-    layout_.get<Gtk::Adjustment>(adj_key)->signal_value_changed().connect(
+    layout_.Get<Gtk::Adjustment>(adj_key)->signal_value_changed().connect(
         sigc::mem_fun(&view_, &Gtk::DrawingArea::queue_draw));
   }
 
@@ -202,26 +202,26 @@ Main::Main() {
        {"site_fill_color", "site_stroke_color", "edge_stroke_color",
         "feature_fill_color", "feature_stroke_color",
         "distance_stroke_color"}) {
-    layout_.get<Gtk::ColorButton>(color_key)->signal_color_set().connect(
+    layout_.Get<Gtk::ColorButton>(color_key)->signal_color_set().connect(
         sigc::mem_fun(&view_, &Gtk::DrawingArea::queue_draw));
   }
 
-  layout_.get<Gtk::Button>("reset")->signal_clicked().connect(
+  layout_.Get<Gtk::Button>("reset")->signal_clicked().connect(
       sigc::mem_fun(this, &Main::Reset));
 }
 
 void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
-  gtk::EigenCairo ectx(ctx);
-  if (layout_.get<Gtk::CheckButton>("draw_sites")->get_active()) {
+  ck_gtk::EigenCairo ectx(ctx);
+  if (layout_.Get<Gtk::CheckButton>("draw_sites")->get_active()) {
     Gdk::RGBA fill_color =
-        layout_.get<Gtk::ColorButton>("site_fill_color")->get_rgba();
+        layout_.Get<Gtk::ColorButton>("site_fill_color")->get_rgba();
     Gdk::RGBA stroke_color =
-        layout_.get<Gtk::ColorButton>("site_stroke_color")->get_rgba();
+        layout_.Get<Gtk::ColorButton>("site_stroke_color")->get_rgba();
     double radius =
-        layout_.get<Gtk::Adjustment>("site_radius")->get_value() / 1000;
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
+        layout_.Get<Gtk::Adjustment>("site_radius")->get_value() / 1000;
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
     double stroke_width =
-        layout_.get<Gtk::Adjustment>("site_stroke_width")->get_value() / 10000;
+        layout_.Get<Gtk::Adjustment>("site_stroke_width")->get_value() / 10000;
 
     ctx->set_line_width(stroke_width * scale);
     for (const Eigen::Vector2d& point : points_) {
@@ -233,13 +233,12 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     }
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_edges")->get_active()) {
+  if (layout_.Get<Gtk::CheckButton>("draw_edges")->get_active()) {
     Gdk::RGBA stroke_color =
-        layout_.get<Gtk::ColorButton>("edge_stroke_color")->get_rgba();
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
+        layout_.Get<Gtk::ColorButton>("edge_stroke_color")->get_rgba();
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
     double stroke_width =
-        layout_.get<Gtk::Adjustment>("edge_stroke_width")->get_value() /
-        10000;
+        layout_.Get<Gtk::Adjustment>("edge_stroke_width")->get_value() / 10000;
 
     ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
     ctx->set_line_join(Cairo::LINE_JOIN_ROUND);
@@ -253,16 +252,16 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     ctx->stroke();
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_nearest_feature")->get_active()) {
+  if (layout_.Get<Gtk::CheckButton>("draw_nearest_feature")->get_active()) {
     Gdk::RGBA fill_color =
-        layout_.get<Gtk::ColorButton>("feature_fill_color")->get_rgba();
+        layout_.Get<Gtk::ColorButton>("feature_fill_color")->get_rgba();
     Gdk::RGBA stroke_color =
-        layout_.get<Gtk::ColorButton>("feature_stroke_color")->get_rgba();
+        layout_.Get<Gtk::ColorButton>("feature_stroke_color")->get_rgba();
     double radius =
-        layout_.get<Gtk::Adjustment>("feature_radius")->get_value() / 1000;
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
+        layout_.Get<Gtk::Adjustment>("feature_radius")->get_value() / 1000;
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
     double stroke_width =
-        layout_.get<Gtk::Adjustment>("feature_stroke_width")->get_value() /
+        layout_.Get<Gtk::Adjustment>("feature_stroke_width")->get_value() /
         10000;
     ctx->set_line_width(stroke_width * scale);
 
@@ -298,13 +297,13 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     }
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_distance_segment")->get_active() &&
+  if (layout_.Get<Gtk::CheckButton>("draw_distance_segment")->get_active() &&
       nearest_feature_.size() > 0) {
     Gdk::RGBA stroke_color =
-        layout_.get<Gtk::ColorButton>("distance_stroke_color")->get_rgba();
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
+        layout_.Get<Gtk::ColorButton>("distance_stroke_color")->get_rgba();
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
     double stroke_width =
-        layout_.get<Gtk::Adjustment>("distance_stroke_width")->get_value() /
+        layout_.Get<Gtk::Adjustment>("distance_stroke_width")->get_value() /
         10000;
 
     ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
@@ -317,17 +316,17 @@ void Main::Draw(const Cairo::RefPtr<Cairo::Context>& ctx) {
     ctx->stroke();
   }
 
-  if (layout_.get<Gtk::CheckButton>("draw_sites")->get_active() &&
+  if (layout_.Get<Gtk::CheckButton>("draw_sites")->get_active() &&
       points_.size() >= 3) {
     Gdk::RGBA fill_color =
-        layout_.get<Gtk::ColorButton>("site_fill_color")->get_rgba();
+        layout_.Get<Gtk::ColorButton>("site_fill_color")->get_rgba();
     Gdk::RGBA stroke_color =
-        layout_.get<Gtk::ColorButton>("site_stroke_color")->get_rgba();
+        layout_.Get<Gtk::ColorButton>("site_stroke_color")->get_rgba();
     double radius =
-        layout_.get<Gtk::Adjustment>("site_radius")->get_value() / 1000;
-    double scale = layout_.get<Gtk::Adjustment>("view_scale")->get_value();
+        layout_.Get<Gtk::Adjustment>("site_radius")->get_value() / 1000;
+    double scale = layout_.Get<Gtk::Adjustment>("view_scale")->get_value();
     double stroke_width =
-        layout_.get<Gtk::Adjustment>("site_stroke_width")->get_value() / 10000;
+        layout_.Get<Gtk::Adjustment>("site_stroke_width")->get_value() / 10000;
 
     ctx->set_line_width(stroke_width * scale);
     ectx.circle(query_point_, radius * scale);
