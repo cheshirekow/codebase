@@ -18,3 +18,9 @@ cc_library(clarkson93
                    triangulation_impl.h
            SOURCES
            PKG_DEPENDS eigen3)
+
+macro(clarkson93_test test_name)
+  cc_test(clarkson93_${test_name} SOURCES ${test_name}.cc)
+endmacro()
+
+clarkson93_test(bit_member_test)
