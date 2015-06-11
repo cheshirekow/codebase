@@ -8,7 +8,7 @@ cc_library(clarkson93
                    example_traits.h
                    horizon_ridge.h
                    indexed.h
-                   p_queue.h
+                   priority_queue.h
                    simplex2.h
                    simplex2_impl.h
                    simplex.h
@@ -24,4 +24,5 @@ macro(clarkson93_test test_name)
 endmacro()
 
 clarkson93_test(bit_member)
+clarkson93_test(priority_queue)
 clarkson93_test(stack_set)

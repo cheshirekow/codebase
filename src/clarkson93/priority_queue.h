@@ -16,30 +16,47 @@
  *  You should have received a copy of the GNU General Public License
  *  along with clarkson93.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef CLARKSON93_P_QUEUE_H_
-#define CLARKSON93_P_QUEUE_H_
+#ifndef CLARKSON93_PRIORITY_QUEUE_H_
+#define CLARKSON93_PRIORITY_QUEUE_H_
 
 #include <queue>
 
 namespace clarkson93 {
 
 /// A priority queue with a slightly more readable interface than from the STL
+/**
+ *  In particular we expose some of the functions of the underlying container,
+ *  as well as provide a pop method that returns the popped value.
+ */
 template <class T>
-class P_Queue
+class PriorityQueue
     : public std::priority_queue<T, std::vector<T>, std::greater<T> > {
  public:
   typedef std::priority_queue<T, std::vector<T>, std::greater<T> > Base;
-  typedef typename Base::size_type size_t;
+  typedef typename Base::size_type size_type;
 
-  typename std::vector<T>::iterator begin() { return this->c.begin(); }
+  /// return an iterator to the front of the underlying vector
+  typename std::vector<T>::iterator begin() {
+    return this->c.begin();
+  }
 
-  typename std::vector<T>::iterator end() { return this->c.begin(); }
+  /// return an iterator to the past-the-end of the underlying vector
+  typename std::vector<T>::iterator end() {
+    return this->c.end();
+  }
 
-  void reserve(size_t cap) { this->c.reserve(cap); }
+  /// reserve space in the underlying vector
+  void Reserve(size_type cap) {
+    this->c.reserve(cap);
+  }
 
-  void clear() { this->c.clear(); }
+  /// clear the underlying vector
+  void Clear() {
+    this->c.clear();
+  }
 
-  T pop() {
+  /// remove the next element in the queue and return it
+  T Pop() {
     T tmp = this->Base::top();
     this->Base::pop();
     return tmp;
@@ -48,4 +65,4 @@ class P_Queue
 
 }  // namespace clarkson93
 
-#endif  // CLARKSON93_P_QUEUE_H_
+#endif  // CLARKSON93_PRIORITY_QUEUE_H_
