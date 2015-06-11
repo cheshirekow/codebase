@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with clarkson93.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef CLARKSON93_SIMPLEX3_H_
-#define CLARKSON93_SIMPLEX3_H_
+#ifndef CLARKSON93_Simplex_H_
+#define CLARKSON93_Simplex_H_
 
 #include <array>
 #include <cstdint>
@@ -74,7 +74,7 @@ typedef simplex::Sets SimplexSets;
  *  oriented such that n' x < c is the half-space containing the 'peak' vertex
  */
 template <class Traits>
-struct Simplex3 : public BitMember<simplex::Sets, simplex::NUM_BITS> {
+struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
   // Typedefs
   // -----------------------------------------------------------------------
   static const int kDim = Traits::kDim;
@@ -87,14 +87,14 @@ struct Simplex3 : public BitMember<simplex::Sets, simplex::NUM_BITS> {
   int8_t i_peak;  ///< index of the peak vertex
   // TODO(josh): compare performance between std::array and raw buffer
   std::array<PointRef, kDim + 1> V;   ///< vertices of the simplex
-  std::array<Simplex3*, kDim + 1> N;  ///< simplices which share a facet
+  std::array<Simplex*, kDim + 1> N;  ///< simplices which share a facet
 
   Point n;   ///< normal vector of base facet
   Scalar o;  ///< offset of base facet inequality hyperplane
 
   // Member Functions
   // -----------------------------------------------------------------------
-  Simplex3(PointRef null_point) : i_peak(0), o(0) {
+  Simplex(PointRef null_point) : i_peak(0), o(0) {
     for (int i = 0; i < kDim + 1; i++) {
       V[i] = null_point;
       N[i] = nullptr;
@@ -102,11 +102,11 @@ struct Simplex3 : public BitMember<simplex::Sets, simplex::NUM_BITS> {
     n.fill(0);
   }
 
-  Simplex3<Traits>* GetNeighborAcross(PointRef v) {
+  Simplex<Traits>* GetNeighborAcross(PointRef v) {
     return N[GetIndexOf(v)];
   }
 
-  Simplex3<Traits>* GetPeakNeighbor() {
+  Simplex<Traits>* GetPeakNeighbor() {
     return N[i_peak];
   }
 
@@ -122,26 +122,26 @@ struct Simplex3 : public BitMember<simplex::Sets, simplex::NUM_BITS> {
 // Readability functions
 // ---------------------------------------------------------
 template <class Traits>
-const std::array<Simplex3<Traits>*, Traits::kDim>& Neighborhood(
-    const Simplex3<Traits>& s) {
+const std::array<Simplex<Traits>*, Traits::kDim>& Neighborhood(
+    const Simplex<Traits>& s) {
   return s.N;
 }
 
 template <class Traits>
 const std::array<typename Traits::PointRef, Traits::kDim>& Vertices(
-    const Simplex3<Traits>& s) {
+    const Simplex<Traits>& s) {
   return s.V;
 }
 
 /// simultaneously construct the set intersection and the set symmetric
 /// difference of Sa and Sb
 template <class Traits, typename Output1, typename Output2, typename Output3>
-void VsetSplit(const Simplex3<Traits>& Sa, const Simplex3<Traits>& Sb,
+void VsetSplit(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
                Output1 a_only, Output2 b_only, Output3 intersect);
 
 /// builds a list of vertices common to both simplices
 template <class Traits, typename Output>
-void VsetIntersection(const Simplex3<Traits>& Sa, const Simplex3<Traits>& Sb,
+void VsetIntersection(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
                       Output intersect);
 
 /// builds a list of neighbors that share a facet... this is the set of
@@ -153,24 +153,24 @@ void VsetIntersection(const Simplex3<Traits>& Sa, const Simplex3<Traits>& Sb,
  *  @param  outiter output iterator of neighbor simplices
  */
 template <class Traits, class Container, class Output>
-void GetNeighborsSharing(const Simplex3<Traits>& simplex,
+void GetNeighborsSharing(const Simplex<Traits>& simplex,
                          const Container& feature, Output out_iter);
 
 // Mutators
 // -----------------------------------------------------------------------
 /// after filling vertices, lay them out in sorted order
 template <class Traits>
-void SortVertices(Simplex3<Traits>* simplex);
+void SortVertices(Simplex<Traits>* simplex);
 
 /// compute the base facet normal and offset
 template <class Traits, class Deref>
-void ComputeBase(Simplex3<Traits>* simplex, const Deref& deref);
+void ComputeBase(Simplex<Traits>* simplex, const Deref& deref);
 
 /// orient the base facete normal by ensuring that the point x
 /// lies on the appropriate half-space
 /// @f$ n \cdot x \le c @f$ )
 template <class Traits, class Point>
-void OrientBase(Simplex3<Traits>* simplex, const Point& x,
+void OrientBase(Simplex<Traits>* simplex, const Point& x,
                 simplex::Orientation orient = simplex::INSIDE);
 
 // point queries
@@ -179,19 +179,19 @@ void OrientBase(Simplex3<Traits>* simplex, const Point& x,
 /// returns the distance of x to the base facet, used in walking the
 /// triangulation to x
 template <class Traits, class Point>
-typename Traits::Scalar NormalProjection(const Simplex3<Traits>& simplex,
+typename Traits::Scalar NormalProjection(const Simplex<Traits>& simplex,
                                          const Point& x);
 
 /// returns true if the base vertex is the anti origin
 template <class Traits>
-bool IsInfinite(const Simplex3<Traits>& simplex,
+bool IsInfinite(const Simplex<Traits>& simplex,
                 typename Traits::PointRef anti_origin);
 
 /// returns true if x is on the inside of the base facet (i.e. x is in the
 /// same half space as the simplex)
 template <class Traits, class Point>
-bool IsVisible(const Simplex3<Traits>& simplex, const Point& x);
+bool IsVisible(const Simplex<Traits>& simplex, const Point& x);
 
 }  // namespace clarkson93
 
-#endif  // CLARKSON93_SIMPLEX3_H_
+#endif  // CLARKSON93_Simplex_H_

@@ -26,7 +26,7 @@
 namespace clarkson93 {
 
 template <class Traits, typename Output1, typename Output2, typename Output3>
-inline void VsetSplit(const Simplex3<Traits>& Sa, const Simplex3<Traits>& Sb,
+inline void VsetSplit(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
                       Output1 a_only, Output2 b_only, Output3 intersect) {
   auto first1 = Sa.begin();
   auto last1 = Sa.end();
@@ -48,14 +48,14 @@ inline void VsetSplit(const Simplex3<Traits>& Sa, const Simplex3<Traits>& Sb,
 }
 
 template <class Traits, typename Output>
-void VsetIntersection(const Simplex3<Traits>& Sa, const Simplex3<Traits>& Sb,
+void VsetIntersection(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
                       Output intersect) {
   std::set_intersection(Sa.V.begin(), Sa.V.end(), Sb.V.begin(), Sb.V.end(),
                         intersect);
 }
 
 template <class Traits, class Container, class Output>
-void GetNeighborsSharing(const Simplex3<Traits>& simplex,
+void GetNeighborsSharing(const Simplex<Traits>& simplex,
                          const Container& feature, Output out_iter) {
   auto facet_iter = feature.begin();
   for (unsigned int i = 0; i < Traits::kDim + 1 && facet_iter != feature.end();
@@ -69,11 +69,11 @@ void GetNeighborsSharing(const Simplex3<Traits>& simplex,
 }
 
 template <class Traits>
-void SortVertices(Simplex3<Traits>* simplex) {
+void SortVertices(Simplex<Traits>* simplex) {
   typename Traits::PointRef peak = simplex->GetPeakVertex();
 
   // TODO(josh): pqueue might be faster
-  std::map<typename Traits::PointRef, Simplex3<Traits>*> kv;
+  std::map<typename Traits::PointRef, Simplex<Traits>*> kv;
 
   for (int i = 0; i < Traits::kDim + 1; i++) {
     kv[simplex->V[i]] = simplex->N[i];
@@ -91,7 +91,7 @@ void SortVertices(Simplex3<Traits>* simplex) {
 }
 
 template <class Traits, class Deref>
-void ComputeBase(Simplex3<Traits>* simplex, const Deref& deref) {
+void ComputeBase(Simplex<Traits>* simplex, const Deref& deref) {
   typedef Eigen::Matrix<typename Traits::Scalar, Traits::kDim, Traits::kDim>
       Matrix;
   typedef Eigen::Matrix<typename Traits::Scalar, Traits::kDim, 1> Vector;
@@ -114,7 +114,7 @@ void ComputeBase(Simplex3<Traits>* simplex, const Deref& deref) {
 }
 
 template <class Traits, class Point>
-void OrientBase(Simplex3<Traits>* simplex, const Point& x,
+void OrientBase(Simplex<Traits>* simplex, const Point& x,
                 simplex::Orientation orient) {
   // orient the hyperplane so that the peak vertex is on the
   // "positive" side (i.e. the 'less than' side)
@@ -142,19 +142,19 @@ void OrientBase(Simplex3<Traits>* simplex, const Point& x,
 }
 
 template <class Traits, class Point>
-typename Traits::Scalar NormalProjection(const Simplex3<Traits>& simplex,
+typename Traits::Scalar NormalProjection(const Simplex<Traits>& simplex,
                                          const Point& x) {
   return simplex->o - simplex->n.dot(x);
 }
 
 template <class Traits>
-bool IsInfinite(const Simplex3<Traits>& simplex,
+bool IsInfinite(const Simplex<Traits>& simplex,
                 typename Traits::PointRef anti_origin) {
   return simplex->V[simplex->i_peak] == anti_origin;
 }
 
 template <class Traits, class Point>
-bool IsVisible(const Simplex3<Traits>& simplex, const Point& x) {
+bool IsVisible(const Simplex<Traits>& simplex, const Point& x) {
   return (simplex->n.dot(x) < simplex->o);
 }
 
