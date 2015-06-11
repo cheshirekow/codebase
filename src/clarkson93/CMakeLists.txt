@@ -9,9 +9,11 @@ cc_library(clarkson93
                    horizon_ridge.h
                    indexed.h
                    priority_queue.h
-                   simplex2.h
-                   simplex2_impl.h
                    simplex.h
+                   simplex2.h
+                   simplex3.h
+                   simplex2_impl.h
+                   simplex3_impl.h
                    simplex_impl.h
                    stack_set.h
                    triangulation.h
