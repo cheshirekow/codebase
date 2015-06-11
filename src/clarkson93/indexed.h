@@ -21,64 +21,46 @@
 
 namespace clarkson93 {
 
-/// priority queue node
-template <typename Index_t, typename Value_t>
+/// priority queue node, Lexicographical ordering by index and then value
+/// TODO(josh): replace usages with std::tuple
+template <typename Index, typename Value>
 struct Indexed {
-  typedef Indexed<Index_t, Value_t> This;
+  Index idx;
+  Value val;
 
-  Index_t idx;
-  Value_t val;
+  typedef Indexed<Index, Value> This;
 
-  Indexed() {}
-  Indexed(Index_t idx, Value_t val) : idx(idx), val(val) {}
-
-  static bool lessThan(const This& a, const This& b) {
-    if (a.idx < b.idx)
-      return true;
-    else if (a.idx == b.idx) {
-      if (a.val < b.val)
-        return true;
-      else
-        return false;
-    } else
-      return false;
+  static bool LessThan(const This& a, const This& b) {
+    return a.idx == b.idx ? a.val < b.val : a.idx < b.idx;
   }
 
-  static bool greaterThan(const This& a, const This& b) {
-    if (a.idx > b.idx)
-      return true;
-    else if (a.idx == b.idx) {
-      if (a.val > b.val)
-        return true;
-      else
-        return false;
-    } else
-      return false;
+  static bool GreaterThan(const This& a, const This& b) {
+    return a.idx == b.idx ? a.val > b.val : a.idx > b.idx;
   }
 
   struct Less {
     bool operator()(const This& a, const This& b) {
-      return This::lessThan(a, b);
+      return This::LessThan(a, b);
     }
   };
 
   struct Greater {
     bool operator()(const This& a, const This& b) {
-      return This::greaterThan(a, b);
+      return This::GreaterThan(a, b);
     }
   };
 };
 
-template <typename Index_t, typename Value_t>
-bool operator<(const Indexed<Index_t, Value_t>& a,
-               const Indexed<Index_t, Value_t>& b) {
-  return Indexed<Index_t, Value_t>::lessThan(a, b);
+template <typename Index, typename Value>
+inline bool operator<(const Indexed<Index, Value>& a,
+                      const Indexed<Index, Value>& b) {
+  return Indexed<Index, Value>::LessThan(a, b);
 }
 
-template <typename Index_t, typename Value_t>
-bool operator>(const Indexed<Index_t, Value_t>& a,
-               const Indexed<Index_t, Value_t>& b) {
-  return Indexed<Index_t, Value_t>::greaterThan(a, b);
+template <typename Index, typename Value>
+inline bool operator>(const Indexed<Index, Value>& a,
+                      const Indexed<Index, Value>& b) {
+  return Indexed<Index, Value>::GreaterThan(a, b);
 }
 
 }  // namespace clarkson93
