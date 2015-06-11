@@ -9,8 +9,8 @@ cc_library(clarkson93
                    horizon_ridge.h
                    indexed.h
                    priority_queue.h
-                   simplex3.h
-                   simplex3_impl.h
+                   simplex.h
+                   simplex_impl.h
                    stack_set.h
                    triangulation.h
                    triangulation_impl.h
@@ -23,4 +23,5 @@ endmacro()
 
 clarkson93_test(bit_member)
 clarkson93_test(priority_queue)
+clarkson93_test(simplex)
 clarkson93_test(stack_set)

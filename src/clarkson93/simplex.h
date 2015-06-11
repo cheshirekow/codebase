@@ -22,6 +22,7 @@
 #include <array>
 #include <cstdint>
 #include <clarkson93/bit_member.h>
+#include <Eigen/Dense>
 
 namespace clarkson93 {
 
@@ -78,13 +79,12 @@ struct Simplex3 : public BitMember<simplex::Sets, simplex::NUM_BITS> {
   // -----------------------------------------------------------------------
   static const int kDim = Traits::kDim;
   typedef typename Traits::Scalar Scalar;
-  typedef typename Traits::Point Point;
   typedef typename Traits::PointRef PointRef;
-  typedef typename Traits::Deref Deref;
+  typedef Eigen::Matrix<Scalar, kDim, 1> Point;
 
   // Data Members
   // -----------------------------------------------------------------------
-  uint32_t i_peak_;  ///< index of the peak vertex
+  int8_t i_peak;  ///< index of the peak vertex
   // TODO(josh): compare performance between std::array and raw buffer
   std::array<PointRef, kDim + 1> V;   ///< vertices of the simplex
   std::array<Simplex3*, kDim + 1> N;  ///< simplices which share a facet
@@ -94,7 +94,7 @@ struct Simplex3 : public BitMember<simplex::Sets, simplex::NUM_BITS> {
 
   // Member Functions
   // -----------------------------------------------------------------------
-  Simplex3(PointRef null_point) : iPeak(0), o(0) {
+  Simplex3(PointRef null_point) : i_peak(0), o(0) {
     for (int i = 0; i < kDim + 1; i++) {
       V[i] = null_point;
       N[i] = nullptr;
@@ -107,11 +107,11 @@ struct Simplex3 : public BitMember<simplex::Sets, simplex::NUM_BITS> {
   }
 
   Simplex3<Traits>* GetPeakNeighbor() {
-    return N[i_peak_];
+    return N[i_peak];
   }
 
   PointRef GetPeakVertex() {
-    return V[i_peak_];
+    return V[i_peak];
   }
 
   int8_t GetIndexOf(PointRef v) {
@@ -128,7 +128,7 @@ const std::array<Simplex3<Traits>*, Traits::kDim>& Neighborhood(
 }
 
 template <class Traits>
-const std::array<typename Traits::Pointref, Traits::kDim>& Vertices(
+const std::array<typename Traits::PointRef, Traits::kDim>& Vertices(
     const Simplex3<Traits>& s) {
   return s.V;
 }

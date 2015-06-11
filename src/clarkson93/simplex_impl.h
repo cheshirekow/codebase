@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #include <map>
-#include <clarkson93/simplex3.h>
+#include <clarkson93/simplex.h>
 
 namespace clarkson93 {
 
@@ -55,31 +55,34 @@ void VsetIntersection(const Simplex3<Traits>& Sa, const Simplex3<Traits>& Sb,
 }
 
 template <class Traits, class Container, class Output>
-void GetNeighborsSharing(Simplex3<Traits>& simplex, const Container& feature,
-                         Output out_iter) {
+void GetNeighborsSharing(const Simplex3<Traits>& simplex,
+                         const Container& feature, Output out_iter) {
   auto facet_iter = feature.begin();
-  for (unsigned int i = 0; i < kDim + 1 && facet_iter != feature.end(); i++) {
-    if (simplex.V[i] < *facet_iter)
+  for (unsigned int i = 0; i < Traits::kDim + 1 && facet_iter != feature.end();
+       i++) {
+    if (simplex.V[i] < *facet_iter) {
       *out_iter++ = simplex.N[i];
-    else
+    } else {
       ++facet_iter;
+    }
   }
 }
 
 template <class Traits>
 void SortVertices(Simplex3<Traits>* simplex) {
-  PointRef peak = simplex.V[simplex.i_peak_];
+  typename Traits::PointRef peak = simplex->GetPeakVertex();
 
   // TODO(josh): pqueue might be faster
-  std::map<PointRef, SimplexRef> kv;
+  std::map<typename Traits::PointRef, Simplex3<Traits>*> kv;
 
-  for (int i = 0; i < kDim + 1; i++)
+  for (int i = 0; i < Traits::kDim + 1; i++) {
     kv[simplex->V[i]] = simplex->N[i];
+  }
 
   int i = 0;
   for (auto pair : kv) {
     if (pair.first == peak) {
-      simplex->i_peak_ = i;
+      simplex->i_peak = i;
     }
     simplex->V[i] = pair.first;
     simplex->N[i] = pair.second;
@@ -89,17 +92,16 @@ void SortVertices(Simplex3<Traits>* simplex) {
 
 template <class Traits, class Deref>
 void ComputeBase(Simplex3<Traits>* simplex, const Deref& deref) {
-  typedef typename Traits::Scalar Scalar;
-  static const int kDim = Traits::kDim;
-  typedef Eigen::Matrix<Scalar, kDim, kDim> Matrix;
-  typedef Eigen::Matrix<Scalar, kDim, 1> Vector;
+  typedef Eigen::Matrix<typename Traits::Scalar, Traits::kDim, Traits::kDim>
+      Matrix;
+  typedef Eigen::Matrix<typename Traits::Scalar, Traits::kDim, 1> Vector;
 
   Matrix A;
   Vector b;
 
-  unsigned int j = 0;
-  for (unsigned int i = 0; i < kDim + 1; i++)
-    if (i != simplex->i_peak_)
+  int j = 0;
+  for (int i = 0; i < Traits::kDim + 1; i++)
+    if (i != simplex->i_peak)
       A.row(j++) = deref(simplex->V[i]);
   b.setConstant(1);
 
@@ -107,7 +109,7 @@ void ComputeBase(Simplex3<Traits>* simplex, const Deref& deref) {
   simplex->n = A.fullPivLu().solve(b).normalized();
 
   // and then find the value of 'c' (hyperplane offset)
-  j = simplex->i_peak_ == 0 ? 1 : 0;
+  j = simplex->i_peak == 0 ? 1 : 0;
   simplex->o = deref(simplex->V[j]).dot(simplex->n);
 }
 
@@ -148,7 +150,7 @@ typename Traits::Scalar NormalProjection(const Simplex3<Traits>& simplex,
 template <class Traits>
 bool IsInfinite(const Simplex3<Traits>& simplex,
                 typename Traits::PointRef anti_origin) {
-  return simplex->V[simplex->i_peak_] == anti_origin;
+  return simplex->V[simplex->i_peak] == anti_origin;
 }
 
 template <class Traits, class Point>
