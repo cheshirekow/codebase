@@ -111,3 +111,30 @@ TEST(SimplexTest, VsetSplitTest) {
                                std::back_inserter(in_both));
   EXPECT_EQ(in_both, std::vector<int>({1, 2, 5}));
 }
+
+TEST(SimplexTest, GetNeighborsSharingTest) {
+  typedef clarkson93::Simplex<TestTraits> Simplex;
+  Simplex simplex(0);
+  simplex.V = {3, 2, 1, 4, 5};
+  for (int i = 0; i < 5; i++) {
+    simplex.N[i] = reinterpret_cast<Simplex*>(simplex.V[i]);
+  }
+  clarkson93::SortVertices(&simplex);
+
+  std::vector<Simplex*> neighbors;
+  std::vector<Simplex*> expected_neighbors;
+  clarkson93::GetNeighborsSharing(simplex, std::vector<int>({1, 4, 5}),
+                                  std::back_inserter(neighbors));
+
+  expected_neighbors = {reinterpret_cast<Simplex*>(2),
+                        reinterpret_cast<Simplex*>(3)};
+  EXPECT_EQ(expected_neighbors, neighbors);
+
+  neighbors.clear();
+  clarkson93::GetNeighborsSharing(simplex, std::vector<int>({3, 5}),
+                                  std::back_inserter(neighbors));
+  expected_neighbors = {reinterpret_cast<Simplex*>(1),
+                        reinterpret_cast<Simplex*>(2),
+                        reinterpret_cast<Simplex*>(4)};
+  EXPECT_EQ(expected_neighbors, neighbors);
+}

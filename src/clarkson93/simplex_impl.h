@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <map>
 #include <clarkson93/simplex.h>
+#include <clarkson93/zip.h>
 
 namespace clarkson93 {
 
@@ -58,13 +59,27 @@ void VsetIntersection(const Simplex<Traits>& simplex_a,
 template <class Traits, class Container, class Output>
 void GetNeighborsSharing(const Simplex<Traits>& simplex,
                          const Container& feature, Output out_iter) {
-  auto facet_iter = feature.begin();
-  for (unsigned int i = 0; i < Traits::kDim + 1 && facet_iter != feature.end();
-       i++) {
-    if (simplex.V[i] < *facet_iter) {
-      *out_iter++ = simplex.N[i];
+  int simplex_iter = 0;
+  int simplex_end = Traits::kDim + 1;
+  auto feature_iter = feature.begin();
+  auto feature_end = feature.end();
+
+  // basically a set difference
+  while (simplex_iter != simplex_end) {
+    if (feature_iter == feature_end) {
+      *out_iter++ = simplex.N[simplex_iter++];
+      continue;
+    }
+
+    if (simplex.V[simplex_iter] < *feature_iter) {
+      *out_iter++ = simplex.N[simplex_iter++];
     } else {
-      ++facet_iter;
+      // if they're equal, we increment both
+      if (!(*feature_iter < simplex.V[simplex_iter])) {
+        ++simplex_iter;
+      }
+      // otherwise just step the feature list
+      ++feature_iter;
     }
   }
 }

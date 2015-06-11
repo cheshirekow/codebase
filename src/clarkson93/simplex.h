@@ -154,7 +154,7 @@ void VsetIntersection(const Simplex<Traits>& simplex_a,
 /// facet set
 /**
  *  @param  simplex the simplex to query
- *  @param  feature   a range-iterable container of vertex references
+ *  @param  feature a range-iterable container of vertex references
  *  @param  outiter output iterator of neighbor simplices
  */
 template <class Traits, class Container, class Output>

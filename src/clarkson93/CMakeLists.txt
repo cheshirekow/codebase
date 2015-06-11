@@ -14,6 +14,8 @@ cc_library(clarkson93
                    stack_set.h
                    triangulation.h
                    triangulation_impl.h
+                   zip.h
+                   zip_test.cc
            SOURCES
            PKG_DEPENDS eigen3)
 
@@ -25,3 +27,4 @@ clarkson93_test(bit_member)
 clarkson93_test(priority_queue)
 clarkson93_test(simplex)
 clarkson93_test(stack_set)
+clarkson93_test(zip)
