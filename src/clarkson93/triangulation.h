@@ -19,6 +19,7 @@
 #ifndef CLARKSON93_TRIANGULATION_H_
 #define CLARKSON93_TRIANGULATION_H_
 
+#include <initializer_list>
 #include <list>
 #include <queue>
 #include <set>
@@ -89,6 +90,12 @@ class Triangulation {
   /// inserted
   template <class Container>
   void BuildInitial(const Container& vertices, const Deref& deref);
+
+  template <typename T>
+  void BuildFromIL(const std::initializer_list<T>& vertices,
+                   const Deref& deref) {
+    BuildInitial(vertices, deref);
+  }
 
   /// insert a new point into the triangulation and update the convex
   /// hull (if necessary)

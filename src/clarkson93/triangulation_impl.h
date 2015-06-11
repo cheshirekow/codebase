@@ -65,8 +65,8 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
   }
   assert(vertex_iterator == s0.V.end());
 
-  ComputeBase(s0, deref);
-  OrientBase(s0, deref(s0.GetPeakVertex()), simplex::INSIDE);
+  ComputeBase(s0_ptr, deref);
+  OrientBase(s0_ptr, deref(s0.GetPeakVertex()), simplex::INSIDE);
 
   // construct and initialize infinite simplices
   for (int i = 0; i < kDim + 1; i++) {
@@ -118,7 +118,7 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
   }
 
   // remember which simplices we created
-  allocated_simplices_.emplace(s0_ptr);
+  allocated_simplices_.push_back(s0_ptr);
   std::copy(S.begin(), S.end(), std::back_inserter(allocated_simplices_));
 }
 
