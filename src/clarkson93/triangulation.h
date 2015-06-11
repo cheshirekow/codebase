@@ -69,7 +69,7 @@ class Triangulation {
   Simplex<Traits>* hull_simplex_;    ///< a simplex in the hull
   Simplex<Traits>* origin_simplex_;  ///< origin simplex
   PointRef anti_origin_;             ///< fictitious point
-  SimplexAllocator alloc_;           ///< allocator for simplices
+  SimplexAllocator* alloc_;          ///< allocator for simplices
 
   WalkQueue xv_queue_;     ///< walk for x-visible search
   SimplexList xv_walked_;  ///< set of simplices ever expanded for
@@ -116,12 +116,12 @@ class Triangulation {
    *  @f$ x \in \mathrm{hull} R @f$
    */
   Simplex<Traits>* FindVisibleHull(PointRef vertex_id, const Deref& deref,
-                               Simplex<Traits>* search_start);
+                                   Simplex<Traits>* search_start);
 
   /// given a simplex S which is x-visible and infinite, fill the set of
   /// all x-visible and infinite facets
   void FloodVisibleHull(PointRef vertex_id, const Deref& deref,
-                    Simplex<Traits>* visible_hull_simplex);
+                        Simplex<Traits>* visible_hull_simplex);
 
   // update each x-visible simplex by adding the point x as the peak
   // vertex, also create new simplices

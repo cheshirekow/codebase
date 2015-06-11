@@ -66,16 +66,16 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
   assert(vertex_iterator == s0.V.end());
 
   ComputeBase(s0, deref);
-  OrientBase(s0, deref(s0.GetPeakVertex()), INSIDE);
+  OrientBase(s0, deref(s0.GetPeakVertex()), simplex::INSIDE);
 
   // construct and initialize infinite simplices
   for (int i = 0; i < kDim + 1; i++) {
     S[i] = alloc_->Create();
-    Simplex& s_i = *S[i];
+    Simplex<Traits>& s_i = *S[i];
 
     // the neighbor across the anti-origin is the origin simplex, and
     // this simplex is the i'th neighbor of the origin simplex
-    s_i.V[0] = anti_origin_simplex_;
+    s_i.V[0] = anti_origin_;
     s_i.N[0] = s0_ptr;
     s0.N[i] = S[i];
 
@@ -111,9 +111,10 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
 
   // Finalize the simplices by sorting their vertex sets
   SortVertices(s0_ptr);
+  BitMemberSet<simplex::Sets> hull_set(simplex::HULL);
   for (int i = 0; i < kDim + 1; i++) {
     SortVertices(S[i]);
-    S_i->AddTo(simplex::HULL);
+    hull_set.Add(S[i]);
   }
 
   // remember which simplices we created
@@ -152,7 +153,7 @@ void Triangulation<Traits>::Clear() {
 }
 
 template <class Traits>
-typename Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
+Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
     PointRef vertex_id, const Deref& deref, Simplex<Traits>* search_start) {
   // set of simplices that have been walked
   BitMemberSet<simplex::Sets> walked_set(simplex::VISIBLE_WALK);
@@ -241,7 +242,7 @@ void Triangulation<Traits>::FloodVisibleHull(
   BitMemberSet<simplex::Sets> visible_hull_set(simplex::VISIBLE_HULL);
   BitMemberSet<simplex::Sets> horizon_fill_set(simplex::HORIZON_FILL);
 
-  auto& vertx = deref(vertex_id);
+  auto& vertex = deref(vertex_id);
 
   // clear old results
   for (Simplex<Traits>* simplex_ptr : xvh_) {
@@ -285,7 +286,7 @@ void Triangulation<Traits>::FloodVisibleHull(
       // if the neighbor is both infinite and x-visible , but has not
       // yet been queued for expansion, then add it to
       // the x-visible hull set, and queue it up for expansion
-      if (is_x_visible && !visible_hull_set.IsMember(*neighbor_ptr) {
+      if (is_x_visible && !visible_hull_set.IsMember(*neighbor_ptr)) {
         visible_hull_set.Add(neighbor_ptr);
         xvh_.push_back(neighbor_ptr);
       }
@@ -293,7 +294,7 @@ void Triangulation<Traits>::FloodVisibleHull(
       // if is not visible then there is a horizon ridge between this
       // simplex and the neighbor simplex
       if (!is_x_visible)
-        ridges_.emplace_back(pop_ref, neighbor_ref);
+        ridges_.emplace_back(pop_ptr, neighbor_ptr);
     }
   }
 }
@@ -442,7 +443,7 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
       feature_walk_list.push_back(ridge.fill);
       feature_walk_list.push_back(ridge.x_visible);
       feature_walk_set.Add(ridge.fill);
-      feature_walk_set.Add(risge.x_visible);
+      feature_walk_set.Add(ridge.x_visible);
 
       // create a search queue (will only ever hold 2 elements)
       std::list<Simplex<Traits>*> queue;
@@ -458,11 +459,11 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
         queue.pop_back();
 
         // find all the neighbors that share the facet
-        assert(GetNeighborsSharing(*pop_ref, edge).size() == 2);
+        assert(GetNeighborsSharing(*pop_ptr, edge).size() == 2);
 
         // get the one neighbor which isn't already in FEATURE_WALK
         for (Simplex<Traits>* neighbor_ptr :
-             GetNeighborsSharing(*pop_ref, edge)) {
+             GetNeighborsSharing(*pop_ptr, edge)) {
           // if it's not the one we came from
           if (!feature_walk_set.IsMember(*neighbor_ptr)) {
             // if N is in HORIZON_FILL then this is the neighbor
