@@ -21,7 +21,7 @@
 
 #include <mpblocks/clarkson93.h>
 
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
 
 /// A horizon ridge is a d-2 dimensional facet (i.e. a facet of a facet),
@@ -43,7 +43,7 @@ struct HorizonRidge {
       : Svis(Svis_in), Sinvis(Sinvis_in) {}
 };
 
-} // namespace clarkson93
-} // namespace mpblocks
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_HORIZON_RIDGE_H_

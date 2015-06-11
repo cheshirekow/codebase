@@ -19,91 +19,70 @@
 #ifndef CLARKSON93_INDEXED_H_
 #define CLARKSON93_INDEXED_H_
 
-
-
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
-
 
 /// priority queue node
 template <typename Index_t, typename Value_t>
-struct Indexed
-{
-    typedef Indexed<Index_t,Value_t> This;
+struct Indexed {
+  typedef Indexed<Index_t, Value_t> This;
 
-    Index_t   idx;
-    Value_t   val;
+  Index_t idx;
+  Value_t val;
 
-    Indexed(){}
-    Indexed( Index_t idx, Value_t val ): idx(idx), val(val){}
+  Indexed() {}
+  Indexed(Index_t idx, Value_t val) : idx(idx), val(val) {}
 
-    static bool lessThan( const This& a, const This& b )
-    {
-        if( a.idx < b.idx )
-            return true;
-        else if( a.idx == b.idx )
-        {
-            if( a.val < b.val )
-                return true;
-            else
-                return false;
-        }
-        else
-            return false;
+  static bool lessThan(const This& a, const This& b) {
+    if (a.idx < b.idx)
+      return true;
+    else if (a.idx == b.idx) {
+      if (a.val < b.val)
+        return true;
+      else
+        return false;
+    } else
+      return false;
+  }
+
+  static bool greaterThan(const This& a, const This& b) {
+    if (a.idx > b.idx)
+      return true;
+    else if (a.idx == b.idx) {
+      if (a.val > b.val)
+        return true;
+      else
+        return false;
+    } else
+      return false;
+  }
+
+  struct Less {
+    bool operator()(const This& a, const This& b) {
+      return This::lessThan(a, b);
     }
+  };
 
-    static bool greaterThan( const This& a, const This& b )
-    {
-        if( a.idx > b.idx )
-            return true;
-        else if( a.idx == b.idx )
-        {
-            if( a.val > b.val )
-                return true;
-            else
-                return false;
-        }
-        else
-            return false;
+  struct Greater {
+    bool operator()(const This& a, const This& b) {
+      return This::greaterThan(a, b);
     }
-
-    struct Less
-    {
-        bool operator()( const This& a, const This& b )
-        {
-            return This::lessThan(a,b);
-        }
-    };
-
-    struct Greater
-    {
-        bool operator()( const This& a, const This& b )
-        {
-            return This::greaterThan(a,b);
-        }
-    };
+  };
 };
 
 template <typename Index_t, typename Value_t>
-bool operator<( const Indexed<Index_t,Value_t>& a,
-                const Indexed<Index_t,Value_t>& b )
-{
-    return Indexed<Index_t,Value_t>::lessThan(a,b);
+bool operator<(const Indexed<Index_t, Value_t>& a,
+               const Indexed<Index_t, Value_t>& b) {
+  return Indexed<Index_t, Value_t>::lessThan(a, b);
 }
 
 template <typename Index_t, typename Value_t>
-bool operator>( const Indexed<Index_t,Value_t>& a,
-                const Indexed<Index_t,Value_t>& b )
-{
-    return Indexed<Index_t,Value_t>::greaterThan(a,b);
+bool operator>(const Indexed<Index_t, Value_t>& a,
+               const Indexed<Index_t, Value_t>& b) {
+  return Indexed<Index_t, Value_t>::greaterThan(a, b);
 }
 
-
-} // namespace clarkson93
-} // namespace mpblocks
-
-
-
-
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_INDEXED_H_

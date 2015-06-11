@@ -23,14 +23,12 @@
 #include <set>
 #include <queue>
 
-
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
-
 
 /// simply maps a complile-time integer to a type
 template <unsigned int>
-struct OptLevel{};
+struct OptLevel {};
 
 /// Template meta function evaluating whether or not a traits class specifies
 /// an optimization level.
@@ -40,11 +38,13 @@ struct OptLevel{};
       const bool ops_defined = OptDefined<SomeType>::Value;
 @endcode
  */
-template<typename T> struct OptDefined
-{
-    template<typename C> static char  test( decltype(C::OptLevel) );
-    template<typename C> static char* test(...);
-    enum{ Value = sizeof(test<T>(0))==1 };
+template <typename T>
+struct OptDefined {
+  template <typename C>
+  static char test(decltype(C::OptLevel));
+  template <typename C>
+  static char* test(...);
+  enum { Value = sizeof(test<T>(0)) == 1 };
 };
 
 /// Template meta function evaluating the optimization level as specified by
@@ -56,26 +56,22 @@ template<typename T> struct OptDefined
      enum{ OptLevel = OptLevelGet<SomeType>::Value };
 @endcode
  */
-template<typename T,bool Defined=OptDefined<T>::Value > struct OptLevelGet
-{
-    enum{ Value = T::OptLevel };
+template <typename T, bool Defined = OptDefined<T>::Value>
+struct OptLevelGet {
+  enum { Value = T::OptLevel };
 };
 
-template<typename T> struct OptLevelGet<T,false>
-{
-    enum{ Value = 0 };
+template <typename T>
+struct OptLevelGet<T, false> {
+  enum { Value = 0 };
 };
-
-
-
-
-
 
 /// misleadingly-named data structure, is actually a "simplexification", the
 /// dimension agnostic analog of a triangulation
 /**
  *  By the convensions of Clarkson.compgeo93, the first (i.e. 0 index) simplex
- *  is the "origin" simplex. The 'origin' (@f$ O @f$) is a point inside that simplex
+ *  is the "origin" simplex. The 'origin' (@f$ O @f$) is a point inside that
+ * simplex
  *  (we'll pick the geometric mean of the vertices). The 'anti-origin'
  *  (@f$ \overbar{o} @f$) is a fictitous vertex which is a member of all
  *  simplices
@@ -83,145 +79,126 @@ template<typename T> struct OptLevelGet<T,false>
  *  give it a value of @f$ [0 0 0...] @f$, but it's address is used to identify
  *  it as a special point, and it's value is never used in calculations.
  */
-template < class Traits >
-class Triangulation:
-        public Traits::SimplexOps
-{
-    public:
-        // Typedefs
-        // -----------------------------------------------------------------------
-        static const unsigned int NDim          = Traits::NDim;
-        static const OptLevel< OptLevelGet<Traits>::Value >  s_optLvl;
+template <class Traits>
+class Triangulation : public Traits::SimplexOps {
+ public:
+  // Typedefs
+  // -----------------------------------------------------------------------
+  static const unsigned int NDim = Traits::NDim;
+  static const OptLevel<OptLevelGet<Traits>::Value> s_optLvl;
 
-        typedef typename Traits::Scalar     Scalar;
-        typedef typename Traits::Point      Point;
-        typedef typename Traits::Simplex    Simplex;
-        typedef typename Traits::PointRef   PointRef;
-        typedef typename Traits::SimplexRef SimplexRef;
-        typedef typename Traits::Deref      Deref;
-        typedef typename Traits::Callback   Callback;
-        typedef typename Traits::SimplexMgr SimplexMgr;
+  typedef typename Traits::Scalar Scalar;
+  typedef typename Traits::Point Point;
+  typedef typename Traits::Simplex Simplex;
+  typedef typename Traits::PointRef PointRef;
+  typedef typename Traits::SimplexRef SimplexRef;
+  typedef typename Traits::Deref Deref;
+  typedef typename Traits::Callback Callback;
+  typedef typename Traits::SimplexMgr SimplexMgr;
 
-        typedef Triangulation<Traits>   This;
-        typedef HorizonRidge<Traits>    Ridge;
+  typedef Triangulation<Traits> This;
+  typedef HorizonRidge<Traits> Ridge;
 
-        typedef std::set<PointRef>      PointSet;
-        typedef std::vector<SimplexRef> SimplexSet;
-        typedef std::vector<Ridge>      HorizonSet;
+  typedef std::set<PointRef> PointSet;
+  typedef std::vector<SimplexRef> SimplexSet;
+  typedef std::vector<Ridge> HorizonSet;
 
-        // priority queue stuff
-        typedef Indexed<Scalar,SimplexRef>  PQ_Key;
-        typedef P_Queue<PQ_Key>             WalkQueue;
+  // priority queue stuff
+  typedef Indexed<Scalar, SimplexRef> PQ_Key;
+  typedef P_Queue<PQ_Key> WalkQueue;
 
-    public:
-        // Data Members
-        // -----------------------------------------------------------------------
-        SimplexRef      m_hullSimplex; ///< a simplex in the hull
-        SimplexRef      m_origin;      ///< origin simplex
-        PointRef        m_antiOrigin;  ///< fictitious point
-        Deref           m_deref;       ///< dereferences a PointRef or SimplexRef
+ public:
+  // Data Members
+  // -----------------------------------------------------------------------
+  SimplexRef m_hullSimplex;  ///< a simplex in the hull
+  SimplexRef m_origin;       ///< origin simplex
+  PointRef m_antiOrigin;     ///< fictitious point
+  Deref m_deref;             ///< dereferences a PointRef or SimplexRef
 
-        WalkQueue       m_xv_queue;    ///< walk for x-visible search
-        SimplexSet      m_xv_walked;   ///< set of simplices ever expanded for
-                                       ///  the walk
+  WalkQueue m_xv_queue;    ///< walk for x-visible search
+  SimplexSet m_xv_walked;  ///< set of simplices ever expanded for
+                           ///  the walk
 
-        SimplexSet      m_xvh;         ///< set of x-visible hull simplices
-        SimplexSet      m_xvh_queue;   ///< search queue for x-visible hull
+  SimplexSet m_xvh;        ///< set of x-visible hull simplices
+  SimplexSet m_xvh_queue;  ///< search queue for x-visible hull
 
-        HorizonSet      m_ridges;      ///< set of horizon ridges
+  HorizonSet m_ridges;  ///< set of horizon ridges
 
-        SimplexMgr      m_sMgr;        ///< simplex manager
-        Callback        m_callback;    ///< event hooks
+  SimplexMgr m_sMgr;    ///< simplex manager
+  Callback m_callback;  ///< event hooks
 
-    public:
-        Triangulation();
-        ~Triangulation();
+ public:
+  Triangulation();
+  ~Triangulation();
 
-        /// inherited from SimplexOps
-        using Traits::SimplexOps::vertex;
-        using Traits::SimplexOps::neighbor;
-        using Traits::SimplexOps::neighborAcross;
-        using Traits::SimplexOps::peakNeighbor;
-        using Traits::SimplexOps::peak;
-        using Traits::SimplexOps::isMember;
-        using Traits::SimplexOps::indexOf;
-        using Traits::SimplexOps::neighborhood;
-        using Traits::SimplexOps::vsetSplit;
-        using Traits::SimplexOps::vsetIntersection;
-        using Traits::SimplexOps::neighborSharing;
-        using Traits::SimplexOps::setPeak;
-        using Traits::SimplexOps::setVertex;
-        using Traits::SimplexOps::setNeighbor;
-        using Traits::SimplexOps::setNeighborAcross;
-        using Traits::SimplexOps::setMember;
-        using Traits::SimplexOps::finish;
-        using Traits::SimplexOps::computeBase;
-        using Traits::SimplexOps::orientBase;
-        using Traits::SimplexOps::normalProjection;
-        using Traits::SimplexOps::isInfinite;
-        using Traits::SimplexOps::isVisible;
+  /// inherited from SimplexOps
+  using Traits::SimplexOps::vertex;
+  using Traits::SimplexOps::neighbor;
+  using Traits::SimplexOps::neighborAcross;
+  using Traits::SimplexOps::peakNeighbor;
+  using Traits::SimplexOps::peak;
+  using Traits::SimplexOps::isMember;
+  using Traits::SimplexOps::indexOf;
+  using Traits::SimplexOps::neighborhood;
+  using Traits::SimplexOps::vsetSplit;
+  using Traits::SimplexOps::vsetIntersection;
+  using Traits::SimplexOps::neighborSharing;
+  using Traits::SimplexOps::setPeak;
+  using Traits::SimplexOps::setVertex;
+  using Traits::SimplexOps::setNeighbor;
+  using Traits::SimplexOps::setNeighborAcross;
+  using Traits::SimplexOps::setMember;
+  using Traits::SimplexOps::finish;
+  using Traits::SimplexOps::computeBase;
+  using Traits::SimplexOps::orientBase;
+  using Traits::SimplexOps::normalProjection;
+  using Traits::SimplexOps::isInfinite;
+  using Traits::SimplexOps::isVisible;
 
+  /// builds the initial triangulation from the first @p NDim + 1 points
+  /// inserted
+  template <class Iterator, class Deiter>
+  void init(Iterator begin, Iterator end, Deiter deiter);
 
-        /// builds the initial triangulation from the first @p NDim + 1 points
-        /// inserted
-        template <class Iterator, class Deiter>
-        void init(Iterator begin, Iterator end, Deiter deiter);
+  /// insert a new point into the triangulation and update the convex
+  /// hull (if necessary)
+  /**
+   *  @param  x   const ref to the new point to add
+   *  @param  S   an x-visible facet, if null (default) will search for one
+   */
+  void insert(const PointRef x, SimplexRef S);
+  void insert(const PointRef x);
 
-        /// insert a new point into the triangulation and update the convex
-        /// hull (if necessary)
-        /**
-         *  @param  x   const ref to the new point to add
-         *  @param  S   an x-visible facet, if null (default) will search for one
-         */
-        void insert(const PointRef x, SimplexRef S);
-        void insert(const PointRef x);
+  /// destroys all simplex objects that have been generated and clears all
+  /// lists/ sets
+  void clear();
 
-        /// destroys all simplex objects that have been generated and clears all
-        /// lists/ sets
-        void clear();
+  /// find the set of @f$ x\mathrm{-visible} @f$ facets and put them in
+  /// @p x_visible
+  /**
+   *  Using the first method of Clarkson.compgeo93, we walk along the segment
+   *  @f$ \overbar{Ox} @f$, starting at @f$ O @f$ . If this walk enters a
+   *  simplex whose peak vertex is the anti-origin, then
+   *  an x-visible current facet has been found. Otherwise a simplex of
+   *  T containing @f$ x @f$ has been found, showing that
+   *  @f$ x \in \mathrm{hull} R @f$
+   */
+  Simplex* find_x_visible(PointRef x, SimplexRef S);
 
-        /// find the set of @f$ x\mathrm{-visible} @f$ facets and put them in
-        /// @p x_visible
-        /**
-         *  Using the first method of Clarkson.compgeo93, we walk along the segment
-         *  @f$ \overbar{Ox} @f$, starting at @f$ O @f$ . If this walk enters a
-         *  simplex whose peak vertex is the anti-origin, then
-         *  an x-visible current facet has been found. Otherwise a simplex of
-         *  T containing @f$ x @f$ has been found, showing that
-         *  @f$ x \in \mathrm{hull} R @f$
-         */
-        Simplex* find_x_visible(PointRef x, SimplexRef S);
+  /// given a simplex S which is x-visible and infinite, fill the set of
+  /// all x-visible and infinite facets
+  void fill_x_visible(const OptLevel<0>&, PointRef x, SimplexRef S);
 
-        /// given a simplex S which is x-visible and infinite, fill the set of
-        /// all x-visible and infinite facets
-        void fill_x_visible( const OptLevel<0>&, PointRef x, SimplexRef S);
-
-        // update each x-visible simplex by adding the point x as the peak
-        // vertex, also create new simplices
-        void alter_x_visible( const OptLevel<0>&, PointRef x);
+  // update each x-visible simplex by adding the point x as the peak
+  // vertex, also create new simplices
+  void alter_x_visible(const OptLevel<0>&, PointRef x);
 };
 
+template <class Traits>
+const OptLevel<OptLevelGet<Traits>::Value> Triangulation<Traits>::s_optLvl =
+    OptLevel<OptLevelGet<Traits>::Value>();
 
-template < class Traits >
-const OptLevel< OptLevelGet<Traits>::Value >
-    Triangulation<Traits>::s_optLvl = OptLevel< OptLevelGet<Traits>::Value >();
-
-
-
-} // namespace clarkson93
-} // namespace mpblocks
-
-
-
-
-
-
-
-
-
-
-
-
-
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_TRIANGULATION_H_

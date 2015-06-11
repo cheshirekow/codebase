@@ -23,17 +23,16 @@
 #include <set>
 #include <queue>
 
-
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
-namespace    dynamic {
-
+namespace dynamic {
 
 /// misleadingly-named data structure, is actually a "simplexification", the
 /// dimension agnostic analog of a triangulation
 /**
  *  By the convensions of Clarkson.compgeo93, the first (i.e. 0 index) simplex
- *  is the "origin" simplex. The 'origin' (@f$ O @f$) is a point inside that simplex
+ *  is the "origin" simplex. The 'origin' (@f$ O @f$) is a point inside that
+ * simplex
  *  (we'll pick the geometric mean of the vertices). The 'anti-origin'
  *  (@f$ \overbar{o} @f$) is a fictitous vertex which is a member of all
  *  simplices
@@ -41,123 +40,107 @@ namespace    dynamic {
  *  give it a value of @f$ [0 0 0...] @f$, but it's address is used to identify
  *  it as a special point, and it's value is never used in calculations.
  */
-template < class Traits >
-class Triangulation
-{
-    public:
-        // Typedefs
-        // -----------------------------------------------------------------------
-        static const unsigned int NDim   = Traits::NDim;
+template <class Traits>
+class Triangulation {
+ public:
+  // Typedefs
+  // -----------------------------------------------------------------------
+  static const unsigned int NDim = Traits::NDim;
 
-        typedef unsigned int                uint;
-        typedef typename Traits::Scalar     Scalar;
-        typedef typename Traits::Point      Point;
-        typedef typename Traits::Simplex    Simplex;
-        typedef typename Traits::PointRef   PointRef;
-        typedef typename Traits::PointDeref PointDeref;
-        typedef typename Traits::Setup      Setup;
+  typedef unsigned int uint;
+  typedef typename Traits::Scalar Scalar;
+  typedef typename Traits::Point Point;
+  typedef typename Traits::Simplex Simplex;
+  typedef typename Traits::PointRef PointRef;
+  typedef typename Traits::PointDeref PointDeref;
+  typedef typename Traits::Setup Setup;
 
-        typedef Triangulation<Traits>   Triangulation_t;
-        typedef Triangulation<Traits>   This_t;
+  typedef Triangulation<Traits> Triangulation_t;
+  typedef Triangulation<Traits> This_t;
 
-        typedef HorizonRidge<Traits> HorizonRidge_t;
-        typedef SimplexBase<Traits>  SimplexBase_t;
+  typedef HorizonRidge<Traits> HorizonRidge_t;
+  typedef SimplexBase<Traits> SimplexBase_t;
 
-        typedef Stack<Simplex*,       SimplexBits> SimplexSet;
-        typedef Stack<Simplex*>       SimplexStack;
-        typedef Stack<HorizonRidge_t> HorizonSet;
+  typedef Stack<Simplex*, SimplexBits> SimplexSet;
+  typedef Stack<Simplex*> SimplexStack;
+  typedef Stack<HorizonRidge_t> HorizonSet;
 
-        typedef typename Traits::template Factory<Simplex>         SimplexAlloc;
-        typedef typename Traits::template Factory<HorizonRidge_t>  HorizonAlloc;
-        typedef std::set<PointRef>                      PointSet;
+  typedef typename Traits::template Factory<Simplex> SimplexAlloc;
+  typedef typename Traits::template Factory<HorizonRidge_t> HorizonAlloc;
+  typedef std::set<PointRef> PointSet;
 
-        // priority queue stuff
-        typedef Indexed<Scalar,Simplex*>    PQ_Key;
-        typedef P_Queue<PQ_Key>             WalkQueue;
+  // priority queue stuff
+  typedef Indexed<Scalar, Simplex*> PQ_Key;
+  typedef P_Queue<PQ_Key> WalkQueue;
 
-    public:
-        // Data Members
-        // -----------------------------------------------------------------------
-        uint            m_ndim;        ///< dimension
-        Simplex*        m_hullSimplex; ///< a simplex in the hull
-        Simplex*        m_origin;      ///< origin simplex
-        PointRef        m_antiOrigin;  ///< fictitious point
-        PointDeref      m_deref;       ///< dereferences a PointRef
+ public:
+  // Data Members
+  // -----------------------------------------------------------------------
+  uint m_ndim;             ///< dimension
+  Simplex* m_hullSimplex;  ///< a simplex in the hull
+  Simplex* m_origin;       ///< origin simplex
+  PointRef m_antiOrigin;   ///< fictitious point
+  PointDeref m_deref;      ///< dereferences a PointRef
 
-        WalkQueue       m_xv_walk;     ///< walk for x-visible search
-        SimplexSet      m_xv_walked; ///< set of simplices ever expanded for
-                                       ///  the walk
+  WalkQueue m_xv_walk;     ///< walk for x-visible search
+  SimplexSet m_xv_walked;  ///< set of simplices ever expanded for
+                           ///  the walk
 
-        SimplexSet      m_x_visible;   ///< set of x-visible simplices
-        SimplexSet      m_xv_queue;    ///< search queue for x-visible
-                                       ///  building
+  SimplexSet m_x_visible;  ///< set of x-visible simplices
+  SimplexSet m_xv_queue;   ///< search queue for x-visible
+                           ///  building
 
-        HorizonSet      m_ridges;      ///< set of horizon ridges
+  HorizonSet m_ridges;  ///< set of horizon ridges
 
-        SimplexAlloc    m_sAlloc;   ///< simplex allocator
+  SimplexAlloc m_sAlloc;  ///< simplex allocator
 
-    public:
-        Triangulation();
-        ~Triangulation();
+ public:
+  Triangulation();
+  ~Triangulation();
 
-        /// set's up the triangulation by helping it construct it's
-        /// allocators and preallocate it's sets
-        void setup( Setup& setup );
+  /// set's up the triangulation by helping it construct it's
+  /// allocators and preallocate it's sets
+  void setup(Setup& setup);
 
-        /// builds the initial triangulation from the first @p NDim + 1 points
-        /// inserted
-        template <class Iterator>
-        void init(Iterator begin, Iterator end);
+  /// builds the initial triangulation from the first @p NDim + 1 points
+  /// inserted
+  template <class Iterator>
+  void init(Iterator begin, Iterator end);
 
-        /// insert a new point into the triangulation and update the convex
-        /// hull (if necessary)
-        /**
-         *  @param  x   const ref to the new point to add
-         *  @param  S   an x-visible facet, if null (default) will search for one
-         */
-        void insert(const PointRef x, Simplex* S=0);
+  /// insert a new point into the triangulation and update the convex
+  /// hull (if necessary)
+  /**
+   *  @param  x   const ref to the new point to add
+   *  @param  S   an x-visible facet, if null (default) will search for one
+   */
+  void insert(const PointRef x, Simplex* S = 0);
 
-        /// destroys all simplex objects that have been generated and clears all
-        /// lists/ sets
-        void clear();
+  /// destroys all simplex objects that have been generated and clears all
+  /// lists/ sets
+  void clear();
 
-        /// return the allocator (for debugging)
-        SimplexAlloc& getAllocator(){ return m_sAlloc; }
+  /// return the allocator (for debugging)
+  SimplexAlloc& getAllocator() { return m_sAlloc; }
 
-        /// find the set of @f$ x\mathrm{-visible} @f$ facets and put them in
-        /// @p x_visible
-        /**
-         *  Using the first method of Clarkson.compgeo93, we walk along the segment
-         *  @f$ \overbar{Ox} @f$, starting at @f$ O @f$ . If this walk enters a
-         *  simplex whose peak vertex is the anti-origin, then
-         *  an x-visible current facet has been found. Otherwise a simplex of
-         *  T containing @f$ x @f$ has been found, showing that
-         *  @f$ x \in \mathrm{hull} R @f$
-         */
-        void find_x_visible(PointRef x, Simplex* S=0);
+  /// find the set of @f$ x\mathrm{-visible} @f$ facets and put them in
+  /// @p x_visible
+  /**
+   *  Using the first method of Clarkson.compgeo93, we walk along the segment
+   *  @f$ \overbar{Ox} @f$, starting at @f$ O @f$ . If this walk enters a
+   *  simplex whose peak vertex is the anti-origin, then
+   *  an x-visible current facet has been found. Otherwise a simplex of
+   *  T containing @f$ x @f$ has been found, showing that
+   *  @f$ x \in \mathrm{hull} R @f$
+   */
+  void find_x_visible(PointRef x, Simplex* S = 0);
 
-        // update each x-visible simplex by adding the point x as the peak
-        // vertex, also create new simplices
-        void alter_x_visible(PointRef x);
+  // update each x-visible simplex by adding the point x as the peak
+  // vertex, also create new simplices
+  void alter_x_visible(PointRef x);
 };
 
-
-
-} // namespace dynamic
-} // namespace clarkson93
-} // namespace mpblocks
-
-
-
-
-
-
-
-
-
-
-
-
-
+}  // namespace dynamic
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_DYNAMIC_TRIANGULATION_H_

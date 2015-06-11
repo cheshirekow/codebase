@@ -21,93 +21,74 @@
 
 #include <mpblocks/clarkson93.hpp>
 
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
-namespace    dynamic {
-
+namespace dynamic {
 
 template <class Traits>
-void SimplexBase<Traits>::calculateConstraint( uint ndim, PointDeref& deref )
-{
-    typedef Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic> Matrix;
-    typedef Eigen::Matrix<Scalar,Eigen::Dynamic,1>              Vector;
+void SimplexBase<Traits>::calculateConstraint(uint ndim, PointDeref& deref) {
+  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+  typedef Eigen::Matrix<Scalar, Eigen::Dynamic, 1> Vector;
 
-    Matrix A(ndim,ndim);
-    Vector b(ndim);
+  Matrix A(ndim, ndim);
+  Vector b(ndim);
 
-    for(int i=1; i < ndim+1; i++)
-        A.row(i-1) = deref(vertices[i]);
-    b.setConstant(1);
+  for (int i = 1; i < ndim + 1; i++) A.row(i - 1) = deref(vertices[i]);
+  b.setConstant(1);
 
-    // solve for the normal
-    n = A.partialPivLu().solve(b);
-    n.normalize();
+  // solve for the normal
+  n = A.partialPivLu().solve(b);
+  n.normalize();
 
-    // and then find the value of 'c' (hyperplane offset)
-    c = deref(vertices[1]).dot(n);
+  // and then find the value of 'c' (hyperplane offset)
+  c = deref(vertices[1]).dot(n);
 }
 
 template <class Traits>
-void SimplexBase<Traits>::
-    orientConstraint( const Point& x, Orientation orient )
-{
-    // then orient the hyperplane so that the peak vertex is on the
-    // "positive" side (i.e. the 'less than' side)
+void SimplexBase<Traits>::orientConstraint(const Point& x, Orientation orient) {
+  // then orient the hyperplane so that the peak vertex is on the
+  // "positive" side (i.e. the 'less than' side)
 
-    switch( orient )
-    {
-        case INSIDE:
-        {
-            if( n.dot( x ) > c )
-            {
-                n = -n;
-                c = -c;
-            }
-            break;
-        }
-
-        case OUTSIDE:
-        {
-            if( n.dot( x ) < c )
-            {
-                n = -n;
-                c = -c;
-            }
-            break;
-        }
-
-        default:
-            assert(false);
-            break;
+  switch (orient) {
+    case INSIDE: {
+      if (n.dot(x) > c) {
+        n = -n;
+        c = -c;
+      }
+      break;
     }
-}
 
+    case OUTSIDE: {
+      if (n.dot(x) < c) {
+        n = -n;
+        c = -c;
+      }
+      break;
+    }
+
+    default:
+      assert(false);
+      break;
+  }
+}
 
 template <class Traits>
-typename Traits::Scalar SimplexBase<Traits>::normalProjection( const Point& x )
-{
-    return c - n.dot(x);
-}
-
-
-template <class Traits>
-bool SimplexBase<Traits>::isInfinite( PointRef antiOrigin )
-{
-    return vertices[0] == antiOrigin;
+typename Traits::Scalar SimplexBase<Traits>::normalProjection(const Point& x) {
+  return c - n.dot(x);
 }
 
 template <class Traits>
-bool SimplexBase<Traits>::isVisible( const Point& x )
-{
-    return ( n.dot(x) < c );
+bool SimplexBase<Traits>::isInfinite(PointRef antiOrigin) {
+  return vertices[0] == antiOrigin;
 }
 
+template <class Traits>
+bool SimplexBase<Traits>::isVisible(const Point& x) {
+  return (n.dot(x) < c);
+}
 
-} // namespace dynamic
-} // namespace clarkson93
-} // namespace mpblocks
-
-
-
+}  // namespace dynamic
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_DYNAMIC_SIMPLEX_IMPL_H_

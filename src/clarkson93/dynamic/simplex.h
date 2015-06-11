@@ -21,29 +21,26 @@
 
 #include <mpblocks/clarkson93.h>
 
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
-namespace   dynamic  {
+namespace dynamic {
 
+namespace simplex {
 
-namespace    simplex {
-
-enum Bits
-{
-    XVISIBLE_WALK,      ///< has been queued during the x-visible walk
-    XVISIBLE,           ///< is x-visible
-    XVISIBLE_QUEUED,    ///< is queued for expansion in x-visible search
-    CIRCULATE_QUEUED,   ///< is queued for expansion during circulation around
-                        ///  a point (i.e. hull enumeration)
-    CIRCULATE_EXPANDED, ///< has been expanded during circulation around a
-                        ///  a point (i.e. hull enumeration)
-    NUM_BITS
+enum Bits {
+  XVISIBLE_WALK,       ///< has been queued during the x-visible walk
+  XVISIBLE,            ///< is x-visible
+  XVISIBLE_QUEUED,     ///< is queued for expansion in x-visible search
+  CIRCULATE_QUEUED,    ///< is queued for expansion during circulation around
+                       ///  a point (i.e. hull enumeration)
+  CIRCULATE_EXPANDED,  ///< has been expanded during circulation around a
+                       ///  a point (i.e. hull enumeration)
+  NUM_BITS
 };
 
-} // namespace simplex
+}  // namespace simplex
 
 typedef simplex::Bits SimplexBits;
-
 
 /// A simplex is the convex hull of d+1 points in general position (IGP), i.e.
 /// they do not lie on the same hyperplane
@@ -68,83 +65,61 @@ typedef simplex::Bits SimplexBits;
  *  oriented such that n' x < c is the half-space containing the 'peak' vertex
  */
 template <class Traits>
-struct SimplexBase:
-    BitMember<SimplexBits,simplex::NUM_BITS>
-{
-    // Typedefs
-    // -----------------------------------------------------------------------
-    typedef unsigned int                uint;
-    typedef typename Traits::Scalar     Scalar;
-    typedef typename Traits::Point      Point;
-    typedef typename Traits::Simplex    Simplex;
-    typedef typename Traits::PointRef   PointRef;
-    typedef typename Traits::PointDeref PointDeref;
-    typedef typename Traits::idx_t      idx_t;
+struct SimplexBase : BitMember<SimplexBits, simplex::NUM_BITS> {
+  // Typedefs
+  // -----------------------------------------------------------------------
+  typedef unsigned int uint;
+  typedef typename Traits::Scalar Scalar;
+  typedef typename Traits::Point Point;
+  typedef typename Traits::Simplex Simplex;
+  typedef typename Traits::PointRef PointRef;
+  typedef typename Traits::PointDeref PointDeref;
+  typedef typename Traits::idx_t idx_t;
 
-    typedef SimplexBase<Traits>     SimplexBase_t;
-    typedef SimplexBase<Traits>     This_t;
-    typedef HorizonRidge<Traits>    HorizonRidge_t;
+  typedef SimplexBase<Traits> SimplexBase_t;
+  typedef SimplexBase<Traits> This_t;
+  typedef HorizonRidge<Traits> HorizonRidge_t;
 
-    enum       Orientation{ INSIDE, OUTSIDE};
+  enum Orientation { INSIDE, OUTSIDE };
 
-    // Data Members
-    // -----------------------------------------------------------------------
-    std::vector<PointRef>   vertices;   ///< vertices of the simplex
-    std::vector<Simplex*>   neighbors;  ///< simplices which share a facet
-//    idx_t       inv[NDim+1];        ///< inverse map, my index in my i'th
-//                                    ///  neighbor's neighbor array
+  // Data Members
+  // -----------------------------------------------------------------------
+  std::vector<PointRef> vertices;   ///< vertices of the simplex
+  std::vector<Simplex*> neighbors;  ///< simplices which share a facet
+  //    idx_t       inv[NDim+1];        ///< inverse map, my index in my i'th
+  //                                    ///  neighbor's neighbor array
 
-    Point   n;  ///< normal vector of base facet
-    Scalar  c;  ///< offset of base facet inequality hyperplane
+  Point n;   ///< normal vector of base facet
+  Scalar c;  ///< offset of base facet inequality hyperplane
 
-    // Methods
-    // -----------------------------------------------------------------------
-    /// calculate the normal and offset of the constraint given the d vertices
-    /// on it's base facet (does not compute orientation / sign)
-    void calculateConstraint( uint ndim, PointDeref& deref );
+  // Methods
+  // -----------------------------------------------------------------------
+  /// calculate the normal and offset of the constraint given the d vertices
+  /// on it's base facet (does not compute orientation / sign)
+  void calculateConstraint(uint ndim, PointDeref& deref);
 
-    /// orient the constraint by ensuring that the point x satisfies it (i.e.
-    /// @f$ n \cdot x \le c @f$ )
-    void orientConstraint( const Point& x, Orientation orient=INSIDE  );
+  /// orient the constraint by ensuring that the point x satisfies it (i.e.
+  /// @f$ n \cdot x \le c @f$ )
+  void orientConstraint(const Point& x, Orientation orient = INSIDE);
 
-    /// returns the distance of x to the base facet, used in walking the
-    /// triangulation to x
-    Scalar normalProjection( const Point& x );
+  /// returns the distance of x to the base facet, used in walking the
+  /// triangulation to x
+  Scalar normalProjection(const Point& x);
 
-    /// returns true if vertex[0] is the anti origin
-    bool isInfinite( PointRef antiOrigin );
+  /// returns true if vertex[0] is the anti origin
+  bool isInfinite(PointRef antiOrigin);
 
-    /// returns true if x is on the inside of the base facet (i.e. x is in the
-    /// same half space as the simplex)
-    bool isVisible( const Point& x );
+  /// returns true if x is on the inside of the base facet (i.e. x is in the
+  /// same half space as the simplex)
+  bool isVisible(const Point& x);
 };
-
 
 /// default simplex structure which contains no additional functionality
 template <class Traits>
-class DefaultSimplex:
-    public SimplexBase<Traits>
-{
+class DefaultSimplex : public SimplexBase<Traits> {};
 
-};
-
-
-} // namespace dynamic
-} // namespace clarkson93
-} // namespace mpblocks
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}  // namespace dynamic
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_DYNAMIC_SIMPLEX_H_

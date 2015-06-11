@@ -21,40 +21,23 @@
 
 #include <bitset>
 
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
 
 /// dummy class which allows us to use SNFINAE
-struct BitMemberBase{};
+struct BitMemberBase {};
 
 /// indicates membership into a number of sets by a bitfield
 template <typename Enum, unsigned int Size>
-struct BitMember:
-    public BitMemberBase,
-    public std::bitset<Size>
-{
-    void addTo( Enum setBit )
-    {
-        (*this)[setBit] = true;
-    }
+struct BitMember : public BitMemberBase, public std::bitset<Size> {
+  void addTo(Enum setBit) { (*this)[setBit] = true; }
 
-    void removeFrom( Enum setBit )
-    {
-        (*this)[setBit] = false;
-    }
+  void removeFrom(Enum setBit) { (*this)[setBit] = false; }
 
-    bool isMemberOf( Enum setBit )
-    {
-        return (*this)[setBit];
-    }
+  bool isMemberOf(Enum setBit) { return (*this)[setBit]; }
 };
 
-
-} // namespace clarkson93
-} // namespace mpblocks
-
-
-
-
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_BIT_MEMBER_H_

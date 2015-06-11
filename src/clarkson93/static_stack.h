@@ -23,151 +23,101 @@
 #include <vector>
 #include <type_traits>
 
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
 
+template <typename T, typename SetEnum = void>
+class Stack : public std::vector<T> {
+ public:
+  typedef std::vector<T> Base;
+  typedef unsigned int uint;
 
+ private:
+  SetEnum m_setBit;
 
-template <typename T, typename SetEnum = void >
-class Stack:
-    public std::vector<T>
-{
-    public:
-        typedef std::vector<T> Base;
-        typedef unsigned int uint;
+ public:
+  Stack(SetEnum setBit = (SetEnum)0) : m_setBit(setBit) {}
 
-    private:
-        SetEnum m_setBit;
+  ~Stack() { clear(); }
 
-    public:
-        Stack(SetEnum setBit = (SetEnum)0):
-            m_setBit(setBit)
-        {
-        }
+  void setBit(SetEnum bit) { m_setBit = bit; }
 
-        ~Stack(){ clear(); }
+  T pop() {
+    assert(Base::size() > 0);
+    T returnMe = Base::back();
+    returnMe.removeFrom(m_setBit);
+    Base::pop_back();
+    return returnMe;
+  }
 
-        void setBit( SetEnum bit )
-        {
-            m_setBit = bit;
-        }
+  template <class... Args>
+  void push(Args&&... args) {
+    Base::emplace_back(args...);
+    Base::back().addTo(m_setBit);
+  }
 
-        T  pop()
-        {
-            assert( Base::size() > 0);
-            T returnMe = Base::back();
-            returnMe.removeFrom(m_setBit);
-            Base::pop_back();
-            return returnMe;
-        }
+  void clear() {
+    size_t n = Base::size();
+    for (size_t i = 0; i < n; i++) (*this)[i].removeFrom(m_setBit);
 
-        template <class... Args>
-        void push( Args&&... args )
-        {
-            Base::emplace_back( args... );
-            Base::back().addTo(m_setBit);
-        }
+    Base::clear();
+  }
 
-        void clear()
-        {
-            size_t n = Base::size();
-            for(size_t i=0; i < n; i++)
-                (*this)[i].removeFrom(m_setBit);
-
-            Base::clear();
-        }
-
-        bool isMember( T& obj )
-        {
-            return obj.isMemberOf( m_setBit );
-        }
+  bool isMember(T& obj) { return obj.isMemberOf(m_setBit); }
 };
 
+template <typename T, typename SetEnum>
+class Stack<T*, SetEnum> : public std::vector<T*> {
+ public:
+  typedef unsigned int uint;
+  typedef std::vector<T*> Base;
 
+ private:
+  SetEnum m_setBit;
 
+ public:
+  Stack(SetEnum setBit = (SetEnum)0) : m_setBit(setBit) {}
 
+  ~Stack() { clear(); }
 
-template <typename T, typename SetEnum >
-class Stack< T*, SetEnum >:
-    public std::vector<T*>
-{
-    public:
-        typedef unsigned int uint;
-        typedef std::vector<T*> Base;
+  void setBit(SetEnum bit) { m_setBit = bit; }
 
-    private:
-        SetEnum m_setBit;
+  T* pop() {
+    assert(Base::size() > 0);
+    T* returnMe = Base::back();
+    returnMe->removeFrom(m_setBit);
+    Base::pop_back();
+    return returnMe;
+  }
 
-    public:
-        Stack(SetEnum setBit = (SetEnum)0):
-            m_setBit(setBit)
-        {
-        }
+  void push(T* obj) {
+    obj->addTo(m_setBit);
+    Base::push_back(obj);
+  }
 
-        ~Stack(){ clear(); }
+  void clear() {
+    size_t n = Base::size();
+    for (size_t i = 0; i < n; i++) (*this)[i]->removeFrom(m_setBit);
 
-        void setBit( SetEnum bit )
-        {
-            m_setBit = bit;
-        }
+    Base::clear();
+  }
 
-        T*  pop()
-        {
-            assert( Base::size() > 0);
-            T* returnMe = Base::back();
-            returnMe->removeFrom(m_setBit);
-            Base::pop_back();
-            return returnMe;
-        }
-
-        void push(T* obj)
-        {
-            obj->addTo(m_setBit);
-            Base::push_back(obj);
-        }
-
-        void clear()
-        {
-            size_t n = Base::size();
-            for(size_t i=0; i < n; i++)
-                (*this)[i]->removeFrom(m_setBit);
-
-            Base::clear();
-        }
-
-        bool isMember( T* obj )
-        {
-            return obj->isMemberOf( m_setBit );
-        }
+  bool isMember(T* obj) { return obj->isMemberOf(m_setBit); }
 };
 
+template <typename T>
+struct Stack<T, void> : public std::vector<T> {
+  typedef std::vector<T> Base;
 
-
-
-template <typename T >
-struct Stack<T,void>:
-    public std::vector<T>
-{
-    typedef std::vector<T> Base;
-
-    T  pop()
-    {
-        assert( Base::size() > 0);
-        T returnMe = Base::back();
-        Base::pop_back();
-        return returnMe;
-    }
+  T pop() {
+    assert(Base::size() > 0);
+    T returnMe = Base::back();
+    Base::pop_back();
+    return returnMe;
+  }
 };
 
-
-
-} // namespace clarkson93
-} // namespace mpblocks
-
-
-
-
-
-
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_STATIC_STACK_H_

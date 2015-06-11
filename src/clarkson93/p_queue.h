@@ -22,7 +22,7 @@
 #include <queue>
 #include <mpblocks/clarkson93.h>
 
-namespace   mpblocks {
+namespace mpblocks {
 namespace clarkson93 {
 
 /// A priority queue with a slightly more readable interface than from the STL
@@ -48,7 +48,7 @@ class P_Queue
   }
 };
 
-} // namespace clarkson93
-} // namespace mpblocks
+}  // namespace clarkson93
+}  // namespace mpblocks
 
 #endif  // CLARKSON93_P_QUEUE_H_
