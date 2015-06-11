@@ -26,12 +26,13 @@
 namespace clarkson93 {
 
 template <class Traits, typename Output1, typename Output2, typename Output3>
-inline void VsetSplit(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
-                      Output1 a_only, Output2 b_only, Output3 intersect) {
-  auto first1 = Sa.begin();
-  auto last1 = Sa.end();
-  auto first2 = Sb.begin();
-  auto last2 = Sb.end();
+inline void VsetSplit(const Simplex<Traits>& simplex_a,
+                      const Simplex<Traits>& simplex_b, Output1 a_only,
+                      Output2 b_only, Output3 intersect) {
+  auto first1 = simplex_a.V.begin();
+  auto last1 = simplex_a.V.end();
+  auto first2 = simplex_b.V.begin();
+  auto last2 = simplex_b.V.end();
 
   while (first1 != last1 && first2 != last2) {
     if (*first1 < *first2)
@@ -48,10 +49,10 @@ inline void VsetSplit(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
 }
 
 template <class Traits, typename Output>
-void VsetIntersection(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
-                      Output intersect) {
-  std::set_intersection(Sa.V.begin(), Sa.V.end(), Sb.V.begin(), Sb.V.end(),
-                        intersect);
+void VsetIntersection(const Simplex<Traits>& simplex_a,
+                      const Simplex<Traits>& simplex_b, Output intersect) {
+  std::set_intersection(simplex_a.V.begin(), simplex_a.V.end(),
+                        simplex_b.V.begin(), simplex_b.V.end(), intersect);
 }
 
 template <class Traits, class Container, class Output>

@@ -86,7 +86,7 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
   // -----------------------------------------------------------------------
   int8_t i_peak;  ///< index of the peak vertex
   // TODO(josh): compare performance between std::array and raw buffer
-  std::array<PointRef, kDim + 1> V;   ///< vertices of the simplex
+  std::array<PointRef, kDim + 1> V;  ///< vertices of the simplex
   std::array<Simplex*, kDim + 1> N;  ///< simplices which share a facet
 
   Point n;   ///< normal vector of base facet
@@ -138,15 +138,16 @@ const std::array<typename Traits::PointRef, Traits::kDim>& Vertices(
 }
 
 /// simultaneously construct the set intersection and the set symmetric
-/// difference of Sa and Sb
+/// difference of simplex_a and simplex_b
 template <class Traits, typename Output1, typename Output2, typename Output3>
-void VsetSplit(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
-               Output1 a_only, Output2 b_only, Output3 intersect);
+void VsetSplit(const Simplex<Traits>& simplex_a,
+               const Simplex<Traits>& simplex_b, Output1 a_only, Output2 b_only,
+               Output3 intersect);
 
 /// builds a list of vertices common to both simplices
 template <class Traits, typename Output>
-void VsetIntersection(const Simplex<Traits>& Sa, const Simplex<Traits>& Sb,
-                      Output intersect);
+void VsetIntersection(const Simplex<Traits>& simplex_a,
+                      const Simplex<Traits>& simplex_b, Output intersect);
 
 /// builds a list of neighbors that share a facet... this is the set of
 /// neighbors who are accross from a vertex v where v is not in the

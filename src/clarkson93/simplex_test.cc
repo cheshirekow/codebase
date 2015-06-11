@@ -56,3 +56,58 @@ TEST(SimplexTest, VertexSortTest) {
     prev_ptr = neighbor_ptr;
   }
 }
+
+TEST(SimplexTest, GetIndexOfTest) {
+  typedef clarkson93::Simplex<TestTraits> Simplex;
+  Simplex simplex(0);
+  simplex.V = {3, 2, 1, 4, 5};
+  clarkson93::SortVertices(&simplex);
+
+  EXPECT_EQ(0, simplex.GetIndexOf(1));
+  EXPECT_EQ(1, simplex.GetIndexOf(2));
+  EXPECT_EQ(2, simplex.GetIndexOf(3));
+  EXPECT_EQ(3, simplex.GetIndexOf(4));
+  EXPECT_EQ(4, simplex.GetIndexOf(5));
+}
+
+TEST(SimplexTest, NeighborAcrossTest) {
+  typedef clarkson93::Simplex<TestTraits> Simplex;
+  Simplex simplex(0);
+  simplex.V = {3, 2, 1, 4, 5};
+  clarkson93::SortVertices(&simplex);
+
+  EXPECT_EQ(nullptr, simplex.GetNeighborAcross(1));
+  simplex.SetNeighborAcross(1, reinterpret_cast<Simplex*>(1));
+  EXPECT_EQ(reinterpret_cast<Simplex*>(1), simplex.GetNeighborAcross(1));
+
+  EXPECT_EQ(nullptr, simplex.GetNeighborAcross(3));
+  simplex.SetNeighborAcross(3, reinterpret_cast<Simplex*>(3));
+  EXPECT_EQ(reinterpret_cast<Simplex*>(3), simplex.GetNeighborAcross(3));
+}
+
+TEST(SimplexTest, VsetSplitTest) {
+  typedef clarkson93::Simplex<TestTraits> Simplex;
+  Simplex simplex_a(0);
+  Simplex simplex_b(0);
+
+  simplex_a.V = {3, 2, 1, 4, 5};
+  simplex_b.V = {9, 7, 1, 2, 5};
+  clarkson93::SortVertices(&simplex_a);
+  clarkson93::SortVertices(&simplex_b);
+
+  std::vector<int> only_in_a;
+  std::vector<int> only_in_b;
+  std::vector<int> in_both;
+
+  clarkson93::VsetSplit(simplex_a, simplex_b, std::back_inserter(only_in_a),
+                        std::back_inserter(only_in_b),
+                        std::back_inserter(in_both));
+  EXPECT_EQ(only_in_a, std::vector<int>({3, 4}));
+  EXPECT_EQ(only_in_b, std::vector<int>({7, 9}));
+  EXPECT_EQ(in_both, std::vector<int>({1, 2, 5}));
+
+  in_both.clear();
+  clarkson93::VsetIntersection(simplex_a, simplex_b,
+                               std::back_inserter(in_both));
+  EXPECT_EQ(in_both, std::vector<int>({1, 2, 5}));
+}
