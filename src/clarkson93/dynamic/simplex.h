@@ -19,9 +19,6 @@
 #ifndef CLARKSON93_DYNAMIC_SIMPLEX_H_
 #define CLARKSON93_DYNAMIC_SIMPLEX_H_
 
-#include <mpblocks/clarkson93.h>
-
-namespace mpblocks {
 namespace clarkson93 {
 namespace dynamic {
 
@@ -120,6 +117,5 @@ class DefaultSimplex : public SimplexBase<Traits> {};
 
 }  // namespace dynamic
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_DYNAMIC_SIMPLEX_H_

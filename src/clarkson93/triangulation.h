@@ -19,11 +19,9 @@
 #ifndef CLARKSON93_TRIANGULATION_H_
 #define CLARKSON93_TRIANGULATION_H_
 
-#include <mpblocks/clarkson93.h>
-#include <set>
 #include <queue>
+#include <set>
 
-namespace mpblocks {
 namespace clarkson93 {
 
 /// simply maps a complile-time integer to a type
@@ -199,6 +197,5 @@ const OptLevel<OptLevelGet<Traits>::Value> Triangulation<Traits>::s_optLvl =
     OptLevel<OptLevelGet<Traits>::Value>();
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_TRIANGULATION_H_

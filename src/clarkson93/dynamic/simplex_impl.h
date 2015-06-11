@@ -19,9 +19,6 @@
 #ifndef CLARKSON93_DYNAMIC_SIMPLEX_IMPL_H_
 #define CLARKSON93_DYNAMIC_SIMPLEX_IMPL_H_
 
-#include <mpblocks/clarkson93.hpp>
-
-namespace mpblocks {
 namespace clarkson93 {
 namespace dynamic {
 
@@ -89,6 +86,5 @@ bool SimplexBase<Traits>::isVisible(const Point& x) {
 
 }  // namespace dynamic
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_DYNAMIC_SIMPLEX_IMPL_H_

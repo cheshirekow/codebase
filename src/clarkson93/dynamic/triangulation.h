@@ -19,11 +19,9 @@
 #ifndef CLARKSON93_DYNAMIC_TRIANGULATION_H_
 #define CLARKSON93_DYNAMIC_TRIANGULATION_H_
 
-#include <mpblocks/clarkson93.h>
-#include <set>
 #include <queue>
+#include <set>
 
-namespace mpblocks {
 namespace clarkson93 {
 namespace dynamic {
 
@@ -141,6 +139,5 @@ class Triangulation {
 
 }  // namespace dynamic
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_DYNAMIC_TRIANGULATION_H_

@@ -19,11 +19,9 @@
 #ifndef CLARKSON93_STATIC_STACK_H_
 #define CLARKSON93_STATIC_STACK_H_
 
-#include <mpblocks/clarkson93.h>
-#include <vector>
 #include <type_traits>
+#include <vector>
 
-namespace mpblocks {
 namespace clarkson93 {
 
 template <typename T, typename SetEnum = void>
@@ -118,6 +116,5 @@ struct Stack<T, void> : public std::vector<T> {
 };
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_STATIC_STACK_H_

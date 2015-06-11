@@ -19,9 +19,6 @@
 #ifndef CLARKSON93_EXAMPLE_TRAITS2_H_
 #define CLARKSON93_EXAMPLE_TRAITS2_H_
 
-#include <mpblocks/clarkson93.h>
-
-namespace mpblocks {
 namespace clarkson93 {
 
 /// documents the interface for Traits : encapsulates various policies for the
@@ -160,6 +157,5 @@ struct ExampleTraits2 {
 };
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_EXAMPLE_TRAITS2_H_

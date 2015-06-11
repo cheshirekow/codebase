@@ -19,7 +19,6 @@
 #ifndef CLARKSON93_SIMPLEX2_IMPL_H_
 #define CLARKSON93_SIMPLEX2_IMPL_H_
 
-#include <mpblocks/clarkson93.hpp>
 #include <map>
 
 namespace mpblocks {
@@ -234,6 +233,5 @@ inline bool SimplexOps<Traits>::isVisible(const Simplex& S, const Point& x) {
 }
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_SIMPLEX2_IMPL_H_

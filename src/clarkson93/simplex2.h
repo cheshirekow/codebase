@@ -19,9 +19,6 @@
 #ifndef CLARKSON93_SIMPLEX2_H_
 #define CLARKSON93_SIMPLEX2_H_
 
-#include <mpblocks/clarkson93.h>
-
-namespace mpblocks {
 namespace clarkson93 {
 
 /// A simplex is the convex hull of d+1 points in general position (IGP), i.e.
@@ -271,6 +268,5 @@ struct SimplexOps {
 };
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_SIMPLEX2_H_

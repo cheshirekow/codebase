@@ -19,7 +19,6 @@
 #ifndef CLARKSON93_INDEXED_H_
 #define CLARKSON93_INDEXED_H_
 
-namespace mpblocks {
 namespace clarkson93 {
 
 /// priority queue node
@@ -83,6 +82,5 @@ bool operator>(const Indexed<Index_t, Value_t>& a,
 }
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_INDEXED_H_

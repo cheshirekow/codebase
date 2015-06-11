@@ -19,9 +19,6 @@
 #ifndef CLARKSON93_SIMPLEX_H_
 #define CLARKSON93_SIMPLEX_H_
 
-#include <mpblocks/clarkson93.h>
-
-namespace mpblocks {
 namespace clarkson93 {
 
 namespace simplex {
@@ -125,6 +122,5 @@ template <class Traits>
 class DefaultSimplex : public SimplexBase<Traits> {};
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_SIMPLEX_H_

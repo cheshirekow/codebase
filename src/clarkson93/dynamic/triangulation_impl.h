@@ -19,9 +19,6 @@
 #ifndef CLARKSON93_DYNAMIC_TRIANGULATION_IMPL_H_
 #define CLARKSON93_DYNAMIC_TRIANGULATION_IMPL_H_
 
-#include <mpblocks/clarkson93.hpp>
-
-namespace mpblocks {
 namespace clarkson93 {
 namespace dynamic {
 
@@ -532,6 +529,5 @@ void Triangulation<Traits>::alter_x_visible(PointRef x) {
 
 }  // namespace dynamic
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_DYNAMIC_TRIANGULATION_IMPL_H_

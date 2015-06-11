@@ -20,9 +20,6 @@
 #ifndef CLARKSON93_EXAMPLE_TRAITS_H_
 #define CLARKSON93_EXAMPLE_TRAITS_H_
 
-#include <mpblocks/clarkson93.h>
-
-namespace mpblocks {
 namespace clarkson93 {
 
 /// documents the interface for Traits : encapsulates various policies for the
@@ -93,7 +90,9 @@ struct ExampleTraits {
 @endcode
    */
   struct PointDeref {
-    const Point& operator()(PointRef ptr) { return *ptr; }
+    const Point& operator()(PointRef ptr) {
+      return *ptr;
+    }
   };
 
   /// we must forward declare Simplex in order to specify that SimplexRef is
@@ -163,6 +162,5 @@ struct ExampleTraits {
 };
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_EXAMPLE_TRAITS_H_

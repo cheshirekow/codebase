@@ -19,12 +19,10 @@
 #ifndef CLARKSON93_TRIANGULATION_IMPL_H_
 #define CLARKSON93_TRIANGULATION_IMPL_H_
 
-#include <mpblocks/clarkson93.hpp>
-#include <type_traits>
 #include <cassert>
 #include <algorithm>
+#include <type_traits>
 
-namespace mpblocks {
 namespace clarkson93 {
 
 template <class Traits>
@@ -477,6 +475,5 @@ void Triangulation<Traits>::alter_x_visible(const OptLevel<0>&, PointRef Xref) {
 }
 
 }  // namespace clarkson93
-}  // namespace mpblocks
 
 #endif  // CLARKSON93_TRIANGULATION_IMPL_H_
