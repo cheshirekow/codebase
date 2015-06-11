@@ -13,7 +13,7 @@ cc_library(clarkson93
                    simplex2_impl.h
                    simplex.h
                    simplex_impl.h
-                   static_stack.h
+                   stack_set.h
                    triangulation.h
                    triangulation_impl.h
            SOURCES
