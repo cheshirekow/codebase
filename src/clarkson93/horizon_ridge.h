@@ -19,7 +19,7 @@
 #ifndef CLARKSON93_HORIZON_RIDGE_H_
 #define CLARKSON93_HORIZON_RIDGE_H_
 
-#include <mpblocks/clarkson93.h>
+#include <clarkson93/simplex.h>
 
 namespace clarkson93 {
 
@@ -30,16 +30,15 @@ namespace clarkson93 {
  */
 template <class Traits>
 struct HorizonRidge {
-  typedef typename Traits::SimplexRef SimplexRef;
+  Simplex<Traits>* x_visible;    ///< the x-visible simplex, which is dropped to
+                                 /// a finite one
+  Simplex<Traits>* x_invisible;  ///< the x-invisible simplex, which remains
+                                 /// infinite
+  Simplex<Traits>* fill;         ///< the new simplex created to fill the wedge
+                                 ///  vacated by Svis
 
-  SimplexRef Svis;    ///< the x-visible simplex, which is dropped to a
-                      ///  finite one
-  SimplexRef Sinvis;  ///< the x-invisible simplex, which remains infinite
-  SimplexRef Sfill;   ///< the new simplex created to fill the wedge
-                      ///  vacated by Svis
-
-  HorizonRidge(SimplexRef Svis_in, SimplexRef Sinvis_in)
-      : Svis(Svis_in), Sinvis(Sinvis_in) {}
+  HorizonRidge(Simplex<Traits>* x_visible_in, Simplex<Traits>* x_invisible_in)
+      : x_visible(x_visible_in), x_invisible(x_invisible_in), fill(nullptr) {}
 };
 
 }  // namespace clarkson93

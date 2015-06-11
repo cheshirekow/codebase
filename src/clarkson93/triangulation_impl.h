@@ -19,362 +19,396 @@
 #ifndef CLARKSON93_TRIANGULATION_IMPL_H_
 #define CLARKSON93_TRIANGULATION_IMPL_H_
 
+#include <clarkson93/triangulation.h>
+
+#include <array>
 #include <cassert>
 #include <algorithm>
 #include <type_traits>
 
+#include <clarkson93/bit_member.h>
+#include <clarkson93/simplex_impl.h>
+
 namespace clarkson93 {
 
 template <class Traits>
-Triangulation<Traits>::Triangulation() {
-  clear();
+Triangulation<Traits>::Triangulation(PointRef anti_origin,
+                                     SimplexAllocator* alloc)
+    : anti_origin_(anti_origin), alloc_(alloc) {
+  Clear();
 }
 
 template <class Traits>
 Triangulation<Traits>::~Triangulation() {
-  clear();
+  Clear();
 }
 
 template <class Traits>
-template <class Iterator, class Deiter>
-void Triangulation<Traits>::init(Iterator begin, Iterator end, Deiter deiter) {
+template <class Container>
+void Triangulation<Traits>::BuildInitial(const Container& vertices,
+                                         const Deref& deref) {
   // just some convenient storage for the initial simplices
-  SimplexRef S[NDim + 1];
+  std::array<Simplex<Traits>*, kDim + 1> S;
 
-  // then, if we have enough for the first simplex, we need to build it
   int i = 0;
-  SimplexRef S_0_ref = m_sMgr.create();
-  Simplex& S_0 = m_deref.simplex(S_0_ref);
+  Simplex<Traits>* s0_ptr = alloc_->Create();
+  Simplex<Traits>& s0 = *s0_ptr;
 
-  for (Iterator ipRef = begin; ipRef != end && i < NDim + 1; ++ipRef)
-    setVertex(S_0, i++) = deiter(ipRef);
-  assert(i == NDim + 1);
+  // fill the initial simplex with the vertex set
+  assert(vertices.size() > kDim + 1);
+  auto vertex_iterator = s0.V.begin();
+  for (auto vertex_id : vertices) {
+    *vertex_iterator++ = vertex_id;
+    if (vertex_iterator == s0.V.end()) {
+      break;
+    }
+  }
+  assert(vertex_iterator == s0.V.end());
 
-  computeBase(S_0, m_deref);
-  orientBase(S_0, m_deref.point(peak(S_0)), INSIDE);
+  ComputeBase(s0, deref);
+  OrientBase(s0, deref(s0.GetPeakVertex()), INSIDE);
 
-  // we also need to setup all of the infinite simplices
-  for (unsigned int i = 0; i < NDim + 1; i++) {
-    S[i] = m_sMgr.create();
-    Simplex& S_i = m_deref.simplex(S[i]);
+  // construct and initialize infinite simplices
+  for (int i = 0; i < kDim + 1; i++) {
+    S[i] = alloc_->Create();
+    Simplex& s_i = *S[i];
 
-    setVertex(S_i, 0) = m_antiOrigin;
-    setNeighbor(S_i, 0) = S_0_ref;
-    setNeighbor(S_0, i) = S[i];
+    // the neighbor across the anti-origin is the origin simplex, and
+    // this simplex is the i'th neighbor of the origin simplex
+    s_i.V[0] = anti_origin_simplex_;
+    s_i.N[0] = s0_ptr;
+    s0.N[i] = S[i];
 
-    for (unsigned int j = 0; j < NDim + 1; j++) {
-      int k = j;
-      if (j < i)
-        k++;
-      else if (j == i)
+    for (int j = 0; j < kDim + 1; j++) {
+      if (j == i)
         continue;
 
-      setVertex(S_i, k) = vertex(S_0, j);
+      const int k = j < i ? j + 1 : j;
+      s_i.V[k] = s0.V[j];
     }
 
     // we can't use the peak vertex of the inifinite simplices to
     // orient them, because it is fictious, so we'll orient it toward
     // the remaining point of the origin simplex
-    computeBase(S_i, m_deref);
-    orientBase(S_i, m_deref.point(vertex(S_0, i)), OUTSIDE);
+    ComputeBase(S[i], deref);
+    OrientBase(S[i], deref(s0.V[i]), simplex::OUTSIDE);
   }
 
-  // now we need to assign neighbors
-  for (unsigned int i = 0; i < NDim + 1; i++) {
-    for (unsigned int j = 1; j < NDim + 1; j++) {
-      int k = (j <= i) ? j - 1 : j;
-      Simplex& S_i = m_deref.simplex(S[i]);
-      setNeighbor(S_i, j) = S[k];
+  // now we need to assign mutually inifinite neighbors
+  for (int i = 0; i < kDim + 1; i++) {
+    for (int j = 1; j < kDim + 1; j++) {
+      const int k = (j <= i) ? j - 1 : j;
+      S[i]->N[j] = S[k];
     }
   }
 
-  m_origin = S_0_ref;
-  m_hullSimplex = S[0];
+  origin_simplex_ = s0_ptr;
+  hull_simplex_ = S[0];
 
   // callback all of the initial hull faces
-  for (unsigned int i = 0; i < NDim + 1; i++) m_callback.hullFaceAdded(S[i]);
+  //  for (int i = 0; i < kDim + 1; i++)
+  //    m_callback.hullFaceAdded(S[i]);
 
-  finish(S_0);
-  for (unsigned int i = 0; i < NDim + 1; i++) {
-    Simplex& S_i = m_deref.simplex(S[i]);
-    finish(S_i);
-    setMember(S_i, simplex::HULL) = true;
+  // Finalize the simplices by sorting their vertex sets
+  SortVertices(s0_ptr);
+  for (int i = 0; i < kDim + 1; i++) {
+    SortVertices(S[i]);
+    S_i->AddTo(simplex::HULL);
+  }
+
+  // remember which simplices we created
+  allocated_simplices_.emplace(s0_ptr);
+  std::copy(S.begin(), S.end(), std::back_inserter(allocated_simplices_));
+}
+
+template <class Traits>
+void Triangulation<Traits>::Insert(PointRef vertex_id, const Deref& deref,
+                                   Simplex<Traits>* search_start) {
+  assert(origin_simplex_);
+  Simplex<Traits>* s0_ptr = FindXVisible(vertex_id, search_start);
+  // if the inserted point is not outside the current hull then we do nothing
+  if (!s0_ptr->IsMemberOf(simplex::HULL)) {
+    return;
+  }
+
+  FillXVisible(vertex_id, s0_ptr);
+  AlterXVisible(vertex_id);
+}
+
+template <class Traits>
+void Triangulation<Traits>::Insert(PointRef vertex_id, const Deref& deref) {
+  assert(origin_simplex_);
+  Insert(vertex_id, origin_simplex_);
+}
+
+template <class Traits>
+void Triangulation<Traits>::Clear() {
+  hull_simplex_ = nullptr;
+  origin_simplex_ = nullptr;
+
+  for (auto simplex_ptr : allocated_simplices_) {
+    alloc_->Free(simplex_ptr);
   }
 }
 
 template <class Traits>
-void Triangulation<Traits>::insert(PointRef x, SimplexRef S) {
-  SimplexRef So_ref = find_x_visible(x, S);
-  Simplex& So = m_deref.simplex(So_ref);
-  if (!isMember(So, simplex::HULL)) return;
+typename Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
+    PointRef vertex_id, const Deref& deref, Simplex<Traits>* search_start) {
+  // set of simplices that have been walked
+  BitMemberSet<simplex::Sets> walked_set(simplex::VISIBLE_WALK);
 
-  fill_x_visible(s_optLvl, x, So_ref);
-  alter_x_visible(s_optLvl, x);
-}
-
-template <class Traits>
-void Triangulation<Traits>::insert(PointRef x) {
-  insert(x, m_origin);
-}
-
-template <class Traits>
-void Triangulation<Traits>::clear() {
-  m_hullSimplex = 0;
-  m_origin = 0;
-  m_sMgr.clear();
-  m_xv_queue.clear();
-  m_xv_walked.clear();
-  m_xvh.clear();
-  m_xvh_queue.clear();
-  m_ridges.clear();
-}
-
-template <class Traits>
-typename Traits::Simplex* Triangulation<Traits>::find_x_visible(
-    PointRef Xref, SimplexRef Sref) {
   // turn generic reference into a real reference
-  Point& x = m_deref.point(Xref);
+  auto& vertex = deref.point(vertex_id);
 
   // first clear out our search structures
   // so the flags get reset, we do this at the beginning so that after the
   // the update they persist and we can view them for debugging
-  for (SimplexRef Sref : m_xv_walked) {
-    Simplex& S = m_deref.simplex(Sref);
-    setMember(S, simplex::XVISIBLE_WALK) = false;
+  for (Simplex<Traits>* s_ptr : xv_walked_) {
+    walked_set.Remove(s_ptr);
   }
-  m_xv_queue.clear();
-  m_xv_walked.clear();
+  xv_queue_.clear();
+  xv_walked_.clear();
 
   // if the origin simplex is not visible then start at the neighbor
   // across his base, which must be x-visible
-  {
-    Simplex& S = m_deref.simplex(Sref);
-
-    if (!isVisible(S, x)) Sref = neighborAcross(S, peak(S));
+  if (!IsVisible(*search_start, vertex)) {
+    search_start = search_start->GetPeakNeighbor();
   }
+  // sanity check
+  assert(IsVisible(*search_start, vertex));
 
   // is set to true when we find an infinite x-visible simplex
-  bool foundVisibleHull = false;
+  // if the seed we've been given is both x-visible and infinite
+  // then there is no need for a walk
+  bool found_visible_hull = IsInfinite(search_start, anti_origin_);
+  Simplex<Traits>* found_simplex = search_start;
 
-  // reference scope
-  {
-    Simplex& S = m_deref.simplex(Sref);
-
-    // sanity check
-    assert(isVisible(S, x));
-
-    // start the search at S
-    m_xv_queue.push(PQ_Key(0, Sref));
-    m_xv_walked.push_back(Sref);
-
-    setMember(S, simplex::XVISIBLE_WALK) = true;
-
-    // if the seed we've been given is both x-visible and infinite
-    // then there is no need for a walk
-    foundVisibleHull = isInfinite(S, m_antiOrigin);
-  }
+  // start the search
+  xv_queue_.Push({0, search_start});
+  xv_walked_.push_back(search_start);
+  walked_set.Add(search_start);
 
   // starting at the given simplex, walk in the direction of x until
   // we find an x-visible infinite simplex (i.e. hull facet)
-  while (m_xv_queue.size() > 0 && !foundVisibleHull) {
-    SimplexRef pop_ref = m_xv_queue.pop().val;
-    Simplex& pop = m_deref.simplex(pop_ref);
+  while (xv_queue_.size() > 0 && !found_visible_hull) {
+    Simplex<Traits>* pop_ptr = xv_queue_.Pop().val;
 
-    // the neighbor we skip b/c it was how we were found
-    SimplexRef parent = neighborAcross(pop, peak(pop));
+    // the neighbor we skip b/c it was how we entered this simplex
+    Simplex<Traits>* parent_ptr = pop_ptr->GetPeakNeighbor();
 
     // for each neighbor except the one across the base facet, queue all
     // x-visible simplices sorted by base facet distance to x
-    for (SimplexRef Nref : neighborhood(pop)) {
-      if (Nref == parent) continue;
-
-      Simplex& N = m_deref.simplex(Nref);
+    for (Simplex<Traits>* neighbor_ptr : Neighborhood(*pop_ptr)) {
+      if (neighbor_ptr == parent_ptr) {
+        continue;
+      }
 
       // if the neighbor is x-visible but has not already been queued or
       // expanded, then add it to the queue
-      if (isVisible(N, x) && !isMember(N, simplex::XVISIBLE_WALK)) {
+      if (IsVisible(*neighbor_ptr, vertex) &&
+          !walked_set.IsMember(neighbor_ptr)) {
         // if the base facet is x-visible and the simplex is also
         // infinite then we have found our x-visible hull facet
-        if (isInfinite(N, m_antiOrigin)) {
-          Sref = Nref;
-          foundVisibleHull = true;
+        if (IsInfinite(*neighbor_ptr, anti_origin_)) {
+          found_simplex = neighbor_ptr;
+          found_visible_hull = true;
           break;
         }
 
-        // otherwise add N to the search queue
-        Scalar d = (x - m_deref.point(peak(N))).squaredNorm();
-        // Scalar d = normalProjection( N, x );
+        // otherwise add the neighbor to the search queue
+        Scalar d =
+            (vertex - deref(neighbor_ptr->GetPeakVertex())).squaredNorm();
+        // Scalar d = NormalProjection(*neighbor_ptr, vertex);
 
-        m_xv_walked.push_back(Nref);
-        m_xv_queue.push(PQ_Key(d, Nref));
-
-        setMember(N, simplex::XVISIBLE_WALK) = true;
+        xv_walked_.push_back(neighbor_ptr);
+        xv_queue_.push({d, neighbor_ptr});
+        walked_set.Add(neighbor_ptr);
       }
     }
   }
 
-  // if we didn't find a hull facet then the point is inside the triangulation
-  // and is redundant, so lets just give it up
-  return Sref;
+  // If we didn't find a hull facet then the point is inside the triangulation
+  // and is redundant, so we'll just give up and return the search start as
+  // the found simplex. The caller will know what this means.
+  return found_simplex;
 }
 
 template <class Traits>
-void Triangulation<Traits>::fill_x_visible(const OptLevel<0>&, PointRef Xref,
-                                           SimplexRef Sref) {
-  Point& x = m_deref.point(Xref);
-  for (SimplexRef S_ref : m_xvh) {
-    Simplex& S = m_deref.simplex(S_ref);
-    setMember(S, simplex::XV_HULL) = false;
+void Triangulation<Traits>::FloodVisibleHull(
+    PointRef vertex_id, const Deref& deref,
+    Simplex<Traits>* visible_hull_simplex) {
+  // set of hull simplices that are visible
+  BitMemberSet<simplex::Sets> visible_hull_set(simplex::VISIBLE_HULL);
+  BitMemberSet<simplex::Sets> horizon_fill_set(simplex::HORIZON_FILL);
+
+  auto& vertx = deref(vertex_id);
+
+  // clear old results
+  for (Simplex<Traits>* simplex_ptr : xvh_) {
+    visible_hull_set.Remove(simplex_ptr);
   }
 
-  for (Ridge& ridge : m_ridges) {
-    Simplex& S = m_deref.simplex(ridge.Sfill);
-    setMember(S, simplex::HORIZON_FILL) = false;
+  for (Ridge& ridge : ridges_) {
+    horizon_fill_set.Remove(ridge.fill);
   }
 
-  m_xvh.clear();
-  m_xvh_queue.clear();
-  m_ridges.clear();
+  xvh_.clear();
+  ridges_.clear();
 
-  // this S is both x-visible and infinite, so we do an expansive
+  // the first simplex  is both x-visible and infinite, so we do an expansive
   // search for all such simplicies around it. So we initialize the search
   // stack with this simplex
-  {
-    m_xvh.push_back(Sref);
-    m_xvh_queue.push_back(Sref);
+  xvh_.push_back(visible_hull_simplex);
+  visible_hull_set.Add(visible_hull_simplex);
 
-    Simplex& S = m_deref.simplex(Sref);
-    setMember(S, simplex::XV_HULL) = true;
-  }
-
-  // at each iteration...
-  while (m_xvh_queue.size() > 0) {
+  // visible_hull_iter separates the visible hull list into those that have
+  // been expanded (before iter) and those that have not (iter onwards),
+  // allowing
+  // us to do a breadth-first search with a single data structure
+  auto visible_hull_iter = xvh_.begin();
+  while (visible_hull_iter != xvh_.end()) {
     // pop one simplex off the stack
-    SimplexRef Sref = m_xvh_queue.back();
-    Simplex& S = m_deref.simplex(Sref);
-    m_xvh_queue.pop_back();
+    Simplex<Traits>* pop_ptr = *visible_hull_iter++;
 
     // and check all of it's infinite neighbors
-    for (SimplexRef Nref : neighborhood(S)) {
-      // skip the finite neighbor
-      if (Nref == peakNeighbor(S)) continue;
+    for (Simplex<Traits>* neighbor_ptr : Neighborhood(*pop_ptr)) {
+      // skip the finite neighbor, because it is finite
+      if (neighbor_ptr == pop_ptr->GetPeakNeighbor()) {
+        continue;
+      }
 
-      Simplex& N = m_deref.simplex(Nref);
-      bool xVisible = isVisible(N, x);
+      bool is_x_visible = IsVisible(*neighbor_ptr, vertex);
 
       // sanity check
-      assert(isInfinite(N, m_antiOrigin));
+      assert(IsInfinite(*neighbor_ptr, anti_origin_));
 
       // if the neighbor is both infinite and x-visible , but has not
       // yet been queued for expansion, then add it to
       // the x-visible hull set, and queue it up for expansion
-      if (xVisible && !isMember(N, simplex::XV_HULL)) {
-        setMember(N, simplex::XV_HULL) = true;
-        m_xvh_queue.push_back(Nref);
-        m_xvh.push_back(Nref);
+      if (is_x_visible && !visible_hull_set.IsMember(*neighbor_ptr) {
+        visible_hull_set.Add(neighbor_ptr);
+        xvh_.push_back(neighbor_ptr);
       }
 
       // if is not visible then there is a horizon ridge between this
       // simplex and the neighbor simplex
-      if (!xVisible) m_ridges.emplace_back(Sref, Nref);
+      if (!is_x_visible)
+        ridges_.emplace_back(pop_ref, neighbor_ref);
     }
   }
 }
 
 template <class Traits>
-void Triangulation<Traits>::alter_x_visible(const OptLevel<0>&, PointRef Xref) {
+void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
+                                            const Deref& deref) {
+  // set of hull simplices (we will remove some here)
+  BitMemberSet<simplex::Sets> hull_set(simplex::HULL);
+
+  // set of hull simplices that are visible
+  BitMemberSet<simplex::Sets> visible_hull_set(simplex::VISIBLE_HULL);
+
+  // set of hull simplices that are on the horizon ridge
+  BitMemberSet<simplex::Sets> horizon_set(simplex::HORIZON);
+
+  // set of hull simplices that were created during the fill operation
+  BitMemberSet<simplex::Sets> horizon_fill_set(simplex::HORIZON_FILL);
+
+  auto& vertex = deref(vertex_id);
+
   // first we go through all the x-visible simplices, and replace their
   // peak vertex (the ficitious anti-origin) with the new point x, and then
   // notify any hooks that the simplex was removed from the hull
-  for (SimplexRef Sref : m_xvh) {
-    Simplex& S = m_deref.simplex(Sref);
-    setPeak(S) = Xref;
-    finish(S);
-    setMember(S, simplex::HULL) = false;
-    m_callback.hullFaceRemoved(Sref);
+  for (Simplex<Traits>* s_ptr : xvh_) {
+    s_ptr->SetPeak(vertex_id);
+    hull_set.Remove(s_ptr);
+    //    m_callback.hullFaceRemoved(Sref);
   }
 
   // now for each horizon ridge we have to construct a new simplex
-  for (Ridge& ridge : m_ridges) {
+  for (Ridge& ridge : ridges_) {
     // allocate a new simplex and add it to the list
-    SimplexRef Snew = m_sMgr.create();
-    ridge.Sfill = Snew;
+    Simplex<Traits>* new_ptr = alloc_->Create();
+    allocated_simplices_.push_back(new_ptr);
+    ridge.fill = new_ptr;
+    hull_set.Add(new_ptr);
 
     // in order to traverse the hull we need at least one hull simplex and
     // since all new simplices are hull simlices, we can set one here
-    m_hullSimplex = Snew;
+    hull_simplex_ = new_ptr;
 
     // In the parlance of Clarkson, we have two simplices V and N
-    // note that V is ridge->Svis and N is ridge->Sinvis
+    // note that V is ridge->x_visible and N is ridge->x_invisible
     // V was an infinite simplex and became
     // a finite one... and N is still an infinite simplex
-    Simplex& V = m_deref.simplex(ridge.Svis);
-    Simplex& N = m_deref.simplex(ridge.Sinvis);
-    Simplex& S = m_deref.simplex(ridge.Sfill);
-    setMember(S, simplex::HULL) = true;
+    Simplex<Traits>& V = *ridge.x_visible;
+    Simplex<Traits>& N = *ridge.x_invisible;
+    Simplex<Traits>& S = *ridge.fill;
 
     // the new simplex has a peak vertex at the anti-origin, across from
     // that vertex is V.
-    setVertex(S, 0) = m_antiOrigin;
-    setNeighbor(S, 0) = ridge.Svis;
+    S.V[0] = anti_origin_;
+    S.N[0] = ridge.x_visible;
 
     // the new simplex also contains x as a vertex and across from that
     // vertex is N
-    setVertex(S, 1) = Xref;
-    setNeighbor(S, 1) = ridge.Sinvis;
+    S.V[1] = vertex_id;
+    S.N[1] = ridge.x_invisible;
 
     // split the vertex set of V and N into those that are only in V,
     // those that are only in N, and those that are common
-    std::vector<PointRef> vRidge, vV, vN;
-    vRidge.reserve(NDim - 1);
-    vsetSplit(V, N, std::back_inserter(vV), std::back_inserter(vN),
-              std::back_inserter(vRidge));
+    std::array<PointRef, kDim - 1> ridge_vertices;
+    std::array<PointRef, 2> V_vertices, N_vertices;
+    VsetSplit(V, N, V_vertices.begin(), N_vertices.begin(),
+              ridge_vertices.begin());
 
-    // Note: when vsetSplit is finished vV should contain two vertices,
-    // one of which is x, and vN should contain two vertices, one of which
-    // is the anti origin, and vRidge should contain NDim-2 vertices
-    assert(vV.size() == 2);
-    assert(vN.size() == 2);
-    assert(vRidge.size() == NDim - 1);
-
+    // Note: when vsetSplit is finished V_vertices should contain two vertices,
+    // one of which is x, and N_vertices should contain two vertices, one of
+    // which
+    // is the anti origin, and rige_vertices should contain kDim-2 vertices
     int i = 2;
-    for (PointRef v : vRidge) setVertex(S, i++) = v;
+    for (PointRef v : ridge_vertices) {
+      S.V[i++] = v;
+    }
 
     // we only care about the vertex which is not x or the anti origin
-    // so make sure we can identify that point
-    if (vV.back() != Xref) vV.front() = vV.back();
-    if (vN.back() != m_antiOrigin) vN.front() = vN.back();
+    // so make sure we can identify that point by putting it in the zero slot
+    if (V_vertices.back() != vertex_id) {
+      std::swap(V_vertices.front(), V_vertices.back());
+    }
+    if (N_vertices.back() != anti_origin_) {
+      std::swap(N_vertices.front(), N_vertices.back());
+    }
 
     // now we can assign these neighbors correctly
-    setNeighborAcross(V, vV[0]) = Snew;
-    setNeighborAcross(N, vN[0]) = Snew;
+    V.SetNeighborAcross(V_vertices[0], new_ptr);
+    N.SetNeighborAcross(N_vertices[0], new_ptr);
 
     // the neighbors will continue to be null, but we can sort the
     // vertices now
-    finish(S);
+    SortVertices(ridge.fill);
 
     // mark this simplex as a member of the horizon wedge fill
-    setMember(S, simplex::HORIZON_FILL) = true;
+    horizon_fill_set.Add(ridge.fill);
 
     // we'll need to use the half-space inequality at some point but
     // we can't calcualte it normally b/c one of the vertices isn't at
     // a real location, so we calculate it to be coincident to the base
     // facet, and then orient it so that the vertex of V which is not
     // part of the new simplex is on the other side of the constraint
-    computeBase(S, m_deref);
-    orientBase(S, m_deref.point(vV[0]), OUTSIDE);
+    ComputeBase(ridge.fill, deref);
+    OrientBase(ridge.fill, deref(V_vertices[0]), simplex::OUTSIDE);
   }
 
   // ok now that all the new simplices have been added, we need to go
   // and assign neighbors to these new simplicies
-  for (Ridge& ridge : m_ridges) {
-    Simplex& S = m_deref.simplex(ridge.Sfill);
-    Simplex& V = m_deref.simplex(ridge.Svis);
-    Simplex& N = m_deref.simplex(ridge.Sinvis);
+  for (Ridge& ridge : ridges_) {
+    Simplex<Traits>& S = *ridge.fill;
+    Simplex<Traits>& V = *ridge.x_visible;
+    Simplex<Traits>& N = *ridge.x_invisible;
 
     // let x be a vertex of S for which a neighbor has not been assigned,
-    // then the facet f across from x is a set of NDim vertices. Let
-    // f_N be the (NDim-1) vertices f \ {antiOrigin}. Well then V must
+    // then the facet f across from x is a set of kDim vertices. Let
+    // f_N be the (kDim-1) vertices f \ {antiOrigin}. Well then V must
     // share that facet. Furthermore, if we step into V then V only has
     // one neighbor other than S which shares that facet. Each simplex
     // that shares this facet has exactly two neighbors sharing that
@@ -384,24 +418,24 @@ void Triangulation<Traits>::alter_x_visible(const OptLevel<0>&, PointRef Xref) {
 
     // so start by building the horizon ridge wedge facet as a set of
     // vertices
-    std::set<PointRef> ridgeFacet;
-    vsetIntersection(V, N, std::inserter(ridgeFacet, ridgeFacet.begin()));
-    assert(ridgeFacet.size() == NDim - 1);
+    std::array<PointRef, kDim - 1> ridge_facet;
+    VsetIntersection(V, N, ridge_facet.begin());
 
     // now for each vertex in that set, we need to find the neighbor
     // across from that vertex
-    for (PointRef v : ridgeFacet) {
+    for (PointRef v : ridge_facet) {
       // so build the edge which is the ridge facet without that
       // particular vertex
-      std::vector<PointRef> edge;
-      edge.reserve(NDim - 1);
-      std::copy_if(ridgeFacet.begin(), ridgeFacet.end(),
-                   std::back_inserter(edge),
+      // TODO(josh) : this is basically set-minus, set-plus. It would be cool
+      // to do have a template expression library for working with sorted arrays
+      std::array<PointRef, kDim - 1> edge;
+      std::copy_if(ridge_facet.begin(), ridge_facet.end(), edge.begin(),
                    [v](PointRef q) { return q != v; });
-      edge.push_back(Xref);
-      assert(edge.size() == NDim - 1);
+      edge.back() = vertex_id;
+      std::sort(edge.begin(), edge.end());
 
       // now start our walk with S and V
+      // THIS IS WHERE YOU LEFT OFF!!!!!
       setMember(S, simplex::S_WALK) = true;
       setMember(V, simplex::S_WALK) = true;
 
@@ -471,7 +505,8 @@ void Triangulation<Traits>::alter_x_visible(const OptLevel<0>&, PointRef Xref) {
   }
 
   // now that neighbors have been assigned we can inform any listeners
-  for (Ridge& ridge : m_ridges) m_callback.hullFaceAdded(ridge.Sfill);
+  for (Ridge& ridge : m_ridges)
+    m_callback.hullFaceAdded(ridge.Sfill);
 }
 
 }  // namespace clarkson93

@@ -86,6 +86,8 @@ void GetNeighborsSharing(const Simplex<Traits>& simplex,
 
 template <class Traits>
 void SortVertices(Simplex<Traits>* simplex) {
+  // we need to restore the index of the peak vertex after sorting,
+  // so grab the peak vertex id so we can find it again later
   typename Traits::PointRef peak = simplex->GetPeakVertex();
 
   // TODO(josh): pqueue might be faster

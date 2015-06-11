@@ -19,8 +19,13 @@
 #ifndef CLARKSON93_TRIANGULATION_H_
 #define CLARKSON93_TRIANGULATION_H_
 
+#include <list>
 #include <queue>
 #include <set>
+#include <clarkson93/horizon_ridge.h>
+#include <clarkson93/indexed.h>
+#include <clarkson93/priority_queue.h>
+#include <clarkson93/simplex.h>
 
 namespace clarkson93 {
 
@@ -47,42 +52,43 @@ class Triangulation {
   typedef typename Traits::Scalar Scalar;
   typedef typename Traits::PointRef PointRef;
   typedef typename Traits::Deref Deref;
-  typedef typename Traits::Callback Callback;
-  typedef typename Traits::SimplexMgr SimplexMgr;
+  typedef typename Traits::SimplexAllocator SimplexAllocator;
 
   typedef Triangulation<Traits> This;
   typedef HorizonRidge<Traits> Ridge;
 
-  typedef std::set<PointRef> PointSet;
-  typedef std::vector<SimplexRef> SimplexSet;
-  typedef std::vector<Ridge> HorizonSet;
+  typedef Indexed<Scalar, Simplex<Traits>*> QueueElement;
+  typedef PriorityQueue<QueueElement> WalkQueue;
+
+  typedef std::list<Simplex<Traits>*> SimplexList;
+  typedef std::list<Ridge> HorizonList;
 
  public:
   // Data Members
   // -----------------------------------------------------------------------
-  Simplex<Traits>* hull_simplex_;  ///< a simplex in the hull
-  Simplex<Traits>* origin_;        ///< origin simplex
-  PointRef anti_origin;            ///< fictitious point
-  Deref deref_;                    ///< dereferences a PointRef or SimplexRef
+  Simplex<Traits>* hull_simplex_;    ///< a simplex in the hull
+  Simplex<Traits>* origin_simplex_;  ///< origin simplex
+  PointRef anti_origin_;             ///< fictitious point
+  SimplexAllocator alloc_;           ///< allocator for simplices
 
-  WalkQueue xv_queue_;    ///< walk for x-visible search
-  SimplexSet xv_walked_;  ///< set of simplices ever expanded for
-                          ///  the walk
+  WalkQueue xv_queue_;     ///< walk for x-visible search
+  SimplexList xv_walked_;  ///< set of simplices ever expanded for
+                           ///  the walk
+  SimplexList xvh_;        ///< set of x-visible hull simplices
 
-  SimplexSet xvh_;        ///< set of x-visible hull simplices
-  SimplexSet xvh_queue_;  ///< search queue for x-visible hull
-
-  HorizonSet ridges_;  ///< set of horizon ridges
-  Callback callback_;  ///< event hooks
+  HorizonList ridges_;  ///< set of horizon ridges
+  SimplexList allocated_simplices_;
 
  public:
-  Triangulation();
+  /// anti_origin must have a value less than all vertex id's that are expected
+  /// to be used.
+  Triangulation(PointRef anti_origin, SimplexAllocator* alloc);
   ~Triangulation();
 
   /// builds the initial triangulation from the first @p NDim + 1 points
   /// inserted
-  template <class Iterator, class Deiter>
-  void init(Iterator begin, Iterator end, Deiter deiter);
+  template <class Container>
+  void BuildInitial(const Container& vertices, const Deref& deref);
 
   /// insert a new point into the triangulation and update the convex
   /// hull (if necessary)
@@ -90,12 +96,14 @@ class Triangulation {
    *  @param  x   const ref to the new point to add
    *  @param  S   an x-visible facet, if null (default) will search for one
    */
-  void insert(const PointRef x, SimplexRef S);
-  void insert(const PointRef x);
+  void Insert(PointRef vertex_id, const Deref& deref,
+              Simplex<Traits>* search_start);
+
+  void Insert(PointRef vertex_id, const Deref& deref);
 
   /// destroys all simplex objects that have been generated and clears all
   /// lists/ sets
-  void clear();
+  void Clear();
 
   /// find the set of @f$ x\mathrm{-visible} @f$ facets and put them in
   /// @p x_visible
@@ -107,15 +115,17 @@ class Triangulation {
    *  T containing @f$ x @f$ has been found, showing that
    *  @f$ x \in \mathrm{hull} R @f$
    */
-  Simplex* find_x_visible(PointRef x, SimplexRef S);
+  Simplex<Traits>* FindVisibleHull(PointRef vertex_id, const Deref& deref,
+                               Simplex<Traits>* search_start);
 
   /// given a simplex S which is x-visible and infinite, fill the set of
   /// all x-visible and infinite facets
-  void fill_x_visible(const OptLevel<0>&, PointRef x, SimplexRef S);
+  void FloodVisibleHull(PointRef vertex_id, const Deref& deref,
+                    Simplex<Traits>* visible_hull_simplex);
 
   // update each x-visible simplex by adding the point x as the peak
   // vertex, also create new simplices
-  void alter_x_visible(const OptLevel<0>&, PointRef x);
+  void FillVisibleHull(PointRef x, const Deref& deref);
 };
 
 }  // namespace clarkson93

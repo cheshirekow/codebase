@@ -31,14 +31,14 @@ namespace simplex {
 /// ID's for different sets that a particular simplex may be a member of
 /// during various different phases of the algorithm
 enum Sets {
-  XVISIBLE_WALK,       ///< has been queued during the x-visible walk
-  XV_HULL,             ///< is x-visible and hull
+  VISIBLE_WALK,        ///< has been queued during the x-visible walk
+  VISIBLE_HULL,        ///< is x-visible and hull
   HULL,                ///< used in hull enumeration
   HULL_QUEUED,         ///< used in hull enumeration
   HORIZON,             ///< is a member of the horizon set
   HORIZON_FILL,        ///< is a member of the set of simplices created to
                        ///  fill the empty horizon wedge
-  S_WALK,              ///< simplices encountered in walk around a common
+  FEATURE_WALK,        ///< simplices encountered in walk around a common
                        ///  (NDim-1) edge
   ENUMERATE_QUEUED,    ///< not used internally, for enumerating the hull
   ENUMERATE_EXPANDED,  ///< not used internally, for enumerating the hull
@@ -116,6 +116,12 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
 
   PointRef GetPeakVertex() {
     return V[i_peak];
+  }
+
+  /// replace the peak vertex with this vertex, the simplex will need to be
+  /// resorted after this
+  void SetPeak(PointRef vertex_id) {
+    V[i_peak] = vertex_id;
   }
 
   int8_t GetIndexOf(PointRef v) {
