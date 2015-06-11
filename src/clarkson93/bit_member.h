@@ -52,22 +52,48 @@ struct BitMemberBase {};
     bool is_member_of_c = set_member.IsMemberOf(SET_C); // false
 @endcode
  */
-template <typename Enum, unsigned int size_>
+template <typename Enum, int size_>
 struct BitMember : public BitMemberBase, public std::bitset<size_> {
-  /// mark this object as a member of the @set_bit set
-  void AddTo(Enum set_bit) {
-    (*this)[set_bit] = true;
+  /// mark this object as a member of the @set_id set
+  void AddTo(Enum set_id) {
+    (*this)[set_id] = true;
   }
 
-  /// mark this object as not-a-member of the @set_bit set
-  void RemoveFrom(Enum set_bit) {
-    (*this)[set_bit] = false;
+  /// mark this object as not-a-member of the @set_id set
+  void RemoveFrom(Enum set_id) {
+    (*this)[set_id] = false;
   }
 
-  /// return true if this object is a member of the @set_bit set
-  bool IsMemberOf(Enum set_bit) const {
-    return (*this)[set_bit];
+  /// return true if this object is a member of the @set_id set
+  bool IsMemberOf(Enum set_id) const {
+    return (*this)[set_id];
   }
+};
+
+/// Provides set-like semantics without actually storing any of the set
+/// members
+template <typename Enum>
+class BitMemberSet {
+ public:
+  BitMemberSet(Enum set_id) : set_id_(set_id) {}
+
+  template <int size_>
+  void Add(BitMember<Enum, size_>* obj) const {
+    obj->AddTo(set_id_);
+  }
+
+  template <int size_>
+  void Remove(BitMember<Enum, size_>* obj) const {
+    obj->RemoveFrom(set_id_);
+  }
+
+  template <int size_>
+  bool IsMember(const BitMember<Enum, size_>& obj) const {
+    return obj.IsMemberOf(set_id_);
+  }
+
+ private:
+  Enum set_id_;
 };
 
 }  // namespace clarkson93

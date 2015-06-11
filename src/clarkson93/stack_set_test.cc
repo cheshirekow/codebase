@@ -15,8 +15,8 @@ TEST(StackSetTest,ItemInStackHasCorrectMembership) {
   TestItem item_b;
   TestItem item_c;
 
-  clarkson93::StackSet<TestItem*, TestSet> stack_a(IN_STACK_A);
-  clarkson93::StackSet<TestItem*, TestSet> stack_b(IN_STACK_B);
+  clarkson93::StackSet<TestItem, TestSet> stack_a(IN_STACK_A);
+  clarkson93::StackSet<TestItem, TestSet> stack_b(IN_STACK_B);
 
   EXPECT_FALSE(item_a.IsMemberOf(IN_STACK_A));
   EXPECT_FALSE(item_a.IsMemberOf(IN_STACK_B));

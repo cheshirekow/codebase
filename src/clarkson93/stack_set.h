@@ -29,65 +29,15 @@ namespace clarkson93 {
 
 /// Maintain a stack of bitset-able objects. When items are pushed onto the
 /// stack they are added to the set, when they are popped from the stack they
-/// are removed from the set
-template <typename T, typename SetEnum = void>
-class StackSet : public std::list<T> {
- public:
-  StackSet(SetEnum which_set = static_cast<SetEnum>(0))
-      : which_set_(which_set) {
-    // TODO(josh): figure out how to do this since we don't know the size of
-    // the enum list
-    // static_assert(std::is_base_of<BitMember<SetEnum>, T>::value,
-    //               "Items in a StackSet must derive from BitMember");
-  }
-
-  ~StackSet() {}
-
-  /// Change the bit-field for the set that items in this stack are added to.
-  /// Only valid if the stack is empty.
-  void ChangeSetBit(SetEnum which_set) {
-    assert(this->empty());
-    which_set_ = which_set;
-  }
-
-  /// Return the element at the top of the stack, remove it from the stack, and
-  /// mark it as not part of the set
-  T Pop() {
-    assert(!this->empty());
-    T return_me = this->back();
-    return_me.RemoveFrom(which_set_);
-    this->pop_back();
-    return return_me;
-  }
-
-  /// Put an element in the top of the stack.
-  template <class... Args>
-  void Push(Args&&... args) {
-    this->emplace_back(args...);
-    this->back().AddTo(which_set_);
-  }
-
-  /// Check if an element is a member of the set in this stack
-  bool IsMember(const T& obj) const {
-    return obj.isMemberOf(which_set_);
-  }
-
- private:
-  SetEnum which_set_;
-};
-
-/// Maintain a stack of bitset-able objects. When items are pushed onto the
-/// stack they are added to the set, when they are popped from the stack they
 /// are removed from the set,
 /**
- *  TODO(josh): No need to template on both element type and set enumerator
- *  type... just use partial specialization to get enum from base class.
+ *  TODO(josh): Figure out if theres a meta programming way to retrieve SetEnum
+ *  from T, since we know that T must derive from BitMember<SetEnum,size_>.
  */
-template <typename T, typename SetEnum>
-class StackSet<T*, SetEnum> : public std::list<T*> {
+template <class T, class SetEnum>
+class StackSet : public std::list<T*> {
  public:
-  StackSet(SetEnum which_set = static_cast<SetEnum>(0))
-      : which_set_(which_set) {}
+  StackSet(SetEnum set_id = static_cast<SetEnum>(0)) : set_(set_id) {}
 
   ~StackSet() {
     Clear();
@@ -95,9 +45,9 @@ class StackSet<T*, SetEnum> : public std::list<T*> {
 
   /// Change the bit-field for the set that items in this stack are added to.
   /// Only valid if the stack is empty.
-  void ChangeSetBit(SetEnum which_set) {
+  void ChangeSetBit(SetEnum set_id) {
     assert(this->empty());
-    which_set_ = which_set;
+    set_ = BitMemberSet<SetEnum>(set_id);
   }
 
   /// Return the element at the top of the stack, remove it from the stack, and
@@ -105,14 +55,14 @@ class StackSet<T*, SetEnum> : public std::list<T*> {
   T* Pop() {
     assert(!this->empty());
     T* return_me = this->back();
-    return_me->RemoveFrom(which_set_);
+    set_.Remove(return_me);
     this->pop_back();
     return return_me;
   }
 
   /// Put an element in the top of the stack.
   void Push(T* obj) {
-    obj->AddTo(which_set_);
+    set_.Add(obj);
     this->push_back(obj);
   }
 
@@ -120,18 +70,18 @@ class StackSet<T*, SetEnum> : public std::list<T*> {
   /// representing stack membership.
   void Clear() {
     for (T* obj : *this) {
-      obj->RemoveFrom(which_set_);
+      set_.Remove(obj);
     }
     this->clear();
   }
 
   /// Check if an element is a member of the set in this stack
   bool IsMember(const T* obj) const {
-    return obj->IsMemberOf(which_set_);
+    set_.IsMember(obj);
   }
 
  private:
-  SetEnum which_set_;
+  BitMemberSet<SetEnum> set_;
 };
 
 /// A simple stack data structure with a slightly more convenient interface
