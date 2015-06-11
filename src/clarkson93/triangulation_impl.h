@@ -313,6 +313,9 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
   // set of hull simplices that were created during the fill operation
   BitMemberSet<simplex::Sets> horizon_fill_set(simplex::HORIZON_FILL);
 
+  // set of simplices marked during a feature walk
+  BitMemberSet<simplex::Sets> feature_walk_set(simplex::FEATURE_WALK);
+
   auto& vertex = deref(vertex_id);
 
   // first we go through all the x-visible simplices, and replace their
@@ -435,53 +438,43 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
       std::sort(edge.begin(), edge.end());
 
       // now start our walk with S and V
-      // THIS IS WHERE YOU LEFT OFF!!!!!
-      setMember(S, simplex::S_WALK) = true;
-      setMember(V, simplex::S_WALK) = true;
+      std::list<Simplex<Traits>*> feature_walk_list;
+      feature_walk_list.push_back(ridge.fill);
+      feature_walk_list.push_back(ridge.x_visible);
+      feature_walk_set.Add(ridge.fill);
+      feature_walk_set.Add(risge.x_visible);
 
       // create a search queue (will only ever hold 2 elements)
-      std::vector<SimplexRef> queue;
-      std::vector<SimplexRef> expanded;
-      std::vector<SimplexRef> neighborhood;
-      queue.reserve(2);
-      queue.push_back(ridge.Svis);
-      expanded.push_back(ridge.Svis);
-      expanded.push_back(ridge.Sfill);
+      std::list<Simplex<Traits>*> queue;
+      queue.push_back(ridge.x_visible);
 
       // this is where we'll put the found neighbor
-      SimplexRef Nfound;
-      bool foundNeighbor = false;
+      Simplex<Traits>* found_neighbor = nullptr;
 
       // while the queue is not empty
-      while (queue.size() > 0 && !foundNeighbor) {
+      while (queue.size() > 0 && !found_neighbor) {
         // pop one element off the queue
-        SimplexRef Sc_ref = queue.back();
+        Simplex<Traits>* pop_ptr = queue.back();
         queue.pop_back();
-        Simplex& Sc = m_deref.simplex(Sc_ref);
 
         // find all the neighbors that share the facet
-        neighborhood.clear();
-        neighborSharing(Sc, edge.begin(), edge.end(),
-                        std::back_inserter(neighborhood));
-        assert(neighborhood.size() == 2);
+        assert(GetNeighborsSharing(*pop_ref, edge).size() == 2);
 
-        // get the one neighbor which isn't already in S_WALK
-        for (SimplexRef Nref : neighborhood) {
-          Simplex& N = m_deref.simplex(Nref);
-
+        // get the one neighbor which isn't already in FEATURE_WALK
+        for (Simplex<Traits>* neighbor_ptr :
+             GetNeighborsSharing(*pop_ref, edge)) {
           // if it's not the one we came from
-          if (!isMember(N, simplex::S_WALK)) {
+          if (!feature_walk_set.IsMember(*neighbor_ptr)) {
             // if N is in HORIZON_FILL then this is the neighbor
             // we are looking for
-            if (isMember(N, simplex::HORIZON_FILL)) {
-              Nfound = Nref;
-              foundNeighbor = true;
+            if (horizon_fill_set.IsMember(*neighbor_ptr)) {
+              found_neighbor = neighbor_ptr;
               break;
             }
 
-            queue.push_back(Nref);
-            expanded.push_back(Nref);
-            setMember(N, simplex::S_WALK) = true;
+            queue.push_back(neighbor_ptr);
+            feature_walk_list.push_back(neighbor_ptr);
+            feature_walk_set.Add(neighbor_ptr);
           }
         }
 
@@ -489,24 +482,27 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
         assert(queue.size() < 2);
       }
 
-      for (SimplexRef Ss : expanded)
-        setMember(m_deref.simplex(Ss), simplex::S_WALK) = false;
+      // we can clear the walk set
+      for (Simplex<Traits>* s_ptr : feature_walk_list) {
+        feature_walk_set.Remove(s_ptr);
+      }
 
       // sanity check
-      assert(foundNeighbor);
-      assert(Nfound != ridge.Sfill);
+      assert(found_neighbor);
+      assert(found_neighbor != ridge.fill);
 
       // set the other guy as our neighbor, we dont do the inverse
       // setting of the neighbor as it will happen when Nfound is
       // processedlater, note that this incurs a doubling of the
       // amount of S_WALKing that we do and can possibly be optimized
-      setNeighborAcross(S, v) = Nfound;
+      S.SetNeighborAcross(vertex_id) = found_neighbor;
     }
   }
 
   // now that neighbors have been assigned we can inform any listeners
-  for (Ridge& ridge : m_ridges)
-    m_callback.hullFaceAdded(ridge.Sfill);
+  //  for (Ridge& ridge : m_ridges) {
+  //    m_callback.hullFaceAdded(ridge.Sfill);
+  //  }
 }
 
 }  // namespace clarkson93

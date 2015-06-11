@@ -20,6 +20,7 @@
 #define CLARKSON93_Simplex_H_
 
 #include <array>
+#include <list>
 #include <cstdint>
 #include <clarkson93/bit_member.h>
 #include <Eigen/Dense>
@@ -166,6 +167,14 @@ void VsetIntersection(const Simplex<Traits>& simplex_a,
 template <class Traits, class Container, class Output>
 void GetNeighborsSharing(const Simplex<Traits>& simplex,
                          const Container& feature, Output out_iter);
+
+template <class Traits, class Container, class Output>
+std::list<Simplex<Traits>*> GetNeighborsSharing(const Simplex<Traits>& simplex,
+                                                const Container& feature) {
+  std::list<Simplex<Traits>*> neighborhood;
+  GetNeighborsSharing(simplex, feature, std::back_inserter(neighborhood));
+  return neighborhood;
+}
 
 // Mutators
 // -----------------------------------------------------------------------
