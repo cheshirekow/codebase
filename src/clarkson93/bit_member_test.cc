@@ -16,6 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with clarkson93.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <type_traits>
 #include <gtest/gtest.h>
 #include "clarkson93/bit_member.h"
 
@@ -33,4 +34,13 @@ TEST(BitMemberTest, SetAndTestExpectedValues) {
   EXPECT_TRUE(set_member.IsMemberOf(SET_B));
   EXPECT_FALSE(set_member.IsMemberOf(SET_C));
   EXPECT_TRUE(set_member.IsMemberOf(SET_D));
+}
+
+class DerivedClass : public clarkson93::BitMember<TestSets, NUM_SETS> {};
+
+TEST(BitMemberTraitsTest, TestTraitsAreAccurate) {
+  typedef clarkson93::BitMemberTraits<DerivedClass>::Enum EvaluatedEnum;
+  static_assert(std::is_same<EvaluatedEnum, TestSets>::value,
+                "BitMemberTraits failed to deduce type");
+  EXPECT_EQ(NUM_SETS, clarkson93::BitMemberTraits<DerivedClass>::kSize);
 }

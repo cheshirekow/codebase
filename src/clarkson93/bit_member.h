@@ -23,9 +23,6 @@
 
 namespace clarkson93 {
 
-/// dummy class which allows us to use SNFINAE
-struct BitMemberBase {};
-
 /// indicates membership into a number of sets by a bitfield
 /**
  *  There are several interesting sets that a particular simplex in the
@@ -53,7 +50,7 @@ struct BitMemberBase {};
 @endcode
  */
 template <typename Enum, int size_>
-struct BitMember : public BitMemberBase, public std::bitset<size_> {
+struct BitMember : public std::bitset<size_> {
   /// mark this object as a member of the @set_id set
   void AddTo(Enum set_id) {
     (*this)[set_id] = true;
@@ -68,6 +65,10 @@ struct BitMember : public BitMemberBase, public std::bitset<size_> {
   bool IsMemberOf(Enum set_id) const {
     return (*this)[set_id];
   }
+
+  /// sentinal function which is only used to deduce the base class of a class
+  /// which derives from this
+  void BitMemberSentinalFunction();
 };
 
 /// Provides set-like semantics without actually storing any of the set
@@ -94,6 +95,38 @@ class BitMemberSet {
 
  private:
   Enum set_id_;
+};
+
+/// Not a real function, assists in deducing the BitMember base of a class
+template <class T, class U>
+T BaseOf(U T::*);
+
+/// Template metafunction providing the instantiation of the BitMember template
+/// which is a base class of T
+template <class T>
+struct BitMemberBase {
+  typedef decltype(BaseOf(&T::BitMemberSentinalFunction)) Type;
+};
+
+/// Template metafunction exposing the template parameters of a particular
+/// instantiation of the BitMember template
+template <class T>
+struct BitMemberParams {};
+
+template <class EnumIn, int size_in_>
+struct BitMemberParams<BitMember<EnumIn, size_in_>> {
+  typedef EnumIn Enum;
+  enum { kSize = size_in_ };
+};
+
+/// Template metafunction exposing the template parameters (enum and size) of
+/// the BitMember template instantiation which is a base class of T
+template <class T>
+struct BitMemberTraits {
+  typedef typename BitMemberBase<T>::Type BaseClass;
+  typedef BitMemberParams<BaseClass> ParamsClass;
+  typedef typename ParamsClass::Enum Enum;
+  enum { kSize = ParamsClass::kSize };
 };
 
 }  // namespace clarkson93
