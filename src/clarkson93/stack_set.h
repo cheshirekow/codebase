@@ -34,9 +34,11 @@ namespace clarkson93 {
  *  TODO(josh): Figure out if theres a meta programming way to retrieve SetEnum
  *  from T, since we know that T must derive from BitMember<SetEnum,size_>.
  */
-template <class T, class SetEnum>
+template <class T>
 class StackSet : public std::list<T*> {
  public:
+  typedef typename BitMemberTraits<T>::Enum SetEnum;
+
   StackSet(SetEnum set_id = static_cast<SetEnum>(0)) : set_(set_id) {}
 
   ~StackSet() {
