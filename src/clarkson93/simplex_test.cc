@@ -16,6 +16,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with clarkson93.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <Eigen/Dense>
 #include <gtest/gtest.h>
 
 #include "clarkson93/simplex_impl.h"
@@ -137,4 +138,27 @@ TEST(SimplexTest, GetNeighborsSharingTest) {
                         reinterpret_cast<Simplex*>(2),
                         reinterpret_cast<Simplex*>(4)};
   EXPECT_EQ(expected_neighbors, neighbors);
+}
+
+TEST(SimplexTest, GeometryTest) {
+  typedef clarkson93::Simplex<TestTraits> Simplex;
+  typedef Eigen::Matrix<TestTraits::Scalar, TestTraits::kDim, 1> Point;
+
+  std::vector<Point> points;
+  points.resize(TestTraits::kDim + 1);
+  for (int i = 0; i < TestTraits::kDim; i++) {
+    points[i].fill(0);
+    points[i][i] = 1;
+  }
+  points.back() = Point::Zero();
+
+  Simplex simplex(-1);
+  simplex.V = {0, 1, 2, 3, 4};
+  simplex.i_peak = TestTraits::kDim;
+
+  auto point_deref = [&points](int i) { return points[i]; };
+
+  clarkson93::ComputeBase(&simplex, point_deref);
+  clarkson93::OrientBase(&simplex, Point::Zero());
+  EXPECT_LT(0, clarkson93::NormalProjection(simplex, Point::Zero()));
 }

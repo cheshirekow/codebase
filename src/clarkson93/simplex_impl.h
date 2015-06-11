@@ -160,7 +160,7 @@ void OrientBase(Simplex<Traits>* simplex, const Point& x,
 template <class Traits, class Point>
 typename Traits::Scalar NormalProjection(const Simplex<Traits>& simplex,
                                          const Point& x) {
-  return simplex->o - simplex->n.dot(x);
+  return simplex.o - simplex.n.dot(x);
 }
 
 template <class Traits>
