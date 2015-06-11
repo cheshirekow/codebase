@@ -20,6 +20,39 @@
 
 #include "clarkson93/simplex_impl.h"
 
-TEST(SimplexTest, ConstructionTest) {
+struct TestTraits {
+  static const int kDim = 4;
+  typedef double Scalar;
+  typedef int PointRef;
+};
 
+TEST(SimplexTest, ConstructionTest) {
+  typedef clarkson93::Simplex<TestTraits> Simplex;
+  Simplex simplex(0);
+  for (int vertex_id : simplex.V) {
+    EXPECT_EQ(0, vertex_id);
+  }
+}
+
+TEST(SimplexTest, VertexSortTest) {
+  typedef clarkson93::Simplex<TestTraits> Simplex;
+  Simplex simplex(0);
+  simplex.V = {3, 2, 1, 4, 5};
+
+  for (int i = 0; i < 5; i++) {
+    simplex.N[i] = reinterpret_cast<Simplex*>(simplex.V[i]);
+  }
+  clarkson93::SortVertices(&simplex);
+
+  int prev_id = 0;
+  for (int vertex_id : simplex.V) {
+    EXPECT_LT(prev_id, vertex_id);
+    prev_id = vertex_id;
+  }
+
+  Simplex* prev_ptr = 0;
+  for (Simplex* neighbor_ptr : simplex.N) {
+    EXPECT_LT(prev_ptr, neighbor_ptr);
+    prev_ptr = neighbor_ptr;
+  }
 }

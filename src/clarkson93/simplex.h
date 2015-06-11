@@ -102,8 +102,12 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
     n.fill(0);
   }
 
-  Simplex<Traits>* GetNeighborAcross(PointRef v) {
-    return N[GetIndexOf(v)];
+  Simplex<Traits>* GetNeighborAcross(PointRef vertex) {
+    return N[GetIndexOf(vertex)];
+  }
+
+  void SetNeighborAcross(PointRef vertex, Simplex<Traits>* neighbor) {
+    N[GetIndexOf(vertex)] = neighbor;
   }
 
   Simplex<Traits>* GetPeakNeighbor() {
