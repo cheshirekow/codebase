@@ -78,7 +78,11 @@ class StackSet : public std::list<T> {
 
 /// Maintain a stack of bitset-able objects. When items are pushed onto the
 /// stack they are added to the set, when they are popped from the stack they
-/// are removed from the set
+/// are removed from the set,
+/**
+ *  TODO(josh): No need to template on both element type and set enumerator
+ *  type... just use partial specialization to get enum from base class.
+ */
 template <typename T, typename SetEnum>
 class StackSet<T*, SetEnum> : public std::list<T*> {
  public:
@@ -86,7 +90,7 @@ class StackSet<T*, SetEnum> : public std::list<T*> {
       : which_set_(which_set) {}
 
   ~StackSet() {
-    clear();
+    Clear();
   }
 
   /// Change the bit-field for the set that items in this stack are added to.
@@ -142,7 +146,7 @@ struct Stack : public std::list<T> {
 
   template <class... Args>
   void Push(Args&&... args) {
-    this->emplac_back(args);
+    this->emplace_back(args...);
   }
 };
 
