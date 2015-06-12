@@ -55,7 +55,7 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
   Simplex<Traits>& s0 = *s0_ptr;
 
   // fill the initial simplex with the vertex set
-  assert(vertices.size() > kDim + 1);
+  assert(vertices.size() >= kDim + 1);
   auto vertex_iterator = s0.V.begin();
   for (auto vertex_id : vertices) {
     *vertex_iterator++ = vertex_id;

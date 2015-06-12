@@ -69,16 +69,16 @@ std::string NeighborString(
     const std::array<Simplex<TestTraits>*, TestTraits::kDim + 1>& neighbors) {
   std::stringstream strm;
   auto iter = neighbors.begin();
-  strm << fmt::format("{#x}", static_cast<void*>(*iter));
+  strm << fmt::format("{}", static_cast<void*>(*iter));
   for (; iter != neighbors.end(); ++iter) {
-    strm << ", " << fmt::format("{#x}", static_cast<void*>(*iter));
+    strm << ", " << fmt::format("{}", static_cast<void*>(*iter));
   }
   return strm.str();
 }
 
 std::string SimplexString(Simplex<TestTraits>* s_ptr) {
   return fmt::format(
-      "Simplex {#x}\n"
+      "Simplex {}\n"
       "  Vertices: {}\n"
       "  Neighbors: {}\n",
       static_cast<void*>(s_ptr), VertexString(s_ptr->V),
@@ -97,7 +97,7 @@ testing::AssertionResult EveryNeighborPointsBackToSelf(
     }
     if (!found_self_in_neighbor) {
       return testing::AssertionFailure()
-             << fmt::format("Neighbor {#x} doesn't point back to self {#x}\n",
+             << fmt::format("Neighbor {} doesn't point back to self {}\n",
                             static_cast<void*>(s_ptr),
                             static_cast<void*>(neighbor_ptr))
              << SimplexString(s_ptr) << SimplexString(neighbor_ptr);
@@ -116,8 +116,8 @@ testing::AssertionResult SelfReferentialPointersAreNonMemberVertices(
         if (s_ptr->V[index_in_self] == vertex_id_in_neighbor) {
           return testing::AssertionFailure()
                  << fmt::format(
-                        "Neighbor {#x} of {#x} refers back to in across from a "
-                        "vertex that it, itself, contains\n",
+                        "Neighbor {} of {} refers back to in across "
+                        "from a vertex that it, itself, contains\n",
                         static_cast<void*>(s_ptr),
                         static_cast<void*>(neighbor_ptr))
                  << SimplexString(s_ptr) << SimplexString(neighbor_ptr);
@@ -137,8 +137,8 @@ testing::AssertionResult NeighborsHaveOneVertexInCommon(
     if (vset_intersection.size() != TestTraits::kDim) {
       return testing::AssertionFailure()
              << fmt::format(
-                    "Neighbor {#x} of {#x} and itself share the wrong number "
-                    "of vertices \n",
+                    "Neighbor {} of {} and itself share the wrong "
+                    "number of vertices \n",
                     static_cast<void*>(s_ptr), static_cast<void*>(neighbor_ptr))
              << SimplexString(s_ptr) << SimplexString(neighbor_ptr);
     }
@@ -150,7 +150,7 @@ testing::AssertionResult HasNoNullNeighbor(Simplex<TestTraits>* s_ptr) {
   for (Simplex<TestTraits>* neighbor_ptr : s_ptr->N) {
     if (!neighbor_ptr) {
       return testing::AssertionFailure()
-             << fmt::format("Simplex {#x} has null neighbors\n",
+             << fmt::format("Simplex {} has null neighbors\n",
                             static_cast<void*>(s_ptr)) << SimplexString(s_ptr);
     }
   }
@@ -171,7 +171,7 @@ testing::AssertionResult InfiniteSimplexHasOneFiniteNeighbor(
   }
   if (num_finite != 1) {
     return testing::AssertionFailure()
-           << fmt::format("Infinite simplex {#x} has {} finite neighbors\n",
+           << fmt::format("Infinite simplex {} has {} finite neighbors\n",
                           static_cast<void*>(s_ptr), num_finite)
            << SimplexString(s_ptr);
   } else {
