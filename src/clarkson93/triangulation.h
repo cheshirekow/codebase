@@ -130,8 +130,8 @@ class Triangulation {
   void FloodVisibleHull(PointRef vertex_id, const Deref& deref,
                         Simplex<Traits>* visible_hull_simplex);
 
-  // update each x-visible simplex by adding the point x as the peak
-  // vertex, also create new simplices
+  /// update each x-visible simplex by adding the point x as the peak
+  /// vertex, also create new simplices
   void FillVisibleHull(PointRef x, const Deref& deref);
 };
 

@@ -168,12 +168,12 @@ typename Traits::Scalar NormalProjection(const Simplex<Traits>& simplex,
 template <class Traits>
 bool IsInfinite(const Simplex<Traits>& simplex,
                 typename Traits::PointRef anti_origin) {
-  return simplex->V[simplex->i_peak] == anti_origin;
+  return simplex.GetPeakVertex() == anti_origin;
 }
 
 template <class Traits, class Point>
 bool IsVisible(const Simplex<Traits>& simplex, const Point& x) {
-  return (simplex->n.dot(x) < simplex->o);
+  return (simplex.n.dot(x) < simplex.o);
 }
 
 }  // namespace clarkson93

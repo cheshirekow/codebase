@@ -20,7 +20,9 @@ cc_library(clarkson93
            PKG_DEPENDS eigen3)
 
 macro(clarkson93_test test_name)
-  cc_test(clarkson93_${test_name}_test SOURCES ${test_name}_test.cc)
+  cc_test(clarkson93_${test_name}_test
+          SOURCES ${test_name}_test.cc
+          TARGET_DEPENDS format_static)
 endmacro()
 
 clarkson93_test(bit_member)

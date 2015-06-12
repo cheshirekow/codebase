@@ -44,7 +44,8 @@ enum Sets {
   ENUMERATE_QUEUED,    ///< not used internally, for enumerating the hull
   ENUMERATE_EXPANDED,  ///< not used internally, for enumerating the hull
   SEARCH_QUEUED,       ///< not used internally, can be used for searches
-  SEARCH_EXPANEDED,    ///< not used internally, can be used for searches
+  SEARCH_EXPANDED,     ///< not used internally, can be used for searches
+  FREED,               ///< only used in testing
   NUM_BITS
 };
 
@@ -103,7 +104,7 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
     n.fill(0);
   }
 
-  Simplex<Traits>* GetNeighborAcross(PointRef vertex) {
+  Simplex<Traits>* GetNeighborAcross(PointRef vertex) const {
     return N[GetIndexOf(vertex)];
   }
 
@@ -111,11 +112,11 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
     N[GetIndexOf(vertex)] = neighbor;
   }
 
-  Simplex<Traits>* GetPeakNeighbor() {
+  Simplex<Traits>* GetPeakNeighbor() const {
     return N[i_peak];
   }
 
-  PointRef GetPeakVertex() {
+  PointRef GetPeakVertex() const {
     return V[i_peak];
   }
 
@@ -125,7 +126,7 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
     V[i_peak] = vertex_id;
   }
 
-  int8_t GetIndexOf(PointRef v) {
+  int8_t GetIndexOf(PointRef v) const {
     return std::lower_bound(V.begin(), V.end(), v) - V.begin();
   }
 };
