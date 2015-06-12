@@ -124,20 +124,20 @@ template <class Traits>
 void Triangulation<Traits>::Insert(PointRef vertex_id, const Deref& deref,
                                    Simplex<Traits>* search_start) {
   assert(origin_simplex_);
-  Simplex<Traits>* s0_ptr = FindXVisible(vertex_id, search_start);
+  Simplex<Traits>* s0_ptr = FindVisibleHull(vertex_id, deref, search_start);
   // if the inserted point is not outside the current hull then we do nothing
   if (!s0_ptr->IsMemberOf(simplex::HULL)) {
     return;
   }
 
-  FillXVisible(vertex_id, s0_ptr);
-  AlterXVisible(vertex_id);
+  FloodVisibleHull(vertex_id, deref, s0_ptr);
+  FillVisibleHull(vertex_id, deref);
 }
 
 template <class Traits>
 void Triangulation<Traits>::Insert(PointRef vertex_id, const Deref& deref) {
   assert(origin_simplex_);
-  Insert(vertex_id, origin_simplex_);
+  Insert(vertex_id, deref, origin_simplex_);
 }
 
 template <class Traits>
@@ -157,7 +157,7 @@ Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
   BitMemberSet<simplex::Sets> walked_set(simplex::VISIBLE_WALK);
 
   // turn generic reference into a real reference
-  auto& vertex = deref.point(vertex_id);
+  auto& vertex = deref(vertex_id);
 
   // first clear out our search structures
   // so the flags get reset, we do this at the beginning so that after the
@@ -165,7 +165,7 @@ Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
   for (Simplex<Traits>* s_ptr : xv_walked_) {
     walked_set.Remove(s_ptr);
   }
-  xv_queue_.clear();
+  xv_queue_.Clear();
   xv_walked_.clear();
 
   // if the origin simplex is not visible then start at the neighbor
@@ -179,11 +179,11 @@ Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
   // is set to true when we find an infinite x-visible simplex
   // if the seed we've been given is both x-visible and infinite
   // then there is no need for a walk
-  bool found_visible_hull = IsInfinite(search_start, anti_origin_);
+  bool found_visible_hull = IsInfinite(*search_start, anti_origin_);
   Simplex<Traits>* found_simplex = search_start;
 
   // start the search
-  xv_queue_.Push({0, search_start});
+  xv_queue_.push({0, search_start});
   xv_walked_.push_back(search_start);
   walked_set.Add(search_start);
 
@@ -205,7 +205,7 @@ Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
       // if the neighbor is x-visible but has not already been queued or
       // expanded, then add it to the queue
       if (IsVisible(*neighbor_ptr, vertex) &&
-          !walked_set.IsMember(neighbor_ptr)) {
+          !walked_set.IsMember(*neighbor_ptr)) {
         // if the base facet is x-visible and the simplex is also
         // infinite then we have found our x-visible hull facet
         if (IsInfinite(*neighbor_ptr, anti_origin_)) {
@@ -494,7 +494,7 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
       // setting of the neighbor as it will happen when Nfound is
       // processedlater, note that this incurs a doubling of the
       // amount of S_WALKing that we do and can possibly be optimized
-      S.SetNeighborAcross(vertex_id) = found_neighbor;
+      S.SetNeighborAcross(vertex_id, found_neighbor);
     }
   }
 

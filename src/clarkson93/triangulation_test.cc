@@ -214,7 +214,7 @@ testing::AssertionResult TriangulationIsConsistent(
   return testing::AssertionSuccess();
 }
 
-TEST(TriangulationTest, InitialTriangulationIsConsistent) {
+TEST(TriangulationTest, InitialTriangulationOfCanoninicalSimplexIsConsistent) {
   TestTraits::SimplexAllocator simplex_allocator;
   TestTriangulation triangulation(kAntiOrigin, &simplex_allocator);
 
@@ -249,4 +249,30 @@ TEST(TriangulationTest, InitialTriangulationIsConsistent) {
   }
 
   EXPECT_TRUE(TriangulationIsConsistent(&simplex_allocator));
+}
+
+TEST(TriangulationTest, TriangulationOfCircleIsConsistent) {
+  TestTraits::SimplexAllocator simplex_allocator;
+  TestTriangulation triangulation(kAntiOrigin, &simplex_allocator);
+
+  std::vector<Point> point_store;
+  PointDeref store_deref(&point_store);
+
+  // several points that all lie on a sphere
+  for (double i : {-1, 0, 1}) {
+    for (double j : {-1, 0, 1}) {
+      for (double k : {-1, 0, 1}) {
+        if (i != 0 || j != 0 || k != 0) {
+          point_store.emplace_back(Point({i, j, k}).normalized());
+        }
+      }
+    }
+  }
+
+  triangulation.BuildFromIL({0, 1, 2, 3}, store_deref);
+  ASSERT_TRUE(TriangulationIsConsistent(&simplex_allocator));
+  for (int i = 4; i < point_store.size(); i++) {
+    triangulation.Insert(i, store_deref);
+    ASSERT_TRUE(TriangulationIsConsistent(&simplex_allocator));
+  }
 }

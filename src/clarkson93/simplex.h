@@ -134,13 +134,13 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
 // Readability functions
 // ---------------------------------------------------------
 template <class Traits>
-const std::array<Simplex<Traits>*, Traits::kDim>& Neighborhood(
+const std::array<Simplex<Traits>*, Traits::kDim + 1>& Neighborhood(
     const Simplex<Traits>& s) {
   return s.N;
 }
 
 template <class Traits>
-const std::array<typename Traits::PointRef, Traits::kDim>& Vertices(
+const std::array<typename Traits::PointRef, Traits::kDim + 1>& Vertices(
     const Simplex<Traits>& s) {
   return s.V;
 }
@@ -169,7 +169,7 @@ template <class Traits, class Container, class Output>
 void GetNeighborsSharing(const Simplex<Traits>& simplex,
                          const Container& feature, Output out_iter);
 
-template <class Traits, class Container, class Output>
+template <class Traits, class Container>
 std::list<Simplex<Traits>*> GetNeighborsSharing(const Simplex<Traits>& simplex,
                                                 const Container& feature) {
   std::list<Simplex<Traits>*> neighborhood;
