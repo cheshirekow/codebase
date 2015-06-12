@@ -59,7 +59,7 @@ std::string VertexString(
   std::stringstream strm;
   auto iter = vertices.begin();
   strm << *iter;
-  for (; iter != vertices.end(); ++iter) {
+  for (++iter; iter != vertices.end(); ++iter) {
     strm << ", " << *iter;
   }
   return strm.str();
@@ -70,7 +70,7 @@ std::string NeighborString(
   std::stringstream strm;
   auto iter = neighbors.begin();
   strm << fmt::format("{}", static_cast<void*>(*iter));
-  for (; iter != neighbors.end(); ++iter) {
+  for (++iter; iter != neighbors.end(); ++iter) {
     strm << ", " << fmt::format("{}", static_cast<void*>(*iter));
   }
   return strm.str();
@@ -159,7 +159,7 @@ testing::AssertionResult HasNoNullNeighbor(Simplex<TestTraits>* s_ptr) {
 
 testing::AssertionResult InfiniteSimplexHasOneFiniteNeighbor(
     Simplex<TestTraits>* s_ptr) {
-  if (IsInfinite(*s_ptr, kAntiOrigin)) {
+  if (!IsInfinite(*s_ptr, kAntiOrigin)) {
     return testing::AssertionSuccess();
   }
 
@@ -214,7 +214,7 @@ testing::AssertionResult TriangulationIsConsistent(
   return testing::AssertionSuccess();
 }
 
-TEST(TriangulationTest, BuildInitialTest) {
+TEST(TriangulationTest, InitialTriangulationIsConsistent) {
   TestTraits::SimplexAllocator simplex_allocator;
   TestTriangulation triangulation(kAntiOrigin, &simplex_allocator);
 
@@ -230,5 +230,23 @@ TEST(TriangulationTest, BuildInitialTest) {
   }
 
   triangulation.BuildFromIL({0, 1, 2, 3}, store_deref);
+
+  // this first simplices in the list should be the origin, followed by the
+  // origin's neighbors in order
+  std::vector<Simplex<TestTraits>*> simplices(
+      simplex_allocator.allocated.begin(), simplex_allocator.allocated.end());
+  // we should have allocated NDim+1 simplices
+  EXPECT_EQ(TestTraits::kDim + 2, simplices.size());
+
+  EXPECT_EQ((std::array<int, 4>({0, 1, 2, 3})), simplices[0]->V);
+  for (int i = 0; i < TestTraits::kDim + 1; i++) {
+    EXPECT_EQ(simplices[0]->N[i], simplices[i + 1]) << " for neighbor " << i;
+  }
+
+  // these should all be infinite
+  for (int i = 0; i < TestTraits::kDim; i++) {
+    EXPECT_EQ(kAntiOrigin, simplices[i + 1]->V[0]) << " for simplex" << i;
+  }
+
   EXPECT_TRUE(TriangulationIsConsistent(&simplex_allocator));
 }

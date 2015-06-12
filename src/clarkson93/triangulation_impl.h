@@ -52,46 +52,44 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
 
   int i = 0;
   Simplex<Traits>* s0_ptr = alloc_->Create();
-  Simplex<Traits>& s0 = *s0_ptr;
 
   // fill the initial simplex with the vertex set
   assert(vertices.size() >= kDim + 1);
-  auto vertex_iterator = s0.V.begin();
+  auto vertex_iterator = s0_ptr->V.begin();
   for (auto vertex_id : vertices) {
     *vertex_iterator++ = vertex_id;
-    if (vertex_iterator == s0.V.end()) {
+    if (vertex_iterator == s0_ptr->V.end()) {
       break;
     }
   }
-  assert(vertex_iterator == s0.V.end());
+  assert(vertex_iterator == s0_ptr->V.end());
 
   ComputeBase(s0_ptr, deref);
-  OrientBase(s0_ptr, deref(s0.GetPeakVertex()), simplex::INSIDE);
+  OrientBase(s0_ptr, deref(s0_ptr->GetPeakVertex()), simplex::INSIDE);
 
   // construct and initialize infinite simplices
   for (int i = 0; i < kDim + 1; i++) {
     S[i] = alloc_->Create();
-    Simplex<Traits>& s_i = *S[i];
 
     // the neighbor across the anti-origin is the origin simplex, and
     // this simplex is the i'th neighbor of the origin simplex
-    s_i.V[0] = anti_origin_;
-    s_i.N[0] = s0_ptr;
-    s0.N[i] = S[i];
+    S[i]->V[0] = anti_origin_;
+    S[i]->N[0] = s0_ptr;
+    s0_ptr->N[i] = S[i];
 
     for (int j = 0; j < kDim + 1; j++) {
       if (j == i)
         continue;
 
       const int k = j < i ? j + 1 : j;
-      s_i.V[k] = s0.V[j];
+      S[i]->V[k] = s0_ptr->V[j];
     }
 
     // we can't use the peak vertex of the inifinite simplices to
     // orient them, because it is fictious, so we'll orient it toward
     // the remaining point of the origin simplex
     ComputeBase(S[i], deref);
-    OrientBase(S[i], deref(s0.V[i]), simplex::OUTSIDE);
+    OrientBase(S[i], deref(s0_ptr->V[i]), simplex::OUTSIDE);
   }
 
   // now we need to assign mutually inifinite neighbors
