@@ -113,7 +113,8 @@ testing::AssertionResult SelfReferentialPointersAreNonMemberVertices(
       if (neighbor_ptr->N[i] == s_ptr) {
         const int vertex_id_in_neighbor = neighbor_ptr->V[i];
         const int index_in_self = s_ptr->GetIndexOf(vertex_id_in_neighbor);
-        if (s_ptr->V[index_in_self] == vertex_id_in_neighbor) {
+        if (index_in_self > 0 && index_in_self < TestTraits::kDim + 1 &&
+            s_ptr->V[index_in_self] == vertex_id_in_neighbor) {
           return testing::AssertionFailure()
                  << fmt::format(
                         "Neighbor {} of {} refers back to in across "
