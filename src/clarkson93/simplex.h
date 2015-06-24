@@ -121,8 +121,8 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
 
   /// replace the peak vertex with this vertex, the simplex will need to be
   /// resorted after this
-  void SetPeak(Point* vertex_id) {
-    V[i_peak] = vertex_id;
+  void SetPeak(Point* vertex_ptr) {
+    V[i_peak] = vertex_ptr;
   }
 
   int8_t GetIndexOf(Point* v) const {

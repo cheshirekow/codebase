@@ -102,9 +102,9 @@ class Triangulation {
    *  @param  x   const ref to the new point to add
    *  @param  S   an x-visible facet, if null (default) will search for one
    */
-  void Insert(Point* vertex_id, Simplex<Traits>* search_start);
+  void Insert(Point* vertex_ptr, Simplex<Traits>* search_start);
 
-  void Insert(Point* vertex_id);
+  void Insert(Point* vertex_ptr);
 
   /// destroys all simplex objects that have been generated and clears all
   /// lists/ sets
@@ -120,12 +120,12 @@ class Triangulation {
    *  T containing @f$ x @f$ has been found, showing that
    *  @f$ x \in \mathrm{hull} R @f$
    */
-  Simplex<Traits>* FindVisibleHull(Point* vertex_id,
+  Simplex<Traits>* FindVisibleHull(Point* vertex_ptr,
                                    Simplex<Traits>* search_start);
 
   /// given a simplex S which is x-visible and infinite, fill the set of
   /// all x-visible and infinite facets
-  void FloodVisibleHull(Point* vertex_id,
+  void FloodVisibleHull(Point* vertex_ptr,
                         Simplex<Traits>* visible_hull_simplex);
 
   /// update each x-visible simplex by adding the point x as the peak

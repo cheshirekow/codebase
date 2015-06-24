@@ -34,8 +34,8 @@ static Simplex* const kNullSimplex = nullptr;
 
 TEST(SimplexTest, ConstructionTest) {
   Simplex simplex;
-  for (auto vertex_id : simplex.V) {
-    EXPECT_EQ(nullptr, vertex_id);
+  for (auto vertex_ptr : simplex.V) {
+    EXPECT_EQ(nullptr, vertex_ptr);
   }
 }
 
@@ -45,20 +45,20 @@ TEST(SimplexTest, VertexSortTest) {
                kNullPoint + 5};
 
   for (int i = 0; i < 5; i++) {
-    simplex.N[i] = reinterpret_cast<Simplex*>(simplex.V[i]);
+    simplex.N[i] = kNullSimplex + (simplex.V[i] - kNullPoint);
   }
   clarkson93::SortVertices(&simplex);
 
-  Point* prev_id = 0;
-  for (Point* vertex_id : simplex.V) {
-    EXPECT_LT(prev_id, vertex_id);
-    prev_id = vertex_id;
+  Point* prev_ptr = 0;
+  for (Point* vertex_ptr : simplex.V) {
+    EXPECT_LT(prev_ptr, vertex_ptr);
+    prev_ptr = vertex_ptr;
   }
 
-  Simplex* prev_ptr = 0;
+  Simplex* prev_simplex_ptr = 0;
   for (Simplex* neighbor_ptr : simplex.N) {
-    EXPECT_LT(prev_ptr, neighbor_ptr);
-    prev_ptr = neighbor_ptr;
+    EXPECT_LT(prev_simplex_ptr, neighbor_ptr);
+    prev_simplex_ptr = neighbor_ptr;
   }
 }
 

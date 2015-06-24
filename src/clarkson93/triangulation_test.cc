@@ -95,10 +95,10 @@ testing::AssertionResult SelfReferentialPointersAreNonMemberVertices(
   for (Simplex<TestTraits>* neighbor_ptr : s_ptr->N) {
     for (int i = 0; i < TestTraits::kDim + 1; i++) {
       if (neighbor_ptr->N[i] == s_ptr) {
-        Point* vertex_id_in_neighbor = neighbor_ptr->V[i];
-        const int index_in_self = s_ptr->GetIndexOf(vertex_id_in_neighbor);
+        Point* vertex_ptr_in_neighbor = neighbor_ptr->V[i];
+        const int index_in_self = s_ptr->GetIndexOf(vertex_ptr_in_neighbor);
         if (index_in_self > 0 && index_in_self < TestTraits::kDim + 1 &&
-            s_ptr->V[index_in_self] == vertex_id_in_neighbor) {
+            s_ptr->V[index_in_self] == vertex_ptr_in_neighbor) {
           return testing::AssertionFailure()
                  << fmt::format(
                         "Neighbor {} of {} refers back to in across "

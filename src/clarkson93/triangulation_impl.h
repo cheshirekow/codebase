@@ -55,8 +55,8 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices) {
   // fill the initial simplex with the vertex set
   assert(vertices.size() >= kDim + 1);
   auto vertex_iterator = s0_ptr->V.begin();
-  for (auto vertex_id : vertices) {
-    *vertex_iterator++ = vertex_id;
+  for (auto vertex_ptr : vertices) {
+    *vertex_iterator++ = vertex_ptr;
     if (vertex_iterator == s0_ptr->V.end()) {
       break;
     }
@@ -119,23 +119,23 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices) {
 }
 
 template <class Traits>
-void Triangulation<Traits>::Insert(Point* vertex_id,
+void Triangulation<Traits>::Insert(Point* vertex_ptr,
                                    Simplex<Traits>* search_start) {
   assert(origin_simplex_);
-  Simplex<Traits>* s0_ptr = FindVisibleHull(vertex_id, search_start);
+  Simplex<Traits>* s0_ptr = FindVisibleHull(vertex_ptr, search_start);
   // if the inserted point is not outside the current hull then we do nothing
   if (!s0_ptr->IsMemberOf(simplex::HULL)) {
     return;
   }
 
-  FloodVisibleHull(vertex_id, s0_ptr);
-  FillVisibleHull(vertex_id);
+  FloodVisibleHull(vertex_ptr, s0_ptr);
+  FillVisibleHull(vertex_ptr);
 }
 
 template <class Traits>
-void Triangulation<Traits>::Insert(Point* vertex_id) {
+void Triangulation<Traits>::Insert(Point* vertex_ptr) {
   assert(origin_simplex_);
-  Insert(vertex_id, origin_simplex_);
+  Insert(vertex_ptr, origin_simplex_);
 }
 
 template <class Traits>
@@ -150,12 +150,12 @@ void Triangulation<Traits>::Clear() {
 
 template <class Traits>
 Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
-    Point* vertex_id, Simplex<Traits>* search_start) {
+    Point* vertex_ptr, Simplex<Traits>* search_start) {
   // set of simplices that have been walked
   BitMemberSet<simplex::Sets> walked_set(simplex::VISIBLE_WALK);
 
   // turn generic reference into a real reference
-  auto& vertex = *(vertex_id);
+  auto& vertex = *(vertex_ptr);
 
   // first clear out our search structures
   // so the flags get reset, we do this at the beginning so that after the
@@ -231,12 +231,12 @@ Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
 
 template <class Traits>
 void Triangulation<Traits>::FloodVisibleHull(
-    Point* vertex_id, Simplex<Traits>* visible_hull_simplex) {
+    Point* vertex_ptr, Simplex<Traits>* visible_hull_simplex) {
   // set of hull simplices that are visible
   BitMemberSet<simplex::Sets> visible_hull_set(simplex::VISIBLE_HULL);
   BitMemberSet<simplex::Sets> horizon_fill_set(simplex::HORIZON_FILL);
 
-  auto& vertex = *(vertex_id);
+  auto& vertex = *(vertex_ptr);
 
   // clear old results
   for (Simplex<Traits>* simplex_ptr : xvh_) {
@@ -293,7 +293,7 @@ void Triangulation<Traits>::FloodVisibleHull(
 }
 
 template <class Traits>
-void Triangulation<Traits>::FillVisibleHull(Point* vertex_id) {
+void Triangulation<Traits>::FillVisibleHull(Point* vertex_ptr) {
   // set of hull simplices (we will remove some here)
   BitMemberSet<simplex::Sets> hull_set(simplex::HULL);
 
@@ -309,13 +309,13 @@ void Triangulation<Traits>::FillVisibleHull(Point* vertex_id) {
   // set of simplices marked during a feature walk
   BitMemberSet<simplex::Sets> feature_walk_set(simplex::FEATURE_WALK);
 
-  auto& vertex = *(vertex_id);
+  auto& vertex = *(vertex_ptr);
 
   // first we go through all the x-visible simplices, and replace their
   // peak vertex (the ficitious anti-origin) with the new point x, and then
   // notify any hooks that the simplex was removed from the hull
   for (Simplex<Traits>* s_ptr : xvh_) {
-    s_ptr->SetPeak(vertex_id);
+    s_ptr->SetPeak(vertex_ptr);
     hull_set.Remove(s_ptr);
     //    m_callback.hullFaceRemoved(Sref);
   }
@@ -347,7 +347,7 @@ void Triangulation<Traits>::FillVisibleHull(Point* vertex_id) {
 
     // the new simplex also contains x as a vertex and across from that
     // vertex is N
-    S.V[1] = vertex_id;
+    S.V[1] = vertex_ptr;
     S.N[1] = ridge.x_invisible;
 
     // split the vertex set of V and N into those that are only in V,
@@ -368,7 +368,7 @@ void Triangulation<Traits>::FillVisibleHull(Point* vertex_id) {
 
     // we only care about the vertex which is not x or the anti origin
     // so make sure we can identify that point by putting it in the zero slot
-    if (V_vertices.back() != vertex_id) {
+    if (V_vertices.back() != vertex_ptr) {
       std::swap(V_vertices.front(), V_vertices.back());
     }
     if (N_vertices.back() != anti_origin_) {
@@ -427,7 +427,7 @@ void Triangulation<Traits>::FillVisibleHull(Point* vertex_id) {
       std::array<Point*, kDim - 1> edge;
       std::copy_if(ridge_facet.begin(), ridge_facet.end(), edge.begin(),
                    [v](Point* q) { return q != v; });
-      edge.back() = vertex_id;
+      edge.back() = vertex_ptr;
       std::sort(edge.begin(), edge.end());
 
       // now start our walk with S and V
@@ -488,7 +488,7 @@ void Triangulation<Traits>::FillVisibleHull(Point* vertex_id) {
       // setting of the neighbor as it will happen when Nfound is
       // processedlater, note that this incurs a doubling of the
       // amount of S_WALKing that we do and can possibly be optimized
-      S.SetNeighborAcross(vertex_id, found_neighbor);
+      S.SetNeighborAcross(vertex_ptr, found_neighbor);
     }
   }
 
