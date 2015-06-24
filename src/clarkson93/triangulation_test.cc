@@ -6,7 +6,7 @@ using namespace clarkson93;
 
 typedef Eigen::Vector3d Point;
 
-static Point* const kAntiOrigin = static_cast<Point*>(nullptr) - 1;
+static Point* const kAntiOrigin = static_cast<Point*>(nullptr);
 
 struct TestTraits {
   static const int kDim = 3;
