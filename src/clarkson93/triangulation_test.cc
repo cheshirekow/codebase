@@ -4,42 +4,26 @@
 
 using namespace clarkson93;
 
-static const int kNullPoint = -2;
-static const int kAntiOrigin = -1;
-
 typedef Eigen::Vector3d Point;
 
-struct PointDeref {
- public:
-  PointDeref(std::vector<Point>* point_store) : point_store_(point_store) {}
-
-  Point& operator()(int i) const {
-    return (*point_store_)[i];
-  }
-
- private:
-  std::vector<Point>* point_store_;
-};
+static Point* const kAntiOrigin = static_cast<Point*>(nullptr) - 1;
 
 struct TestTraits {
   static const int kDim = 3;
   typedef double Scalar;
   typedef int PointRef;
-  typedef PointDeref Deref;
 
   /// we hang on to constructed simplices so that we can do some tests
   struct SimplexAllocator {
     SimplexAllocator() : freed_set(simplex::FREED) {}
 
     Simplex<TestTraits>* Create() {
-      Simplex<TestTraits>* s_ptr = new Simplex<TestTraits>(kNullPoint);
+      Simplex<TestTraits>* s_ptr = new Simplex<TestTraits>;
       allocated.push_back(s_ptr);
       return s_ptr;
     }
 
-    void Free(Simplex<TestTraits>* s_ptr) {
-      freed_set.Add(s_ptr);
-    }
+    void Free(Simplex<TestTraits>* s_ptr) { freed_set.Add(s_ptr); }
 
     void Clear() {
       for (Simplex<TestTraits>* s_ptr : allocated) {
@@ -55,7 +39,7 @@ struct TestTraits {
 typedef Triangulation<TestTraits> TestTriangulation;
 
 std::string VertexString(
-    const std::array<TestTraits::PointRef, TestTraits::kDim + 1>& vertices) {
+    const std::array<Point*, TestTraits::kDim + 1>& vertices) {
   std::stringstream strm;
   auto iter = vertices.begin();
   strm << *iter;
@@ -111,7 +95,7 @@ testing::AssertionResult SelfReferentialPointersAreNonMemberVertices(
   for (Simplex<TestTraits>* neighbor_ptr : s_ptr->N) {
     for (int i = 0; i < TestTraits::kDim + 1; i++) {
       if (neighbor_ptr->N[i] == s_ptr) {
-        const int vertex_id_in_neighbor = neighbor_ptr->V[i];
+        Point* vertex_id_in_neighbor = neighbor_ptr->V[i];
         const int index_in_self = s_ptr->GetIndexOf(vertex_id_in_neighbor);
         if (index_in_self > 0 && index_in_self < TestTraits::kDim + 1 &&
             s_ptr->V[index_in_self] == vertex_id_in_neighbor) {
@@ -132,7 +116,7 @@ testing::AssertionResult SelfReferentialPointersAreNonMemberVertices(
 testing::AssertionResult NeighborsHaveOneVertexInCommon(
     Simplex<TestTraits>* s_ptr) {
   for (Simplex<TestTraits>* neighbor_ptr : s_ptr->N) {
-    std::vector<int> vset_intersection;
+    std::vector<Point*> vset_intersection;
     VsetIntersection(*s_ptr, *neighbor_ptr,
                      std::back_inserter(vset_intersection));
     if (vset_intersection.size() != TestTraits::kDim) {
@@ -220,7 +204,6 @@ TEST(TriangulationTest, InitialTriangulationOfCanoninicalSimplexIsConsistent) {
   TestTriangulation triangulation(kAntiOrigin, &simplex_allocator);
 
   std::vector<Point> point_store;
-  PointDeref store_deref(&point_store);
 
   // canonical simplex
   point_store.push_back({0, 0, 0});
@@ -230,7 +213,8 @@ TEST(TriangulationTest, InitialTriangulationOfCanoninicalSimplexIsConsistent) {
     point_store.emplace_back(point);
   }
 
-  triangulation.BuildFromIL({0, 1, 2, 3}, store_deref);
+  triangulation.BuildFromIL({point_store.data() + 0, point_store.data() + 1,
+                             point_store.data() + 2, point_store.data() + 3});
 
   // this first simplices in the list should be the origin, followed by the
   // origin's neighbors in order
@@ -239,7 +223,10 @@ TEST(TriangulationTest, InitialTriangulationOfCanoninicalSimplexIsConsistent) {
   // we should have allocated NDim+1 simplices
   EXPECT_EQ(TestTraits::kDim + 2, simplices.size());
 
-  EXPECT_EQ((std::array<int, 4>({0, 1, 2, 3})), simplices[0]->V);
+  EXPECT_EQ(
+      (std::array<Point*, 4>({point_store.data() + 0, point_store.data() + 1,
+                              point_store.data() + 2, point_store.data() + 3})),
+      simplices[0]->V);
   for (int i = 0; i < TestTraits::kDim + 1; i++) {
     EXPECT_EQ(simplices[0]->N[i], simplices[i + 1]) << " for neighbor " << i;
   }
@@ -257,7 +244,6 @@ TEST(TriangulationTest, TriangulationOfCircleIsConsistent) {
   TestTriangulation triangulation(kAntiOrigin, &simplex_allocator);
 
   std::vector<Point> point_store;
-  PointDeref store_deref(&point_store);
 
   // several points that all lie on a sphere
   for (double i : {-1, 0, 1}) {
@@ -270,10 +256,11 @@ TEST(TriangulationTest, TriangulationOfCircleIsConsistent) {
     }
   }
 
-  triangulation.BuildFromIL({0, 1, 2, 3}, store_deref);
+  triangulation.BuildFromIL({point_store.data() + 0, point_store.data() + 1,
+                             point_store.data() + 2, point_store.data() + 3});
   ASSERT_TRUE(TriangulationIsConsistent(&simplex_allocator));
   for (int i = 4; i < point_store.size(); i++) {
-    triangulation.Insert(i, store_deref);
+    triangulation.Insert(point_store.data() + i);
     ASSERT_TRUE(TriangulationIsConsistent(&simplex_allocator));
   }
 }

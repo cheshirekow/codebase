@@ -86,12 +86,14 @@ void GetNeighborsSharing(const Simplex<Traits>& simplex,
 
 template <class Traits>
 void SortVertices(Simplex<Traits>* simplex) {
+  typedef Eigen::Matrix<typename Traits::Scalar, Traits::kDim, 1> Point;
+
   // we need to restore the index of the peak vertex after sorting,
   // so grab the peak vertex id so we can find it again later
-  typename Traits::PointRef peak = simplex->GetPeakVertex();
+  Point* peak = simplex->GetPeakVertex();
 
   // TODO(josh): pqueue might be faster
-  std::map<typename Traits::PointRef, Simplex<Traits>*> kv;
+  std::map<Point*, Simplex<Traits>*> kv;
 
   for (int i = 0; i < Traits::kDim + 1; i++) {
     kv[simplex->V[i]] = simplex->N[i];
@@ -108,8 +110,8 @@ void SortVertices(Simplex<Traits>* simplex) {
   }
 }
 
-template <class Traits, class Deref>
-void ComputeBase(Simplex<Traits>* simplex, const Deref& deref) {
+template <class Traits>
+void ComputeBase(Simplex<Traits>* simplex) {
   typedef Eigen::Matrix<typename Traits::Scalar, Traits::kDim, Traits::kDim>
       Matrix;
   typedef Eigen::Matrix<typename Traits::Scalar, Traits::kDim, 1> Vector;
@@ -120,7 +122,7 @@ void ComputeBase(Simplex<Traits>* simplex, const Deref& deref) {
   int j = 0;
   for (int i = 0; i < Traits::kDim + 1; i++)
     if (i != simplex->i_peak)
-      A.row(j++) = deref(simplex->V[i]);
+      A.row(j++) = *simplex->V[i];
   b.setConstant(1);
 
   // solve for the normal
@@ -128,7 +130,7 @@ void ComputeBase(Simplex<Traits>* simplex, const Deref& deref) {
 
   // and then find the value of 'c' (hyperplane offset)
   j = simplex->i_peak == 0 ? 1 : 0;
-  simplex->o = deref(simplex->V[j]).dot(simplex->n);
+  simplex->o = simplex->V[j]->dot(simplex->n);
 }
 
 template <class Traits, class Point>
@@ -165,9 +167,9 @@ typename Traits::Scalar NormalProjection(const Simplex<Traits>& simplex,
   return simplex.o - simplex.n.dot(x);
 }
 
-template <class Traits>
+template <class Traits, class Point>
 bool IsInfinite(const Simplex<Traits>& simplex,
-                typename Traits::PointRef anti_origin) {
+                const Point* anti_origin) {
   return simplex.GetPeakVertex() == anti_origin;
 }
 

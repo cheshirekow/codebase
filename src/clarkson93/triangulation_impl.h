@@ -32,7 +32,7 @@
 namespace clarkson93 {
 
 template <class Traits>
-Triangulation<Traits>::Triangulation(PointRef anti_origin,
+Triangulation<Traits>::Triangulation(Point* anti_origin,
                                      SimplexAllocator* alloc)
     : anti_origin_(anti_origin), alloc_(alloc) {
   Clear();
@@ -45,8 +45,7 @@ Triangulation<Traits>::~Triangulation() {
 
 template <class Traits>
 template <class Container>
-void Triangulation<Traits>::BuildInitial(const Container& vertices,
-                                         const Deref& deref) {
+void Triangulation<Traits>::BuildInitial(const Container& vertices) {
   // just some convenient storage for the initial simplices
   std::array<Simplex<Traits>*, kDim + 1> S;
 
@@ -64,8 +63,8 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
   }
   assert(vertex_iterator == s0_ptr->V.end());
 
-  ComputeBase(s0_ptr, deref);
-  OrientBase(s0_ptr, deref(s0_ptr->GetPeakVertex()), simplex::INSIDE);
+  ComputeBase(s0_ptr);
+  OrientBase(s0_ptr, *(s0_ptr->GetPeakVertex()), simplex::INSIDE);
 
   // construct and initialize infinite simplices
   for (int i = 0; i < kDim + 1; i++) {
@@ -78,8 +77,7 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
     s0_ptr->N[i] = S[i];
 
     for (int j = 0; j < kDim + 1; j++) {
-      if (j == i)
-        continue;
+      if (j == i) continue;
 
       const int k = j < i ? j + 1 : j;
       S[i]->V[k] = s0_ptr->V[j];
@@ -88,8 +86,8 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
     // we can't use the peak vertex of the inifinite simplices to
     // orient them, because it is fictious, so we'll orient it toward
     // the remaining point of the origin simplex
-    ComputeBase(S[i], deref);
-    OrientBase(S[i], deref(s0_ptr->V[i]), simplex::OUTSIDE);
+    ComputeBase(S[i]);
+    OrientBase(S[i], *(s0_ptr->V[i]), simplex::OUTSIDE);
   }
 
   // now we need to assign mutually inifinite neighbors
@@ -121,23 +119,23 @@ void Triangulation<Traits>::BuildInitial(const Container& vertices,
 }
 
 template <class Traits>
-void Triangulation<Traits>::Insert(PointRef vertex_id, const Deref& deref,
+void Triangulation<Traits>::Insert(Point* vertex_id,
                                    Simplex<Traits>* search_start) {
   assert(origin_simplex_);
-  Simplex<Traits>* s0_ptr = FindVisibleHull(vertex_id, deref, search_start);
+  Simplex<Traits>* s0_ptr = FindVisibleHull(vertex_id, search_start);
   // if the inserted point is not outside the current hull then we do nothing
   if (!s0_ptr->IsMemberOf(simplex::HULL)) {
     return;
   }
 
-  FloodVisibleHull(vertex_id, deref, s0_ptr);
-  FillVisibleHull(vertex_id, deref);
+  FloodVisibleHull(vertex_id, s0_ptr);
+  FillVisibleHull(vertex_id);
 }
 
 template <class Traits>
-void Triangulation<Traits>::Insert(PointRef vertex_id, const Deref& deref) {
+void Triangulation<Traits>::Insert(Point* vertex_id) {
   assert(origin_simplex_);
-  Insert(vertex_id, deref, origin_simplex_);
+  Insert(vertex_id, origin_simplex_);
 }
 
 template <class Traits>
@@ -152,12 +150,12 @@ void Triangulation<Traits>::Clear() {
 
 template <class Traits>
 Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
-    PointRef vertex_id, const Deref& deref, Simplex<Traits>* search_start) {
+    Point* vertex_id, Simplex<Traits>* search_start) {
   // set of simplices that have been walked
   BitMemberSet<simplex::Sets> walked_set(simplex::VISIBLE_WALK);
 
   // turn generic reference into a real reference
-  auto& vertex = deref(vertex_id);
+  auto& vertex = *(vertex_id);
 
   // first clear out our search structures
   // so the flags get reset, we do this at the beginning so that after the
@@ -215,8 +213,7 @@ Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
         }
 
         // otherwise add the neighbor to the search queue
-        Scalar d =
-            (vertex - deref(neighbor_ptr->GetPeakVertex())).squaredNorm();
+        Scalar d = (vertex - *(neighbor_ptr->GetPeakVertex())).squaredNorm();
         // Scalar d = NormalProjection(*neighbor_ptr, vertex);
 
         xv_walked_.push_back(neighbor_ptr);
@@ -234,13 +231,12 @@ Simplex<Traits>* Triangulation<Traits>::FindVisibleHull(
 
 template <class Traits>
 void Triangulation<Traits>::FloodVisibleHull(
-    PointRef vertex_id, const Deref& deref,
-    Simplex<Traits>* visible_hull_simplex) {
+    Point* vertex_id, Simplex<Traits>* visible_hull_simplex) {
   // set of hull simplices that are visible
   BitMemberSet<simplex::Sets> visible_hull_set(simplex::VISIBLE_HULL);
   BitMemberSet<simplex::Sets> horizon_fill_set(simplex::HORIZON_FILL);
 
-  auto& vertex = deref(vertex_id);
+  auto& vertex = *(vertex_id);
 
   // clear old results
   for (Simplex<Traits>* simplex_ptr : xvh_) {
@@ -291,15 +287,13 @@ void Triangulation<Traits>::FloodVisibleHull(
 
       // if is not visible then there is a horizon ridge between this
       // simplex and the neighbor simplex
-      if (!is_x_visible)
-        ridges_.emplace_back(pop_ptr, neighbor_ptr);
+      if (!is_x_visible) ridges_.emplace_back(pop_ptr, neighbor_ptr);
     }
   }
 }
 
 template <class Traits>
-void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
-                                            const Deref& deref) {
+void Triangulation<Traits>::FillVisibleHull(Point* vertex_id) {
   // set of hull simplices (we will remove some here)
   BitMemberSet<simplex::Sets> hull_set(simplex::HULL);
 
@@ -315,7 +309,7 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
   // set of simplices marked during a feature walk
   BitMemberSet<simplex::Sets> feature_walk_set(simplex::FEATURE_WALK);
 
-  auto& vertex = deref(vertex_id);
+  auto& vertex = *(vertex_id);
 
   // first we go through all the x-visible simplices, and replace their
   // peak vertex (the ficitious anti-origin) with the new point x, and then
@@ -358,8 +352,8 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
 
     // split the vertex set of V and N into those that are only in V,
     // those that are only in N, and those that are common
-    std::array<PointRef, kDim - 1> ridge_vertices;
-    std::array<PointRef, 2> V_vertices, N_vertices;
+    std::array<Point*, kDim - 1> ridge_vertices;
+    std::array<Point*, 2> V_vertices, N_vertices;
     VsetSplit(V, N, V_vertices.begin(), N_vertices.begin(),
               ridge_vertices.begin());
 
@@ -368,7 +362,7 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
     // which
     // is the anti origin, and rige_vertices should contain kDim-2 vertices
     int i = 2;
-    for (PointRef v : ridge_vertices) {
+    for (Point* v : ridge_vertices) {
       S.V[i++] = v;
     }
 
@@ -397,8 +391,8 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
     // a real location, so we calculate it to be coincident to the base
     // facet, and then orient it so that the vertex of V which is not
     // part of the new simplex is on the other side of the constraint
-    ComputeBase(ridge.fill, deref);
-    OrientBase(ridge.fill, deref(V_vertices[0]), simplex::OUTSIDE);
+    ComputeBase(ridge.fill);
+    OrientBase(ridge.fill, *(V_vertices[0]), simplex::OUTSIDE);
   }
 
   // ok now that all the new simplices have been added, we need to go
@@ -420,19 +414,19 @@ void Triangulation<Traits>::FillVisibleHull(PointRef vertex_id,
 
     // so start by building the horizon ridge wedge facet as a set of
     // vertices
-    std::array<PointRef, kDim - 1> ridge_facet;
+    std::array<Point*, kDim - 1> ridge_facet;
     VsetIntersection(V, N, ridge_facet.begin());
 
     // now for each vertex in that set, we need to find the neighbor
     // across from that vertex
-    for (PointRef v : ridge_facet) {
+    for (Point* v : ridge_facet) {
       // so build the edge which is the ridge facet without that
       // particular vertex
       // TODO(josh) : this is basically set-minus, set-plus. It would be cool
       // to do have a template expression library for working with sorted arrays
-      std::array<PointRef, kDim - 1> edge;
+      std::array<Point*, kDim - 1> edge;
       std::copy_if(ridge_facet.begin(), ridge_facet.end(), edge.begin(),
-                   [v](PointRef q) { return q != v; });
+                   [v](Point* q) { return q != v; });
       edge.back() = vertex_id;
       std::sort(edge.begin(), edge.end());
 

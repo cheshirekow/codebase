@@ -81,14 +81,13 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
   // -----------------------------------------------------------------------
   static const int kDim = Traits::kDim;
   typedef typename Traits::Scalar Scalar;
-  typedef typename Traits::PointRef PointRef;
   typedef Eigen::Matrix<Scalar, kDim, 1> Point;
 
   // Data Members
   // -----------------------------------------------------------------------
   int8_t i_peak;  ///< index of the peak vertex
   // TODO(josh): compare performance between std::array and raw buffer
-  std::array<PointRef, kDim + 1> V;  ///< vertices of the simplex
+  std::array<Point*, kDim + 1> V;  ///< vertices of the simplex
   std::array<Simplex*, kDim + 1> N;  ///< simplices which share a facet
 
   Point n;   ///< normal vector of base facet
@@ -96,19 +95,19 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
 
   // Member Functions
   // -----------------------------------------------------------------------
-  Simplex(PointRef null_point) : i_peak(0), o(0) {
+  Simplex() : i_peak(0), o(0) {
     for (int i = 0; i < kDim + 1; i++) {
-      V[i] = null_point;
+      V[i] = nullptr;
       N[i] = nullptr;
     }
     n.fill(0);
   }
 
-  Simplex<Traits>* GetNeighborAcross(PointRef vertex) const {
+  Simplex<Traits>* GetNeighborAcross(Point* vertex) const {
     return N[GetIndexOf(vertex)];
   }
 
-  void SetNeighborAcross(PointRef vertex, Simplex<Traits>* neighbor) {
+  void SetNeighborAcross(Point* vertex, Simplex<Traits>* neighbor) {
     N[GetIndexOf(vertex)] = neighbor;
   }
 
@@ -116,17 +115,17 @@ struct Simplex : public BitMember<simplex::Sets, simplex::NUM_BITS> {
     return N[i_peak];
   }
 
-  PointRef GetPeakVertex() const {
+  Point* GetPeakVertex() const {
     return V[i_peak];
   }
 
   /// replace the peak vertex with this vertex, the simplex will need to be
   /// resorted after this
-  void SetPeak(PointRef vertex_id) {
+  void SetPeak(Point* vertex_id) {
     V[i_peak] = vertex_id;
   }
 
-  int8_t GetIndexOf(PointRef v) const {
+  int8_t GetIndexOf(Point* v) const {
     return std::lower_bound(V.begin(), V.end(), v) - V.begin();
   }
 };
@@ -140,7 +139,7 @@ const std::array<Simplex<Traits>*, Traits::kDim + 1>& Neighborhood(
 }
 
 template <class Traits>
-const std::array<typename Traits::PointRef, Traits::kDim + 1>& Vertices(
+const std::array<typename Traits::Point*, Traits::kDim + 1>& Vertices(
     const Simplex<Traits>& s) {
   return s.V;
 }
@@ -184,8 +183,8 @@ template <class Traits>
 void SortVertices(Simplex<Traits>* simplex);
 
 /// compute the base facet normal and offset
-template <class Traits, class Deref>
-void ComputeBase(Simplex<Traits>* simplex, const Deref& deref);
+template <class Traits>
+void ComputeBase(Simplex<Traits>* simplex);
 
 /// orient the base facete normal by ensuring that the point x
 /// lies on the appropriate half-space
@@ -204,9 +203,9 @@ typename Traits::Scalar NormalProjection(const Simplex<Traits>& simplex,
                                          const Point& x);
 
 /// returns true if the base vertex is the anti origin
-template <class Traits>
+template <class Traits, class Point>
 bool IsInfinite(const Simplex<Traits>& simplex,
-                typename Traits::PointRef anti_origin);
+                const Point* anti_origin);
 
 /// returns true if x is on the inside of the base facet (i.e. x is in the
 /// same half space as the simplex)

@@ -24,29 +24,33 @@
 struct TestTraits {
   static const int kDim = 4;
   typedef double Scalar;
-  typedef int PointRef;
 };
 
+typedef Eigen::Matrix<TestTraits::Scalar, TestTraits::kDim, 1> Point;
+typedef clarkson93::Simplex<TestTraits> Simplex;
+
+static Point* const kNullPoint = nullptr;
+static Simplex* const kNullSimplex = nullptr;
+
 TEST(SimplexTest, ConstructionTest) {
-  typedef clarkson93::Simplex<TestTraits> Simplex;
-  Simplex simplex(0);
-  for (int vertex_id : simplex.V) {
-    EXPECT_EQ(0, vertex_id);
+  Simplex simplex;
+  for (auto vertex_id : simplex.V) {
+    EXPECT_EQ(nullptr, vertex_id);
   }
 }
 
 TEST(SimplexTest, VertexSortTest) {
-  typedef clarkson93::Simplex<TestTraits> Simplex;
-  Simplex simplex(0);
-  simplex.V = {3, 2, 1, 4, 5};
+  Simplex simplex;
+  simplex.V = {kNullPoint + 3, kNullPoint + 2, kNullPoint + 1, kNullPoint + 4,
+               kNullPoint + 5};
 
   for (int i = 0; i < 5; i++) {
     simplex.N[i] = reinterpret_cast<Simplex*>(simplex.V[i]);
   }
   clarkson93::SortVertices(&simplex);
 
-  int prev_id = 0;
-  for (int vertex_id : simplex.V) {
+  Point* prev_id = 0;
+  for (Point* vertex_id : simplex.V) {
     EXPECT_LT(prev_id, vertex_id);
     prev_id = vertex_id;
   }
@@ -59,91 +63,91 @@ TEST(SimplexTest, VertexSortTest) {
 }
 
 TEST(SimplexTest, GetIndexOfTest) {
-  typedef clarkson93::Simplex<TestTraits> Simplex;
-  Simplex simplex(0);
-  simplex.V = {3, 2, 1, 4, 5};
+  Simplex simplex;
+  simplex.V = {kNullPoint + 3, kNullPoint + 2, kNullPoint + 1, kNullPoint + 4,
+               kNullPoint + 5};
   clarkson93::SortVertices(&simplex);
 
-  EXPECT_EQ(0, simplex.GetIndexOf(1));
-  EXPECT_EQ(1, simplex.GetIndexOf(2));
-  EXPECT_EQ(2, simplex.GetIndexOf(3));
-  EXPECT_EQ(3, simplex.GetIndexOf(4));
-  EXPECT_EQ(4, simplex.GetIndexOf(5));
+  EXPECT_EQ(0, simplex.GetIndexOf(kNullPoint + 1));
+  EXPECT_EQ(1, simplex.GetIndexOf(kNullPoint + 2));
+  EXPECT_EQ(2, simplex.GetIndexOf(kNullPoint + 3));
+  EXPECT_EQ(3, simplex.GetIndexOf(kNullPoint + 4));
+  EXPECT_EQ(4, simplex.GetIndexOf(kNullPoint + 5));
 }
 
 TEST(SimplexTest, NeighborAcrossTest) {
-  typedef clarkson93::Simplex<TestTraits> Simplex;
-  Simplex simplex(0);
-  simplex.V = {3, 2, 1, 4, 5};
+  Simplex simplex;
+  simplex.V = {kNullPoint + 3, kNullPoint + 2, kNullPoint + 1, kNullPoint + 4,
+               kNullPoint + 5};
   clarkson93::SortVertices(&simplex);
 
-  EXPECT_EQ(nullptr, simplex.GetNeighborAcross(1));
-  simplex.SetNeighborAcross(1, reinterpret_cast<Simplex*>(1));
-  EXPECT_EQ(reinterpret_cast<Simplex*>(1), simplex.GetNeighborAcross(1));
+  EXPECT_EQ(nullptr, simplex.GetNeighborAcross(kNullPoint + 1));
+  simplex.SetNeighborAcross(kNullPoint + 1, kNullSimplex + 1);
+  EXPECT_EQ(kNullSimplex + 1, simplex.GetNeighborAcross(kNullPoint + 1));
 
-  EXPECT_EQ(nullptr, simplex.GetNeighborAcross(3));
-  simplex.SetNeighborAcross(3, reinterpret_cast<Simplex*>(3));
-  EXPECT_EQ(reinterpret_cast<Simplex*>(3), simplex.GetNeighborAcross(3));
+  EXPECT_EQ(nullptr, simplex.GetNeighborAcross(kNullPoint + 3));
+  simplex.SetNeighborAcross(kNullPoint + 3, kNullSimplex + 3);
+  EXPECT_EQ(kNullSimplex + 3, simplex.GetNeighborAcross(kNullPoint + 3));
 }
 
 TEST(SimplexTest, VsetSplitTest) {
-  typedef clarkson93::Simplex<TestTraits> Simplex;
-  Simplex simplex_a(0);
-  Simplex simplex_b(0);
+  Simplex simplex_a;
+  Simplex simplex_b;
 
-  simplex_a.V = {3, 2, 1, 4, 5};
-  simplex_b.V = {9, 7, 1, 2, 5};
+  simplex_a.V = {kNullPoint + 3, kNullPoint + 2, kNullPoint + 1, kNullPoint + 4,
+                 kNullPoint + 5};
+  simplex_b.V = {kNullPoint + 9, kNullPoint + 7, kNullPoint + 1, kNullPoint + 2,
+                 kNullPoint + 5};
   clarkson93::SortVertices(&simplex_a);
   clarkson93::SortVertices(&simplex_b);
 
-  std::vector<int> only_in_a;
-  std::vector<int> only_in_b;
-  std::vector<int> in_both;
+  std::vector<Point*> only_in_a;
+  std::vector<Point*> only_in_b;
+  std::vector<Point*> in_both;
 
   clarkson93::VsetSplit(simplex_a, simplex_b, std::back_inserter(only_in_a),
                         std::back_inserter(only_in_b),
                         std::back_inserter(in_both));
-  EXPECT_EQ(only_in_a, std::vector<int>({3, 4}));
-  EXPECT_EQ(only_in_b, std::vector<int>({7, 9}));
-  EXPECT_EQ(in_both, std::vector<int>({1, 2, 5}));
+  EXPECT_EQ(only_in_a, std::vector<Point*>({kNullPoint + 3, kNullPoint + 4}));
+  EXPECT_EQ(only_in_b, std::vector<Point*>({kNullPoint + 7, kNullPoint + 9}));
+  EXPECT_EQ(in_both, std::vector<Point*>(
+                         {kNullPoint + 1, kNullPoint + 2, kNullPoint + 5}));
 
   in_both.clear();
   clarkson93::VsetIntersection(simplex_a, simplex_b,
                                std::back_inserter(in_both));
-  EXPECT_EQ(in_both, std::vector<int>({1, 2, 5}));
+  EXPECT_EQ(in_both, std::vector<Point*>(
+                         {kNullPoint + 1, kNullPoint + 2, kNullPoint + 5}));
 }
 
 TEST(SimplexTest, GetNeighborsSharingTest) {
-  typedef clarkson93::Simplex<TestTraits> Simplex;
-  Simplex simplex(0);
-  simplex.V = {3, 2, 1, 4, 5};
+  Simplex simplex;
+  simplex.V = {kNullPoint + 3, kNullPoint + 2, kNullPoint + 1, kNullPoint + 4,
+               kNullPoint + 5};
   for (int i = 0; i < 5; i++) {
-    simplex.N[i] = reinterpret_cast<Simplex*>(simplex.V[i]);
+    simplex.N[i] = kNullSimplex + (simplex.V[i] - kNullPoint);
   }
   clarkson93::SortVertices(&simplex);
 
   std::vector<Simplex*> neighbors;
   std::vector<Simplex*> expected_neighbors;
-  clarkson93::GetNeighborsSharing(simplex, std::vector<int>({1, 4, 5}),
-                                  std::back_inserter(neighbors));
+  clarkson93::GetNeighborsSharing(
+      simplex,
+      std::vector<Point*>({kNullPoint + 1, kNullPoint + 4, kNullPoint + 5}),
+      std::back_inserter(neighbors));
 
-  expected_neighbors = {reinterpret_cast<Simplex*>(2),
-                        reinterpret_cast<Simplex*>(3)};
+  expected_neighbors = {kNullSimplex + 2, kNullSimplex + 3};
   EXPECT_EQ(expected_neighbors, neighbors);
 
   neighbors.clear();
-  clarkson93::GetNeighborsSharing(simplex, std::vector<int>({3, 5}),
-                                  std::back_inserter(neighbors));
-  expected_neighbors = {reinterpret_cast<Simplex*>(1),
-                        reinterpret_cast<Simplex*>(2),
-                        reinterpret_cast<Simplex*>(4)};
+  clarkson93::GetNeighborsSharing(
+      simplex, std::vector<Point*>({kNullPoint + 3, kNullPoint + 5}),
+      std::back_inserter(neighbors));
+  expected_neighbors = {kNullSimplex + 1, kNullSimplex + 2, kNullSimplex + 4};
   EXPECT_EQ(expected_neighbors, neighbors);
 }
 
 TEST(SimplexTest, GeometryTest) {
-  typedef clarkson93::Simplex<TestTraits> Simplex;
-  typedef Eigen::Matrix<TestTraits::Scalar, TestTraits::kDim, 1> Point;
-
   std::vector<Point> points;
   points.resize(TestTraits::kDim + 1);
   for (int i = 0; i < TestTraits::kDim; i++) {
@@ -152,13 +156,12 @@ TEST(SimplexTest, GeometryTest) {
   }
   points.back() = Point::Zero();
 
-  Simplex simplex(-1);
-  simplex.V = {0, 1, 2, 3, 4};
+  Simplex simplex;
+  simplex.V = {points.data() + 0, points.data() + 1, points.data() + 2,
+               points.data() + 3, points.data() + 4};
   simplex.i_peak = TestTraits::kDim;
 
-  auto point_deref = [&points](int i) { return points[i]; };
-
-  clarkson93::ComputeBase(&simplex, point_deref);
+  clarkson93::ComputeBase(&simplex);
   clarkson93::OrientBase(&simplex, Point::Zero());
   EXPECT_LT(0, clarkson93::NormalProjection(simplex, Point::Zero()));
 }

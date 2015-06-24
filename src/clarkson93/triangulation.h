@@ -27,6 +27,7 @@
 #include <clarkson93/indexed.h>
 #include <clarkson93/priority_queue.h>
 #include <clarkson93/simplex.h>
+#include <Eigen/Dense>
 
 namespace clarkson93 {
 
@@ -49,10 +50,9 @@ class Triangulation {
   // Typedefs
   // -----------------------------------------------------------------------
   static const int kDim = Traits::kDim;
-
   typedef typename Traits::Scalar Scalar;
-  typedef typename Traits::PointRef PointRef;
-  typedef typename Traits::Deref Deref;
+  typedef Eigen::Matrix<Scalar, kDim, 1> Point;
+
   typedef typename Traits::SimplexAllocator SimplexAllocator;
 
   typedef Triangulation<Traits> This;
@@ -69,7 +69,7 @@ class Triangulation {
   // -----------------------------------------------------------------------
   Simplex<Traits>* hull_simplex_;    ///< a simplex in the hull
   Simplex<Traits>* origin_simplex_;  ///< origin simplex
-  PointRef anti_origin_;             ///< fictitious point
+  Point* anti_origin_;               ///< fictitious point
   SimplexAllocator* alloc_;          ///< allocator for simplices
 
   WalkQueue xv_queue_;     ///< walk for x-visible search
@@ -83,18 +83,17 @@ class Triangulation {
  public:
   /// anti_origin must have a value less than all vertex id's that are expected
   /// to be used.
-  Triangulation(PointRef anti_origin, SimplexAllocator* alloc);
+  Triangulation(Point* anti_origin, SimplexAllocator* alloc);
   ~Triangulation();
 
   /// builds the initial triangulation from the first @p NDim + 1 points
   /// inserted
   template <class Container>
-  void BuildInitial(const Container& vertices, const Deref& deref);
+  void BuildInitial(const Container& vertices);
 
   template <typename T>
-  void BuildFromIL(const std::initializer_list<T>& vertices,
-                   const Deref& deref) {
-    BuildInitial(vertices, deref);
+  void BuildFromIL(const std::initializer_list<T>& vertices) {
+    BuildInitial(vertices);
   }
 
   /// insert a new point into the triangulation and update the convex
@@ -103,10 +102,9 @@ class Triangulation {
    *  @param  x   const ref to the new point to add
    *  @param  S   an x-visible facet, if null (default) will search for one
    */
-  void Insert(PointRef vertex_id, const Deref& deref,
-              Simplex<Traits>* search_start);
+  void Insert(Point* vertex_id, Simplex<Traits>* search_start);
 
-  void Insert(PointRef vertex_id, const Deref& deref);
+  void Insert(Point* vertex_id);
 
   /// destroys all simplex objects that have been generated and clears all
   /// lists/ sets
@@ -122,17 +120,17 @@ class Triangulation {
    *  T containing @f$ x @f$ has been found, showing that
    *  @f$ x \in \mathrm{hull} R @f$
    */
-  Simplex<Traits>* FindVisibleHull(PointRef vertex_id, const Deref& deref,
+  Simplex<Traits>* FindVisibleHull(Point* vertex_id,
                                    Simplex<Traits>* search_start);
 
   /// given a simplex S which is x-visible and infinite, fill the set of
   /// all x-visible and infinite facets
-  void FloodVisibleHull(PointRef vertex_id, const Deref& deref,
+  void FloodVisibleHull(Point* vertex_id,
                         Simplex<Traits>* visible_hull_simplex);
 
   /// update each x-visible simplex by adding the point x as the peak
   /// vertex, also create new simplices
-  void FillVisibleHull(PointRef x, const Deref& deref);
+  void FillVisibleHull(Point* x);
 };
 
 }  // namespace clarkson93
