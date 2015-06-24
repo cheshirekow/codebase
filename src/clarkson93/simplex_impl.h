@@ -120,9 +120,11 @@ void ComputeBase(Simplex<Traits>* simplex) {
   Vector b;
 
   int j = 0;
-  for (int i = 0; i < Traits::kDim + 1; i++)
-    if (i != simplex->i_peak)
+  for (int i = 0; i < Traits::kDim + 1; i++) {
+    if (i != simplex->i_peak) {
       A.row(j++) = *simplex->V[i];
+    }
+  }
   b.setConstant(1);
 
   // solve for the normal
@@ -168,8 +170,7 @@ typename Traits::Scalar NormalProjection(const Simplex<Traits>& simplex,
 }
 
 template <class Traits, class Point>
-bool IsInfinite(const Simplex<Traits>& simplex,
-                const Point* anti_origin) {
+bool IsInfinite(const Simplex<Traits>& simplex, const Point* anti_origin) {
   return simplex.GetPeakVertex() == anti_origin;
 }
 

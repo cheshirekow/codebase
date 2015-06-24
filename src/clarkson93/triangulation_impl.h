@@ -287,7 +287,9 @@ void Triangulation<Traits>::FloodVisibleHull(
 
       // if is not visible then there is a horizon ridge between this
       // simplex and the neighbor simplex
-      if (!is_x_visible) ridges_.emplace_back(pop_ptr, neighbor_ptr);
+      if (!is_x_visible) {
+        ridges_.emplace_back(pop_ptr, neighbor_ptr);
+      }
     }
   }
 }
