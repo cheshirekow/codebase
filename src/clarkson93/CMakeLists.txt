@@ -4,8 +4,6 @@ cc_library(clarkson93
                    dynamic/simplex_impl.h
                    dynamic/triangulation.h
                    dynamic/triangulation_impl.h
-                   example_traits2.h
-                   example_traits.h
                    horizon_ridge.h
                    indexed.h
                    priority_queue.h
