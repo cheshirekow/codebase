@@ -62,6 +62,28 @@ include(UseJava)
 include(UseLCM)
 include(cc_rules)
 
+# string(APPEND ...) not added until cmake 3.2
+function(string_append outvar)
+  set(outval ${${outvar}})
+  foreach(arg ${ARGN})
+    set(outval "${outval}${arg}")
+  endforeach()
+  set(${outvar} ${outval} PARENT_SCOPE)
+endfunction()
+
+# Append a message to a global string indicating that a component has been
+# excluded from the build and why
+function(mark_excluded)
+  set(temp "${EXCLUDED_MSG}\n")
+  foreach(arg "${ARGN}")
+    set(temp "${temp}${arg}")
+  endforeach()
+  set(EXCLUDED_MSG ${temp} CACHE STRING "" FORCE)
+endfunction()
+
+# Initilalize message of excluded components
+set(EXCLUDED_MSG CACHE STRING "" FORCE)
+
 set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 enable_testing()
 
@@ -92,3 +114,11 @@ add_custom_target(doc
 
 message("lcmgen_ALL: ${lcmgen_ALL}")
 add_custom_target(lcmtypes DEPENDS ${lcmgen_ALL})
+
+# If anything was excluded:
+if(EXCLUDED_MSG)
+  message("The following components were excluded from the build:\n "
+                  "${EXCLUDED_MSG}")
+  set(EXCLUDED_MSG "" CACHE STRING "" FORCE)
+endif()
+

@@ -1,18 +1,10 @@
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.yaml
                ${CMAKE_CURRENT_BINARY_DIR}/config.yaml)
-                             
-if((fuse_FOUND)
-    AND (Boost_FOUND)
-    AND (THREADS_FOUND)
-    AND (libcrypto++_FOUND)
-    AND (protobuf_FOUND)
-    AND (ProtobufCompiler_FOUND)
-    AND (re2_FOUND)
-    AND (tclap_FOUND) 
-    AND (yaml-cpp_FOUND)
-    AND (SOCI_FOUND)
-    AND (sigc++_FOUND))
-                                                                    
+
+
+cc_require(fuse Boost THREADS libcrypto++ protobuf ProtobufCompiler re2 tclap 
+           yaml-cpp SOCI sigc++)
+if(required_FOUND)
   include_directories(${fuse_INCLUDE_DIRS}
                       ${Boost_INCLUDE_DIRS}
                       ${THREADS_INCLUDE_DIRS}
@@ -68,7 +60,7 @@ if((fuse_FOUND)
                         COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
   target_link_libraries(obfs_backend ${LIBS})
 else()
-  message( WARNING "Can't build obfs_backend")
+  mark_excluded("obfs_backend: ${required_MISSING}")
 endif()
 
 

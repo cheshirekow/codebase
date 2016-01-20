@@ -1,11 +1,7 @@
 set( OUTPUT exp_dt_dimension )
 
-if((eigen3_FOUND)
-    AND (GTKmm_FOUND)
-    AND (yamlcpp_FOUND)
-    AND (TinyXML2_FOUND)
-    AND (Boost_FOUND))
-    
+cc_require(eigen3 GTKmm TinyXML2 yamlcpp Boost)
+if(required_FOUND)
     include_directories(
         ${eigen3_INCLUDE_DIR}
         ${GTKmm_INCLUDE_DIRS}
@@ -32,8 +28,7 @@ if((eigen3_FOUND)
     target_link_libraries( ${OUTPUT} ${LIBS} )
                     
 else()
-    message( WARNING
-        "disabling build of ${OUTPUT}, missing: ${FINDALL_${OUTPUT}_MISSING}")
+    mark_excluded("exp_dt_dimension: missing ${required_MISSING}")
 endif()
 
 

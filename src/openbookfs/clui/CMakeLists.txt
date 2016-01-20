@@ -1,14 +1,6 @@
-if((Boost_FOUND)
-    AND (THREADS_FOUND)
-    AND (protobuf_FOUND)
-    AND (libcrypto++_FOUND)
-    AND (re2_FOUND)
-    AND (tclap_FOUND) 
-    AND (yaml-cpp_FOUND)
-    AND (SOCI_FOUND)
-    AND (sigc++_FOUND))
-                                                                    
-  include_directories(${Boost_INCLUDE_DIRS}
+cc_require(Boost THREADS protobuf libcrypto++ re2 tclap yaml-cpp SOCI sigc++)
+if(required_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS}s
                       ${THREADS_INCLUDE_DIRS}
                       ${protobuf_INCLUDE_DIRS}
                       ${libcrypto++_INCLUDE_DIRS}
@@ -60,7 +52,7 @@ if((Boost_FOUND)
                         COMPILE_FLAGS "-D_FILE_OFFSET_BITS=64")
   target_link_libraries(obfs ${LIBS})
 else()
-  message(WARNING "Can't build obfs")
+  mark_excluded("obfs: missing ${required_MISSING}")
 endif()
 
 

@@ -2,14 +2,8 @@ install(FILES layout.glade
         DESTINATION share/mpblocks/
         RENAME dubins_planner_demo.glade)
 
-if((Boost_FILESYSTEM_FOUND)
-    AND (cairomm_FOUND)
-    AND (eigen3_FOUND)
-    AND (GTKmm_FOUND)
-    AND (TinyXML2_FOUND)
-    AND (yamlcpp_FOUND)
-    AND (re2_FOUND))
-
+cc_require(Boost_FILESYSTEM cairomm eigen3 GTKmm TinyXML2 yamlcpp re2)
+if(required_FOUND)
   cc_include(Boost
              eigen3
              GTKmm
@@ -24,6 +18,6 @@ if((Boost_FILESYSTEM_FOUND)
                 TARGET_DEPENDS mpblocks_gtk mpblocks_path_util_static
                 RAW_DEPENDS ${CMAKE_THREAD_LIBS_INIT})
 else()
-  message(WARNING "Cant build dubins planner demo.")
+  mark_excluded("dubins planner demo: missing ${required_MISSING}")
 endif()
 

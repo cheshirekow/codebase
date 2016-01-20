@@ -1,10 +1,5 @@
-if((eigen3_FOUND)
-   AND (sigc++_FOUND)
-   AND (GTKmm_FOUND)
-   AND (cairomm_FOUND)
-   AND (yamlcpp_FOUND)
-   AND (TinyXML2_FOUND))
-    
+cc_require(eigen3 sigc++ GTKmm cairomm TinyXML2 yamlcpp)
+if(required_FOUND)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}
         ${eigen3_INCLUDE_DIRS}
         ${sigc++_INCLUDE_DIRS}
@@ -29,6 +24,7 @@ if((eigen3_FOUND)
                         )
     target_link_libraries(mpblocks_demo_uniform_simplex ${LIBS} )
 else()
-    message( WARNING "Skipping target demo_uniform_simplex" )
+    mark_excluded("uniform simplex triangulation demo: missing" 
+                  " ${required_MISSING}")
 endif()
 

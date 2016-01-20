@@ -2,12 +2,9 @@ install(FILES layout.glade
         DESTINATION share/mpblocks/
         RENAME dubins_curves_demo.glade)
 
-if((cairomm_FOUND)
-    AND (eigen3_FOUND)
-    AND (GTKmm_FOUND)
-    AND (TinyXML2_FOUND)
-    AND (yamlcpp_FOUND))
 
+cc_require(cairomm eigen3 GTKmm TinyXML2 yamlcpp)
+if(required_FOUND)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                       ${eigen3_INCLUDE_DIRS}
                       ${GTKmm_INCLUDE_DIRS}
@@ -49,6 +46,6 @@ if((cairomm_FOUND)
                  cuda/without_cuda.cc)
   target_link_libraries(mpblocks_dubins_curves_demo ${LIBS})
 else()
-  message( WARNING "Wont build dubins curves demo.")
+  mark_excluded("dubins curves demo: missing ${required_MISSING}")  
 endif()
 

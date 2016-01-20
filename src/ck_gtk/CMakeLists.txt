@@ -14,5 +14,5 @@ if(required_FOUND)
                      simple_view.cc
              PKG_DEPENDS eigen3 GTKmm TinyXML2 yamlcpp) 
 else()
-  message(WARNING "Can't build ck_gtk, missing ${required_MISSING}")
+  mark_excluded("ck_gtk: missing ${required_MISSING}")
 endif()

@@ -2,12 +2,8 @@ install(FILES layout.glade
         DESTINATION ${CMAKE_INSTALL_PREFIX}/share/mpblocks/
         RENAME dubins_hyper_demo.glade)
 
-if((cairomm_FOUND)
-    AND (eigen3_FOUND)
-    AND (GTKmm_FOUND)
-    AND (TinyXML2_FOUND)
-    AND (yamlcpp_FOUND))
-
+cc_require(cairomm eigen3 GTKmm TinyXML2 yamlcpp)
+if(required_FOUND)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                       ${eigen3_INCLUDE_DIRS}
                       ${GTKmm_INCLUDE_DIRS}
@@ -27,5 +23,5 @@ if((cairomm_FOUND)
                  main.cpp)
   target_link_libraries(mpblocks_dubins_hyper_demo ${LIBS})
 else()
-  message( WARNING "Missing packages, wont build dubbins hyper demo.")
+  mark_excluded("dubins hyper demo: missing ${required_MISSING}")
 endif()

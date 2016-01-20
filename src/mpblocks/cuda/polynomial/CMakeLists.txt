@@ -1,34 +1,22 @@
 
-add_executable( mpblocks-cuda-polynomial-intlist-test
-                    intlist.cpp )
+add_executable(mpblocks-cuda-polynomial-intlist-test intlist.cpp )
+add_executable(mpblocks-cuda-polynomial-test basic.cpp )
                     
-add_executable( mpblocks-cuda-polynomial-test
-                    basic.cpp )
-                    
-find_package( CUDA )
-
-
-set( TARGET mpblocks-cuda-polynomial-ktest )
 if( CUDA_FOUND  )
-
-    include_directories(
-        ${CUDA_TOOLKIT_INCLUDE}
-    )
+    include_directories(${CUDA_TOOLKIT_INCLUDE})
     
     set( LIBS "${LIBS}"
          mpblocks_cuda
-         ${CUDA_LIBRARY}
-         ${CUDA_RT_LIBRARY}
+         ${CUDA_CUDA_LIBRARY}
+         ${CUDA_CUDART_LIBRARY}
          -lrt
          ) 
          
-    cuda_add_executable( ${TARGET} 
-                            ktest.cpp
-                            ktest.cu )
+    cuda_add_executable(mpblocks-cuda-polynomial-ktest 
+                        ktest.cpp
+                        ktest.cu )
     
-    target_link_libraries( ${TARGET} ${LIBS} )
+    target_link_libraries(mpblocks-cuda-polynomial-ktest ${LIBS})
 else()
-
-    message( WARNING "can't build ${TARGET}, missing cuda" )
-
+    mark_excluded("cuda polynomial ktest: missingcuda" )
 endif()

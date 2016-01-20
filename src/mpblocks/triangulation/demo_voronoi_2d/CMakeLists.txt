@@ -1,8 +1,5 @@
-if( (eigen3_FOUND) 
-    AND (GTKmm_FOUND)
-    AND (yamlcpp_FOUND)
-    AND (TinyXML2_FOUND) ) 
-
+cc_require(eigen3 GTKmm TinyXML2 yamlcpp)
+if(required_FOUND)
     include_directories(
         ${eigen3_INCLUDE_DIRS}
         ${GTKmm_INCLUDE_DIRS}
@@ -25,9 +22,7 @@ if( (eigen3_FOUND)
     target_link_libraries( mpblocks_demo_voronoi2d ${LIBS} )
                     
 else()
-    message( WARNING "Skipping target demo-voronoi2d" )
-
-    
+    mark_excluded("triangulation demo voronoi2d: missing ${required_MISSING}")
 endif()
 
 

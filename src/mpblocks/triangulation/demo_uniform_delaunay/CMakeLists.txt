@@ -1,8 +1,5 @@
-if((eigen3_FOUND)
-   AND (GTKmm_FOUND)
-   AND (TinyXML2_FOUND)
-   AND (yamlcpp_FOUND))
-
+cc_require(eigen3 GTKmm TinyXML2 yamlcpp)
+if(required_FOUND)
   include_directories(${eigen3_INCLUDE_DIRS}
                       ${GTKmm_INCLUDE_DIRS}
                       ${yamlcpp_INCLUDE_DIRS}
@@ -19,7 +16,8 @@ if((eigen3_FOUND)
       ${TinyXML2_LDFLAGS}
       mpblocks_gtk)
 else()
-  message( WARNING "disabling build of demo_uniform_delaunay")
+  mark_excluded("uniform delaunay triangulation demo: missing"
+                " ${required_MISSING}")
 endif()
 
 

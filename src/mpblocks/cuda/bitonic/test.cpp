@@ -27,7 +27,7 @@
 #include <iostream>
 #include <boost/format.hpp>
 
-#include <mpblocks/utility/Timespec.h>
+#include <mpblocks/util/timespec.h>
 #include <mpblocks/cuda.hpp>
 #include <mpblocks/cuda/bitonic.h>
 
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
         clock_gettime( CLOCK_MONOTONIC, &end );
 
 
-        double ms = (end-start).milliseconds();
+        double ms = (end-start).Milliseconds();
         std::cout
             << fmt( "      Time: %f ms\n"        ) % ms
             << fmt( "Throughput: %f Elements/s\n") % (1000.0*arrayLength/ms)
@@ -173,7 +173,7 @@ int main(int argc, char** argv)
         deviceSynchronize();
         clock_gettime( CLOCK_MONOTONIC, &end );
 
-        double ms = (end-start).milliseconds();
+        double ms = (end-start).Milliseconds();
         std::cout
             << fmt( "      Time: %f ms\n"        ) % ms
             << fmt( "Throughput: %f Elements/s\n") % (1000.0*arrayLength/ms)
@@ -233,7 +233,7 @@ int main(int argc, char** argv)
         clock_gettime( CLOCK_MONOTONIC, &end );
 
 
-        double ms = (end-start).milliseconds();
+        double ms = (end-start).Milliseconds();
         std::cout
             << fmt( "      Time: %f ms\n"        ) % ms
             << fmt( "Throughput: %f Elements/s\n") % (1000.0*arrayLength/ms)

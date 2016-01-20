@@ -24,7 +24,6 @@ if(required_FOUND)
                 TARGET_DEPENDS ck_gtk_static mpblocks_path_util_static
                 RAW_DEPENDS ${CMAKE_THREAD_LIBS_INIT})
 else()
-  message(WARNING "Can't build edelsbrunner96 demos, missing "
-                  ${required_MISSING})
+  mark_excluded("edelsbrunner96 demos: missing ${required_MISSING}")
 endif()
 

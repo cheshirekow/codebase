@@ -1,9 +1,5 @@
-if( (eigen3_FOUND) 
-    AND (GTKmm_FOUND) 
-    AND (sigc++_FOUND)
-    AND (yamlcpp_FOUND)
-    AND (TinyXML2_FOUND) ) 
-
+cc_require(eigen3 GTKmm sigc++ TinyXML2 yamlcpp)
+if(required_FOUND)
     include_directories(
         ${eigen3_INCLUDE_DIR}
         ${sigc++_INCLUDE_DIRS}
@@ -30,17 +26,7 @@ if( (eigen3_FOUND)
     configure_file( config.cpp ${CMAKE_CURRENT_BINARY_DIR}/config.cpp )
  
 else()
-    set( MISSING "" )
-
-    if( NOT (Eigen3_FOUND ) )
-        set( MISSING ${MISSING} "Eigen3, ")
-    endif()
-    
-    if( NOT (GTKmm_FOUND ) )
-        set( MISSING ${MISSING} "GTKmm, ")
-    endif()
-    
-    message( WARNING "Skipping target demo_clarkson93" )
+    mark_excluded("demo_clarkson93: missing ${required_MISSING}")
 endif()
 
 

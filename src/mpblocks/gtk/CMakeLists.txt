@@ -1,7 +1,5 @@
-if((eigen3_FOUND)
-    AND (GTKmm_FOUND)
-    AND (TinyXML2_FOUND)
-    AND (yamlcpp_FOUND))
+cc_require(eigen3 GTKmm TinyXML2 yamlcpp)
+if(required_FOUND)
   include_directories(${eigen3_INCLUDE_DIRS}
                       ${GTKmm_INCLUDE_DIRS}
                       ${TinyXML2_INCLUDE_DIRS}
@@ -31,5 +29,5 @@ if((eigen3_FOUND)
           LIBRARY DESTINATION lib
           ARCHIVE DESTINATION lib)
 else()
-  message(WARNING "Cannot build mpblocks_gtk")
+  mark_excluded("mpblocks gtk: missing ${required_MISSING}")
 endif()

@@ -1,16 +1,16 @@
 # checks that xxx_FOUND is true for all required prefixes, and prints a
 # warning message if they are not
 function(cc_require)
-  set(required_MISSING "")
-  set(required_FOUND TRUE)
+  set(local_MISSING)
+  set(local_FOUND TRUE)
   foreach(prefix ${ARGN})
     if(NOT ${prefix}_FOUND)
-      list(APPEND required_MISSING ${prefix})
-      set(required_FOUND FALSE)
+      list(APPEND local_MISSING ${prefix})
+      set(local_FOUND FALSE)
     endif()
   endforeach()
-  set(required_FOUND ${required_FOUND} PARENT_SCOPE)
-  set(required_MISSING ${required_MISSING} PARENT_SCOPE)
+  set(required_FOUND ${local_FOUND} PARENT_SCOPE)
+  set(required_MISSING "${local_MISSING}" PARENT_SCOPE)
 endfunction()
 
 # include pkg_INCLUDE_DIRS for each pkg in the list

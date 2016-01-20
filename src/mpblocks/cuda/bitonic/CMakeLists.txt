@@ -1,21 +1,18 @@
 find_package( CUDA )
-find_package( MPBlocks COMPONENTS utility )
 find_package( Boost )
 
-if( CUDA_FOUND 
-    AND (MPBlocks_FOUND)
-    AND (Boost_FOUND ) )
+cc_require(CUDA Boost)
+if(required_FOUND)
 
     include_directories(
         ${CUDA_TOOLKIT_INCLUDE}
-        ${MPBlocks_INCLUDE_DIR}
     )
     
     set( LIBS "${LIBS}"
          mpblocks_cuda
-         ${MPBlocks_utility_LIBRARY}
-         ${CUDA_LIBRARY}
-         ${CUDA_RT_LIBRARY}
+         mpblocks_util_static
+         ${CUDA_CUDART_LIBRARY}
+         ${CUDA_CUDA_LIBRARY}
          -lrt
          ) 
          
@@ -29,22 +26,5 @@ if( CUDA_FOUND
         
 
 else()
-
-    set( MISSING "" )
-    
-    if( NOT (CUDA_FOUND) )
-        set( MISSING "cuda, ${MISSING}" )
-    endif()
-    
-    if( NOT (MPBlocks_FOUND) )
-        set( MISSING "mpblocks, ${MISSING}" )
-    endif()
-    
-    if( NOT (Boost_FOUND) )
-        set( MISSING "boost, ${MISSING}" )
-    endif()
-    
-    message( WARNING "can't build mpblocks_cuda_bitonic_test,"
-                     "missing ${MISSING}" )
-
+    mark_excluded("cuda bitonic test: missing ${required_MISSING}")    
 endif()

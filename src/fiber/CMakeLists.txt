@@ -43,7 +43,7 @@ if(eigen3_FOUND)
   fiber_test(sum_test)
   fiber_test(transpose_test)
 else()
-  message(WARNING "wont build fiber tests")
+  mark_excluded("fiber tests: missing eigen3")
 endif()
 
 cc_executable(fiber_demo SOURCES demo.cc TARGET_DEPENDS fiber_static)

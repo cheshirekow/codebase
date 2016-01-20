@@ -13,7 +13,7 @@ if(eigen3_FOUND)
   dubins_test(RSR_test)
   dubins_test(RSL_test)
 else()
-  message(WARNING "wont build dubins solver tests")
+  mark_excluded("dubins solver tests: missing eigen3")
 endif()
 
 
