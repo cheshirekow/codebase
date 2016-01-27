@@ -102,6 +102,7 @@ if(FIBER_USE_VARIADIC_TEMPLATES)
   add_definitions(-DFIBER_USE_VARIADIC_TEMPLATES)
 endif()
 
+string_append(CMAKE_CXX_FLAGS " -std=c++11")
 add_subdirectory(src)
 
 # configure the doxygen configuration
