@@ -15,13 +15,6 @@ void Advance(int* argc, char*** argv) {
 
 Parser::~Parser() {}
 
-void Parser::SetCommon(const std::string& short_name,
-                       const std::string& long_name, const std::string& help) {
-  short_name_ = short_name;
-  long_name_ = long_name;
-  help_ = help;
-}
-
 class BoolParser : public Parser {
  public:
   BoolParser(bool* storage) : storage_(storage) {
@@ -60,7 +53,7 @@ void StringParser::Parse(int* argc, char*** argv) {
   if (*argc < 1) {
     LOG(FATAL)
         << "Ran out of arguments to parse wile reading in value for flag "
-        << this->long_name_;
+        << this->long_name;
   } else {
     *storage_ = std::string(**argv);
     Advance(argc, argv);
@@ -80,9 +73,9 @@ void ArgumentParser::ParseArgs(int* argc, char*** argv) {
   std::map<std::string, Parser*> short_name_map;
   std::map<std::string, Parser*> long_name_map;
 
-  for (Parser* parser : named_args_) {
-    short_name_map[parser->GetShortName()] = parser;
-    long_name_map[parser->GetLongName()] = parser;
+  for (Parser* parser : named_parsers_) {
+    short_name_map[parser->short_name] = parser;
+    long_name_map[parser->long_name] = parser;
   }
 
   CHECK(argc > 0);
@@ -128,14 +121,14 @@ void ArgumentParser::ParseArgs(int* argc, char*** argv) {
       }
     }
 
-    if (positional_args_.size() < 1) {
+    if (positional_parsers_.size() < 1) {
       LOG(FATAL) << fmt::format(
           "No remaining positional arguments to parse when encountered '{}', "
           "arg='{}'",
           **argv, arg);
     } else {
-      Parser* positional_parser = positional_args_.front();
-      positional_args_.pop_front();
+      Parser* positional_parser = positional_parsers_.front();
+      positional_parsers_.pop_front();
       positional_parser->Parse(argc, argv);
       continue;
     }
@@ -151,9 +144,8 @@ void ArgumentParser::PrintHelp() {
   }
 
   std::string fmt_str = "{:2s}  {:15s} {:60}\n";
-  for (Parser* parser : named_args_) {
-    fmt::print(fmt_str, parser->GetShortName(), parser->GetLongName(),
-               parser->GetHelp());
+  for (Parser* parser : named_parsers_) {
+    fmt::print(fmt_str, parser->short_name, parser->long_name, parser->help);
   }
 }
 
