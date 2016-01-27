@@ -1,2 +1,2 @@
 
-cc_library(tap.h tap.cc)
+cc_library(tap SOURCES tap.h tap.cc)
