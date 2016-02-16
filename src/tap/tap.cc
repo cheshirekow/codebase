@@ -8,145 +8,72 @@
 
 namespace tap {
 
-void Advance(int* argc, char*** argv) {
-  *argc -= 1;
-  *argv += 1;
-}
+namespace kw {
+const internal::ActionKW action;
+} // namespace kw
 
-Parser::~Parser() {}
+Action::~Action() {}
 
-class BoolParser : public Parser {
+template <typename ValueType>
+class Choices : public std::set<ValueType> {
  public:
-  BoolParser(bool* storage) : storage_(storage) {
-    *storage_ = false;
+  Choices() {}
+
+  template <typename Container>
+  Choices(const Container& container) {
+    for (auto& value : container) {
+      this->insert(value);
+    }
   }
-
-  virtual ~BoolParser() {}
-  void Parse(int* argc, char*** argv);
-
- private:
-  bool* storage_;
 };
 
-void BoolParser::Parse(int* argc, char*** argv) {
-  *storage_ = true;
-  return;
-}
+template <typename T>
+struct Optional {
+  bool has_value;
+  T value;
 
-Parser* MakeParser(bool* storage) {
-  return new BoolParser(storage);
-}
+  Optional() : has_value(false) {}
 
-class StringParser : public Parser {
- public:
-  StringParser(std::string* storage) : storage_(storage) {
-    *storage_ = "[unset]";
+  Optional<T>& operator=(const T& value_in) {
+    has_value = true;
+    value = value_in;
   }
-  virtual ~StringParser() {}
-  void Parse(int* argc, char*** argv);
-
- private:
-  std::string* storage_;
 };
 
-void StringParser::Parse(int* argc, char*** argv) {
-  if (*argc < 1) {
-    LOG(FATAL)
-        << "Ran out of arguments to parse wile reading in value for flag "
-        << this->long_name;
-  } else {
-    *storage_ = std::string(**argv);
-    Advance(argc, argv);
-  }
-}
+template <typename ValueType>
+class StoreValueAction : public Action {
+ public:
+  virtual ~StoreValueAction() {}
+  virtual void Consume(int* argc, char*** argv) {}
 
-Parser* MakeParser(std::string* storage) {
-  return new StringParser(storage);
-}
+ private:
+  std::list<std::string> option_strings_;
+  Optional<ValueType> const_;    /// store this value if the flag is encountered
+  Optional<ValueType> default_;  /// store this value if the flag is encountered
+                                 /// but no value is set
+  std::set<ValueType> choices_;  /// used if a limited set of choices are valid
+  bool required_;                /// true if required arg
+  std::string help_;             /// help text
+  std::string metavar_;          /// used in help text
+  ValueType* dest_;              /// where argument is parsed into
+};
 
-ArgumentParser::ArgumentParser(const std::string& description)
-    : description_(description) {
-  this->AddArgument("-h", "--help", &show_help_, "print this help");
-}
+template <typename ValueType, typename Container>
+class StoreMultiValueAction : public Action {
+ public:
+  virtual ~StoreMultiValueAction() {}
+  virtual void Consume(int* argc, char*** argv) {}
 
-void ArgumentParser::ParseArgs(int* argc, char*** argv) {
-  std::map<std::string, Parser*> short_name_map;
-  std::map<std::string, Parser*> long_name_map;
-
-  for (Parser* parser : named_parsers_) {
-    short_name_map[parser->short_name] = parser;
-    long_name_map[parser->long_name] = parser;
-  }
-
-  CHECK(argc > 0);
-  program_name_ = (*argv)[0];
-  Advance(argc, argv);
-
-  while (*argc > 0) {
-    if (show_help_) {
-      PrintHelp();
-      exit(0);
-    }
-
-    std::map<std::string, Parser*>::iterator map_iter;
-    std::string arg(**argv);
-    std::size_t eq_idx = arg.find('=');
-    if (arg.substr(0, 2) == "--") {
-      if (eq_idx != std::string::npos) {
-        arg = arg.substr(eq_idx);
-      }
-
-      map_iter = long_name_map.find(arg);
-      if (map_iter != long_name_map.end()) {
-        Advance(argc, argv);
-        map_iter->second->Parse(argc, argv);
-        continue;
-      } else {
-        LOG(FATAL) << "Unrecognized argument " << arg;
-      }
-    }
-
-    if (arg.substr(0, 1) == "-") {
-      if (eq_idx != std::string::npos) {
-        arg = arg.substr(eq_idx);
-      }
-
-      map_iter = short_name_map.find(arg);
-      if (map_iter != short_name_map.end()) {
-        Advance(argc, argv);
-        map_iter->second->Parse(argc, argv);
-        continue;
-      } else {
-        LOG(FATAL) << "Unrecognized argument " << arg;
-      }
-    }
-
-    if (positional_parsers_.size() < 1) {
-      LOG(FATAL) << fmt::format(
-          "No remaining positional arguments to parse when encountered '{}', "
-          "arg='{}'",
-          **argv, arg);
-    } else {
-      Parser* positional_parser = positional_parsers_.front();
-      positional_parsers_.pop_front();
-      positional_parser->Parse(argc, argv);
-      continue;
-    }
-  }
-}
-
-void ArgumentParser::PrintHelp() {
-  fmt::print("Usage: {}\n", program_name_);
-  if (!description_.empty()) {
-    fmt::print("\n");
-    fmt::print(description_);
-    fmt::print("\n");
-  }
-
-  std::string fmt_str = "{:2s}  {:15s} {:60}\n";
-  for (Parser* parser : named_parsers_) {
-    fmt::print(fmt_str, parser->short_name, parser->long_name, parser->help);
-  }
-}
+ private:
+  std::list<std::string> option_strings_;
+  Optional<ValueType> const_;    /// store this value if the flag is encountered
+  Optional<ValueType> default_;  /// store this value if the flag is encountered
+                                 /// but no value is set
+  std::set<ValueType> choices_;  /// used if a limited set of choices are valid
+  bool required_;                /// true if required arg
+  std::string help_;             /// help text
+  std::string metavar_;          /// used in help text
+  Container* dest_;              /// where argument is parsed into
+};
 
 }  // namespace tap

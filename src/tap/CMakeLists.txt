@@ -7,6 +7,7 @@ if(required_FOUND)
 
   cc_executable(tap_demo SOURCES tap_demo.cc
                 TARGET_DEPENDS tap_static)
+  cc_test(tap_kwarg_test SOURCES kwarg_test.cc)
 else()
   mark_excluded("tap: missing glog")
 endif()

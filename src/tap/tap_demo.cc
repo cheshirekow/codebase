@@ -5,13 +5,8 @@
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   tap::ArgumentParser parser;
+  using namespace tap::kw;
 
-  std::string foo;
-  std::string bar;
-  parser.AddArgument("-f", "--foo", &foo, "foo help");
-  parser.AddArgument("-b", "--bar", &bar, "bar help");
-  parser.ParseArgs(&argc, &argv);
-
-  std::cout << "Foo: " << foo << "\n"
-            << "Bar: " << bar << "\n";
+  parser.AddArgument("-f", action = "store_true");
+  parser.AddArgument("-b", "--bar");
 }
