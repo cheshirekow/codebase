@@ -173,14 +173,6 @@ class StoreValue : public ActionBase<ValueType, OutputIterator> {
     this->InitRest(tail...);
   }
 
-  template <typename... Tail>
-  void Init(const std::string&& short_flag, const std::string&& long_flag,
-            Tail&&... tail) {
-    this->short_flag_ = short_flag;
-    this->long_flag_ = long_flag;
-    InitRest(tail...);
-  }
-
  protected:
   using ActionBase<ValueType, OutputIterator>::ConsumeInit;
 
@@ -199,12 +191,6 @@ class StoreValue : public ActionBase<ValueType, OutputIterator> {
   void InitRest(Args&&... args) {
     NoOp((this->ConsumeInit(args), 0)...);
   }
-
-  //  template <typename... Tail>
-  //  void Init(const std::string&& head, Tail&&... tail) {
-  //    this->short_flag_ = head;
-  //    InitRest(tail...);
-  //  }
 
   void InitRest() {}
 
