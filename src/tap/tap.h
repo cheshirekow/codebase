@@ -14,7 +14,7 @@
 
 namespace tap {
 
-struct Nil;
+struct Nil{};
 
 template <typename... List>
 struct GetValueType;
@@ -85,6 +85,11 @@ struct ResolveValueType<Nil, OutputIterator> {
   typedef typename std::iterator_traits<OutputIterator>::value_type Type;
 };
 
+template <>
+struct ResolveValueType<Nil, Nil> {
+  typedef Nil Type;
+};
+
 inline NamedActions GetAction() {
   return ACTION_NONE;
 }
@@ -99,17 +104,11 @@ NamedActions GetAction(Head&& head, Tail&&... tail) {
   return GetAction(tail...);
 }
 
-
-
 class ArgumentParser {
  public:
   template <typename... Args>
   void AddArgument(Args&&... args) {
     typedef typename GetIteratorType<Args...>::Type OutputIterator;
-    static_assert(
-        !std::is_same<Nil, OutputIterator>::value,
-        "You failed to specify a desintation for a command line argument.");
-
     typedef typename GetValueType<Args...>::Type ValueTypeIn;
     typedef
         typename ResolveValueType<ValueTypeIn, OutputIterator>::Type ValueType;
@@ -145,6 +144,7 @@ class ArgumentParser {
         break;
 
       case help:
+        action = new actions::Help(args...);
         break;
 
       case version:
@@ -160,11 +160,13 @@ class ArgumentParser {
     }
   }
 
-  void GetUsage(const std::string& argv0, std::ostream* help_out);
-  void GetHelp(const std::string& argv0, std::ostream* help_out);
+  void GetUsage(std::ostream* help_out);
+  void GetHelp(std::ostream* help_out);
+  void ParseArgs(int* argc, char*** argv);
 
  private:
   Optional<std::string> description_;
+  Optional<std::string> argv0_;
   std::list<Action*> all_actions_;
   std::list<Action*> allocated_actions_;
 };

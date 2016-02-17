@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cctype>
+#include <iostream>
 #include <list>
 #include <set>
 #include <string>
@@ -12,6 +13,8 @@
 #include "kwargs.h"
 
 namespace tap {
+
+class ArgumentParser;
 
 #ifdef __GNUC__
 template <typename T>
@@ -99,6 +102,7 @@ std::string ToUpper(const std::string& val_in);
 class Action {
  public:
   virtual ~Action() {}
+  virtual void ConsumeArgs(ArgumentParser* parser, std::list<char*>* args) = 0;
 
   const Optional<std::string>& GetShortFlag() const {
     return short_flag_;
@@ -172,6 +176,21 @@ class Action {
     metavar_ = metavar.value;
   }
 
+  // These are default implementations which ignore the parameter, and are
+  // overridden by derived classes. They are overridden by CTRP resolution
+  // of the functions.
+  // TODO(josh): warn if these are ever called
+  template <typename T>
+  void ConsumeArgSentinal(ConstSentinel<T> const_in) {}
+
+  template <typename OutputIterator>
+  void ConsumeArgSentinal(DestSentinel<OutputIterator> dest) {}
+
+  template <typename T>
+  void ConsumeArgSentinal(ChoicesSentinel<T> choices) {}
+
+  void ConsumeArgSentinal(RequiredSentinel required) {}
+
   void SetFlags(const std::string& short_flag, const std::string& long_flag) {
     short_flag_ = short_flag;
     long_flag_ = long_flag;
@@ -189,6 +208,18 @@ class Action {
   Optional<std::string> metavar_;
 };
 
+inline bool IsShortFlag(const std::string& str) {
+  return (str.size() >= 2 && str[0] == '-' && str[1] != '-');
+}
+
+inline bool IsLongFlag(const std::string& str) {
+  return (str.size() >= 3 && str[0] == '-' && str[1] == '-');
+}
+
+inline bool IsFlag(const std::string& str) {
+  return IsShortFlag(str) || IsLongFlag(str);
+}
+
 namespace actions {
 
 // This is an empty function which just allows us to use a parameter pack
@@ -196,6 +227,8 @@ namespace actions {
 template <typename... Args>
 void NoOp(Args&&... args) {}
 
+// First base class just provides static interface. CTRP is required to gain
+// access to derived class's argument consumers.
 template <typename Derived>
 class ActionInterface : public Action {
  public:
@@ -229,10 +262,8 @@ class ActionInterface : public Action {
   void InitRest() {}
 };
 
-// NOTE(josh): CTRP is required to gain access to derived classes' argument
-// consumers.
-// TODO(josh): add another interface in between this one and Action to provide
-// the init function templates
+// Second base class provides some actual storage that is common among some
+// actions
 template <typename Derived, typename ValueType, typename OutputIterator>
 class ActionBase : public ActionInterface<Derived> {
  public:
@@ -266,6 +297,47 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
   }
 
   virtual ~StoreValue() {}
+  void ConsumeArgs(ArgumentParser* parser, std::list<char*>* args) override {
+    // TODO(josh): implement for real
+    // TODO(josh): assert nargs_ > -5
+    switch (this->nargs_) {
+      case NARGS_ONE_OR_MORE:
+        // TODO(josh): assert !IsFlag(args.front());
+        while (args->size() > 0 && !IsFlag(args->front())) {
+          // *(dest_++) = Parse<ValueType>(args->front());
+          args->pop_front();
+        }
+        break;
+
+      case NARGS_REMAINDER:
+        while (args->size() > 0) {
+          // *(dest_++) = Parse<ValueType>(args->front());
+          args->pop_front();
+        }
+        break;
+
+      case NARGS_ZERO_OR_MORE:
+        while (args->size() > 0 && !IsFlag(args->front())) {
+          // *(dest_++) = Parse<ValueType>(args->front());
+          args->pop_front();
+        }
+        break;
+
+      case NARGS_ZERO_OR_ONE:
+        if (args->size() > 0 && !IsFlag(args->front())) {
+          // *(dest_++) = Parse<ValueType>(args->front());
+          args->pop_front();
+        }
+        break;
+
+      default:
+        // TODO(josh): assert args->size() > nargs_
+        for (int i = 0; i < this->nargs_ && args->size() > 0; i++) {
+          // *(dest_++) = Parse<ValueType>(args->front());
+          args->pop_front();
+        }
+    }
+  }
 
   template <typename T>
   void ConsumeArgSentinal(ChoicesSentinel<T> choices) {
@@ -327,6 +399,19 @@ class AppendConst : public ActionBase<AppendConst<ValueType, OutputIterator>,
                                       ValueType, OutputIterator> {
  public:
   virtual ~AppendConst() {}
+};
+
+class Help : public ActionInterface<Help> {
+ public:
+  using ActionInterface<Help>::ConsumeArgSentinal;
+
+  template <typename... Args>
+  Help(Args&&... args) {
+    this->Construct(args...);
+  }
+
+  virtual ~Help() {}
+  void ConsumeArgs(ArgumentParser* parser, std::list<char*>* args) override;
 };
 
 }  // namespace actions

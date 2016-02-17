@@ -1,10 +1,12 @@
-#include "tap/tap.h"
-
 #include <iostream>
+#include <list>
 #include <map>
 #include <set>
 #include <cppformat/format.h>
 #include <glog/logging.h>
+
+#include "tap.h"
+#include "actions.h"
 
 namespace tap {
 
@@ -33,9 +35,12 @@ std::string GetNargsSuffix(int nargs) {
   }
 }
 
-void ArgumentParser::GetUsage(const std::string& argv0,
-                              std::ostream* help_out) {
-  (*help_out) << argv0 << " ";
+void ArgumentParser::GetUsage(std::ostream* help_out) {
+  if (argv0_.is_set) {
+    (*help_out) << argv0_.value << " ";
+  } else {
+    (*help_out) << "[program] ";
+  }
   std::list<const Action*> positional_actions;
   std::list<const Action*> flag_actions;
   for (const Action* action : all_actions_) {
@@ -72,8 +77,8 @@ void ArgumentParser::GetUsage(const std::string& argv0,
   (*help_out) << "\n";
 }
 
-void ArgumentParser::GetHelp(const std::string& argv0, std::ostream* help_out) {
-  GetUsage(argv0, help_out);
+void ArgumentParser::GetHelp(std::ostream* help_out) {
+  GetUsage(help_out);
 
   const int kNameColumnSize = 16;
   const int kTypeColumnSize = 16;
@@ -161,6 +166,69 @@ void ArgumentParser::GetHelp(const std::string& argv0, std::ostream* help_out) {
     (*help_out) << "\n\n";
     (*help_out) << "Positional Arguments:\n";
     for (const Action* action : flag_actions) {
+    }
+  }
+}
+
+void ArgumentParser::ParseArgs(int* argc, char*** argv) {
+  std::list<char*> args;
+  for (int i = 0; i < *argc; ++i) {
+    args.push_back((*argv)[i]);
+  }
+
+  argv0_ = args.front();
+  args.pop_front();
+
+  // TODO(josh): validate the parser before the following, as it makes
+  // certain assumptions:
+  //    short_flags are '-x'
+  //    long_flags are '--xxx'
+  //    flags are not repeated
+
+  // build a list of positional arguments and a map for short and long
+  // flag names
+  std::list<Action*> positional_actions;
+  std::map<char, Action*> short_flags;
+  std::map<std::string, Action*> long_flags;
+
+  for (Action* action : all_actions_) {
+    if (action->IsPositional()) {
+      positional_actions.push_back(action);
+    } else {
+      if (action->GetShortFlag().is_set) {
+        char short_flag = action->GetShortFlag().value[1];
+        short_flags[short_flag] = action;
+      }
+      if (action->GetLongFlag().is_set) {
+        std::string long_flag = action->GetLongFlag().value.substr(2);
+        long_flags[long_flag] = action;
+      }
+    }
+  }
+
+  // now walk through the argument list and run our parsers.
+  while (args.size() > 0) {
+    if (IsShortFlag(args.front())) {
+      std::string flag_chars = std::string(args.front()).substr(1);
+      args.pop_front();
+      for (char c : flag_chars) {
+        auto iter = short_flags.find(c);
+        // TODO(josh): assert found
+        if (iter != short_flags.end()) {
+          iter->second->ConsumeArgs(this, &args);
+        }
+      }
+    } else if (IsLongFlag(args.front())) {
+      std::string flag_name = std::string(args.front()).substr(2);
+      auto iter = long_flags.find(flag_name);
+      // TODO(josh): assert found
+      if (iter != long_flags.end()) {
+        iter->second->ConsumeArgs(this, &args);
+      }
+    } else {
+      Action* action = positional_actions.front();
+      positional_actions.pop_front();
+      action->ConsumeArgs(this, &args);
     }
   }
 }
