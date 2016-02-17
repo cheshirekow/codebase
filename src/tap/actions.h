@@ -88,11 +88,11 @@ class Action {
   }
 
   // action was already consumed to construct this object
-  void ConsumeInit(NamedActions action){}
+  void ConsumeInit(NamedActions action) {}
 
   // type was already consumed to construct this object
   template <typename T>
-  void ConsumeInit(TypeSentinel<T> type){}
+  void ConsumeInit(TypeSentinel<T> type) {}
 
   void ConsumeInit(NArgsSentinel nargs) {
     nargs_ = nargs.value;
@@ -141,6 +141,9 @@ class ActionBase : public Action {
   Optional<ValueType> const_;
   OutputIterator dest_;
 };
+
+template <typename... Args>
+void NoOp(Args&&... args) {}
 
 // Most common action, stores a single value in a variable
 template <typename ValueType, typename OutputIterator>
@@ -192,10 +195,9 @@ class StoreValue : public ActionBase<ValueType, OutputIterator> {
     required_ = required.value;
   }
 
-  template <typename Head, typename... Tail>
-  void InitRest(Head&& head, Tail&&... tail) {
-    this->ConsumeInit(head);
-    InitRest(tail...);
+  template <typename... Args>
+  void InitRest(Args&&... args) {
+    NoOp((this->ConsumeInit(args), 0)...);
   }
 
   //  template <typename... Tail>
