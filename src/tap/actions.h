@@ -196,14 +196,10 @@ namespace actions {
 template <typename... Args>
 void NoOp(Args&&... args) {}
 
-// NOTE(josh): CTRP is required to gain access to derived classes' argument
-// consumers.
-// TODO(josh): add another interface in between this one and Action to provide
-// the init function templates
-template <typename Derived, typename ValueType, typename OutputIterator>
-class ActionBase : public Action {
+template <typename Derived>
+class ActionInterface : public Action {
  public:
-  virtual ~ActionBase() {}
+  virtual ~ActionInterface() {}
   using Action::ConsumeArgSentinal;
 
   template <typename... Tail>
@@ -223,6 +219,26 @@ class ActionBase : public Action {
     this->InitRest(tail...);
   }
 
+ protected:
+  template <typename... Args>
+  void InitRest(Args&&... args) {
+    Derived* self = static_cast<Derived*>(this);
+    NoOp((self->ConsumeArgSentinal(args), 0)...);
+  }
+
+  void InitRest() {}
+};
+
+// NOTE(josh): CTRP is required to gain access to derived classes' argument
+// consumers.
+// TODO(josh): add another interface in between this one and Action to provide
+// the init function templates
+template <typename Derived, typename ValueType, typename OutputIterator>
+class ActionBase : public ActionInterface<Derived> {
+ public:
+  virtual ~ActionBase() {}
+  using Action::ConsumeArgSentinal;
+
   template <typename T>
   void ConsumeArgSentinal(ConstSentinel<T> const_in) {
     const_ = const_in.value;
@@ -234,14 +250,6 @@ class ActionBase : public Action {
 
  protected:
   ActionBase() {}
-
-  template <typename... Args>
-  void InitRest(Args&&... args) {
-    Derived* self = static_cast<Derived*>(this);
-    NoOp((self->ConsumeArgSentinal(args), 0)...);
-  }
-
-  void InitRest() {}
 
   Optional<ValueType> const_;
   OutputIterator dest_;
@@ -270,7 +278,6 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
     required_ = required.value;
   }
 
- protected:
   using ActionBase<StoreValue<ValueType, OutputIterator>, ValueType,
                    OutputIterator>::ConsumeArgSentinal;
 
