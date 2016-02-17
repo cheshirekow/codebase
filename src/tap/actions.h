@@ -67,7 +67,7 @@ bool StringStartsWith(const std::string& query, const std::string& start) {
   return true;
 }
 
-// Interface for parse actions
+// Interface for parse actions.
 class Action {
  public:
   virtual ~Action() {}
@@ -120,14 +120,37 @@ class Action {
 
 namespace actions {
 
-template <typename ValueType, typename OutputIterator>
+// This is an empty function which just allows us to use a parameter pack
+// expansion of function calls without a recursive template.
+template <typename... Args>
+void NoOp(Args&&... args) {}
+
+// NOTE(josh): CTRP is required to gain access to derived classes' argument
+// consumers.
+// TODO(josh): add another interface in between this one and Action to provide
+// the init function templates
+template <typename Derived, typename ValueType, typename OutputIterator>
 class ActionBase : public Action {
  public:
   virtual ~ActionBase() {}
   using Action::ConsumeInit;
 
- protected:
-  ActionBase() {}
+  template <typename... Tail>
+  void Construct(const std::string& name_or_flag, Tail&&... tail) {
+    this->ConsumeNameOrFlag(name_or_flag);
+    this->Construct(tail...);
+  }
+
+  template <typename... Tail>
+  void Construct(const char* name_or_flag, Tail&&... tail) {
+    this->ConsumeNameOrFlag(name_or_flag);
+    this->Construct(tail...);
+  }
+
+  template <typename... Tail>
+  void Construct(Tail&&... tail) {
+    this->InitRest(tail...);
+  }
 
   template <typename T>
   void ConsumeInit(ConstSentinel<T> const_in) {
@@ -138,43 +161,32 @@ class ActionBase : public Action {
     dest_ = dest.value;
   }
 
+ protected:
+  ActionBase() {}
+
+  template <typename... Args>
+  void InitRest(Args&&... args) {
+    Derived* self = static_cast<Derived*>(this);
+    NoOp((self->ConsumeInit(args), 0)...);
+  }
+
+  void InitRest() {}
+
   Optional<ValueType> const_;
   OutputIterator dest_;
 };
 
-template <typename... Args>
-void NoOp(Args&&... args) {}
-
 // Most common action, stores a single value in a variable
 template <typename ValueType, typename OutputIterator>
-class StoreValue : public ActionBase<ValueType, OutputIterator> {
+class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
+                                     ValueType, OutputIterator> {
  public:
   template <typename... Args>
   StoreValue(Args&&... args) {
-    this->Init1(args...);
+    this->Construct(args...);
   }
 
   virtual ~StoreValue() {}
-
-  template <typename... Tail>
-  void Init1(const std::string& name_or_flag, Tail&&... tail) {
-    this->ConsumeNameOrFlag(name_or_flag);
-    this->Init1(tail...);
-  }
-
-  template <typename... Tail>
-  void Init1(const char* name_or_flag, Tail&&... tail) {
-    this->ConsumeNameOrFlag(name_or_flag);
-    this->Init1(tail...);
-  }
-
-  template <typename... Tail>
-  void Init1(Tail&&... tail) {
-    this->InitRest(tail...);
-  }
-
- protected:
-  using ActionBase<ValueType, OutputIterator>::ConsumeInit;
 
   template <typename T>
   void ConsumeInit(ChoicesSentinel<T> choices) {
@@ -187,12 +199,9 @@ class StoreValue : public ActionBase<ValueType, OutputIterator> {
     required_ = required.value;
   }
 
-  template <typename... Args>
-  void InitRest(Args&&... args) {
-    NoOp((this->ConsumeInit(args), 0)...);
-  }
-
-  void InitRest() {}
+ protected:
+  using ActionBase<StoreValue<ValueType, OutputIterator>, ValueType,
+                   OutputIterator>::ConsumeInit;
 
  protected:
   std::set<ValueType> choices_;
@@ -200,7 +209,8 @@ class StoreValue : public ActionBase<ValueType, OutputIterator> {
 };
 
 template <typename ValueType, typename OutputIterator>
-class StoreConst : public ActionBase<ValueType, OutputIterator> {
+class StoreConst : public ActionBase<StoreConst<ValueType, OutputIterator>,
+                                     ValueType, OutputIterator> {
  public:
   virtual ~StoreConst();
 };
@@ -224,7 +234,8 @@ class StoreFalse : public StoreConst<bool, bool*> {
 };
 
 template <typename ValueType, typename OutputIterator>
-class AppendValue : public StoreValue<ValueType, OutputIterator> {
+class AppendValue : public ActionBase<AppendValue<ValueType, OutputIterator>,
+                                      ValueType, OutputIterator> {
  public:
   virtual ~AppendValue() {}
 
@@ -234,7 +245,8 @@ class AppendValue : public StoreValue<ValueType, OutputIterator> {
 };
 
 template <typename ValueType, typename OutputIterator>
-class AppendConst : public ActionBase<ValueType, OutputIterator> {
+class AppendConst : public ActionBase<AppendConst<ValueType, OutputIterator>,
+                                      ValueType, OutputIterator> {
  public:
   virtual ~AppendConst() {}
 };

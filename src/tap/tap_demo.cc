@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
 
   int values[3];
   tap::actions::StoreValue<int, int*> temp_action;
-  temp_action.Init1("-f", "--foo", required = false, choices = {1.0, 2.0, 3.0},
-                    constv = 0.2f, dest = values, metavar = "hello",
-                    help = "hello", nargs = 2);
+  temp_action.Construct("-f", "--foo", required = false,
+                        choices = {1.0, 2.0, 3.0}, constv = 0.2f, dest = values,
+                        metavar = "hello", help = "hello", nargs = 2);
 }
