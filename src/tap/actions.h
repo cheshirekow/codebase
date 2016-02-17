@@ -4,9 +4,47 @@
 #include <set>
 #include <string>
 
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif
+
 #include "kwargs.h"
 
 namespace tap {
+
+#ifdef __GNUC__
+template <typename T>
+std::string GetTypeName() {
+  std::string result;
+  char* name = 0;
+  int status;
+  name = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
+  if (name != nullptr) {
+    result = name;
+  } else {
+    result = "[UNKNOWN]";
+  }
+  free(name);
+};
+#else
+template <typename _Get_TypeName>
+const std::string& GetTypeName() {
+  static std::string name;
+
+  if (name.empty()) {
+    const char* beginStr = "_Get_TypeName =";
+    const size_t beginStrLen = 15;
+    size_t begin, length;
+    name = __PRETTY_FUNCTION__;
+
+    begin = name.find(beginStr) + beginStrLen + 1;
+    length = name.find("]", begin) - begin;
+    name = name.substr(begin, length);
+  }
+
+  return name;
+}
+#endif
 
 enum NamedActions {
   store,
@@ -18,7 +56,8 @@ enum NamedActions {
   count,
   help,
   version,
-  INVALID_ACTION,
+  ACTION_INVALID,
+  ACTION_NONE,
 };
 
 struct ActionKW {
@@ -87,22 +126,29 @@ class Action {
     }
   }
 
-  // action was already consumed to construct this object
-  void ConsumeInit(NamedActions action) {}
+  // Action was already consumed in order to determine which derived class was
+  // constructed, but we'll store it anyway.
+  void ConsumeArgSentinal(NamedActions action) {
+    action_ = action;
+  }
 
-  // type was already consumed to construct this object
+  // type was already consumed to construct this object. It's still within the
+  // parameter pack but we don't need to do anything with it during
+  // construction.
   template <typename T>
-  void ConsumeInit(TypeSentinel<T> type) {}
+  void ConsumeArgSentinal(TypeSentinel<T> type) {
+    value_type_name_ = GetTypeName<T>();
+  }
 
-  void ConsumeInit(NArgsSentinel nargs) {
+  void ConsumeArgSentinal(NArgsSentinel nargs) {
     nargs_ = nargs.value;
   }
 
-  void ConsumeInit(HelpSentinel help) {
+  void ConsumeArgSentinal(HelpSentinel help) {
     help_ = help.value;
   }
 
-  void ConsumeInit(MetavarSentinel metavar) {
+  void ConsumeArgSentinal(MetavarSentinel metavar) {
     metavar_ = metavar.value;
   }
 
@@ -111,6 +157,11 @@ class Action {
     long_flag_ = long_flag;
   }
 
+  /// not actually used, but is passed in during  construction so we may as well
+  /// store it as it might be handy to determine derived type later on.
+  Optional<NamedActions> action_;
+  /// Used mostly for debugging
+  Optional<std::string> value_type_name_;
   Optional<std::string> short_flag_;
   Optional<std::string> long_flag_;
   int nargs_;
@@ -133,7 +184,7 @@ template <typename Derived, typename ValueType, typename OutputIterator>
 class ActionBase : public Action {
  public:
   virtual ~ActionBase() {}
-  using Action::ConsumeInit;
+  using Action::ConsumeArgSentinal;
 
   template <typename... Tail>
   void Construct(const std::string& name_or_flag, Tail&&... tail) {
@@ -153,11 +204,11 @@ class ActionBase : public Action {
   }
 
   template <typename T>
-  void ConsumeInit(ConstSentinel<T> const_in) {
+  void ConsumeArgSentinal(ConstSentinel<T> const_in) {
     const_ = const_in.value;
   }
 
-  void ConsumeInit(DestSentinel<OutputIterator> dest) {
+  void ConsumeArgSentinal(DestSentinel<OutputIterator> dest) {
     dest_ = dest.value;
   }
 
@@ -167,7 +218,7 @@ class ActionBase : public Action {
   template <typename... Args>
   void InitRest(Args&&... args) {
     Derived* self = static_cast<Derived*>(this);
-    NoOp((self->ConsumeInit(args), 0)...);
+    NoOp((self->ConsumeArgSentinal(args), 0)...);
   }
 
   void InitRest() {}
@@ -189,19 +240,19 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
   virtual ~StoreValue() {}
 
   template <typename T>
-  void ConsumeInit(ChoicesSentinel<T> choices) {
+  void ConsumeArgSentinal(ChoicesSentinel<T> choices) {
     for (const auto& choice : choices.value) {
       choices_.insert(choice);
     }
   }
 
-  void ConsumeInit(RequiredSentinel required) {
+  void ConsumeArgSentinal(RequiredSentinel required) {
     required_ = required.value;
   }
 
  protected:
   using ActionBase<StoreValue<ValueType, OutputIterator>, ValueType,
-                   OutputIterator>::ConsumeInit;
+                   OutputIterator>::ConsumeArgSentinal;
 
  protected:
   std::set<ValueType> choices_;

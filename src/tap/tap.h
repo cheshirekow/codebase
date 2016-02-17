@@ -102,7 +102,7 @@ struct HasNamedAction<NamedActions, Tail...> {
 };
 
 NamedActions GetAction() {
-  return INVALID_ACTION;
+  return ACTION_NONE;
 }
 
 template <typename Head, typename... Tail>
