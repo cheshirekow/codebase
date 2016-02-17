@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cctype>
 #include <list>
 #include <set>
 #include <string>
@@ -25,6 +26,7 @@ std::string GetTypeName() {
     result = "[UNKNOWN]";
   }
   free(name);
+  return result;
 };
 #else
 template <typename _Get_TypeName>
@@ -106,10 +108,48 @@ bool StringStartsWith(const std::string& query, const std::string& start) {
   return true;
 }
 
+std::string ToUpper(const std::string& val_in) {
+  std::string val_out;
+  val_out.reserve(val_in.size());
+  for (char c : val_in) {
+    val_out.push_back(toupper(c));
+  }
+
+  return val_out;
+}
+
 // Interface for parse actions.
 class Action {
  public:
   virtual ~Action() {}
+
+  const Optional<std::string>& GetShortFlag() const {
+    return short_flag_;
+  }
+
+  const Optional<std::string>& GetLongFlag() const {
+    return long_flag_;
+  }
+
+  const Optional<std::string>& GetType() const {
+    return value_type_name_;
+  }
+
+  int GetNargs() const {
+    return nargs_;
+  }
+
+  const Optional<std::string>& GetHelp() const {
+    return help_;
+  }
+
+  const Optional<std::string>& GetMetavar() const {
+    return metavar_;
+  }
+
+  bool IsPositional() const {
+    return !(short_flag_.is_set || long_flag_.is_set);
+  }
 
  protected:
   Action() : nargs_(1) {}
@@ -119,6 +159,9 @@ class Action {
   void ConsumeNameOrFlag(const std::string& name_or_flag) {
     if (StringStartsWith(name_or_flag, "--")) {
       long_flag_ = name_or_flag;
+      if (!metavar_.is_set) {
+        metavar_ = ToUpper(name_or_flag.substr(2));
+      }
     } else if (StringStartsWith(name_or_flag, "-")) {
       short_flag_ = name_or_flag;
     } else {
@@ -165,8 +208,8 @@ class Action {
   Optional<std::string> short_flag_;
   Optional<std::string> long_flag_;
   int nargs_;
-  std::string help_;
-  std::string metavar_;
+  Optional<std::string> help_;
+  Optional<std::string> metavar_;
 };
 
 namespace actions {
