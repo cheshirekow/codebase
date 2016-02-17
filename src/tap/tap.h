@@ -5,40 +5,13 @@
 #include <set>
 #include <string>
 
+#include "actions.h"
+#include "hash.h"
+
 namespace tap {
 
-namespace internal {
 
-template <std::size_t SIZE>
-inline constexpr uint64_t HashStringCT(const char(&str)[SIZE], std::size_t i,
-                                       uint64_t hash) {
-  return i == SIZE ? hash
-                   : HashStringCT<SIZE>(str, i + 1,
-                                        ((hash << 5) ^ (hash >> 27)) ^ str[i]);
-}
 
-}  // namespace internal
-
-template <std::size_t SIZE>
-inline constexpr uint64_t HashStringCT(const char(&str)[SIZE]) {
-  return internal::HashStringCT<SIZE>(str, 0, 0);
-}
-
-inline uint64_t HashString(const std::string& str) {
-  uint64_t hash = 0;
-  // NOTE(josh): include the null terminating character in the hash
-  // so that it matches HashStringCT.
-  for (std::size_t i = 0; i <= str.size(); i++) {
-    hash = ((hash << 5) ^ (hash >> 27)) ^ str[i];
-  }
-  return hash;
-}
-
-class Action {
- public:
-  virtual ~Action();
-  virtual void Consume(int* argc, char*** argv) = 0;
-};
 
 namespace internal {
 
@@ -60,14 +33,6 @@ struct ActionKW {
 namespace kw {
 extern const internal::ActionKW action;
 }  // namespace kw
-
-enum NArgs {
-  NARGS_N = 0,
-  NARGS_ZERO_OR_ONE = '?',
-  NARGS_ZERO_OR_MORE = '*',
-  NARGS_ONE_OR_MORE = '+',
-  NARGS_REMAINDER,
-};
 
 class ArgumentParser {
  public:

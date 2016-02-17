@@ -1,7 +1,12 @@
 
 cc_require(glog)
 if(required_FOUND)
-  cc_library(tap SOURCES tap.h tap.cc
+  cc_library(tap SOURCES
+             actions.h
+             hash.h
+             kwargs.h
+             tap.h
+             tap.cc
              PKG_DEPENDS glog
              TARGET_DEPENDS format)
 
