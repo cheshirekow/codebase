@@ -51,6 +51,22 @@ struct Optional {
   }
 };
 
+bool StringStartsWith(const std::string& query, const std::string& start) {
+  if (query.size() < start.size()) {
+    return false;
+  }
+  auto query_iter = query.begin();
+  auto start_iter = start.begin();
+  while (query_iter != query.end() && start_iter != start.end()) {
+    if (*query_iter != *start_iter) {
+      return false;
+    }
+    ++query_iter;
+    ++start_iter;
+  }
+  return true;
+}
+
 // Interface for parse actions
 class Action {
  public:
@@ -60,6 +76,24 @@ class Action {
   Action() : nargs_(1) {}
 
   // virtual void Consume(int* argc, char*** argv) = 0;
+
+  void ConsumeNameOrFlag(const std::string& name_or_flag) {
+    if (StringStartsWith(name_or_flag, "--")) {
+      long_flag_ = name_or_flag;
+    } else if (StringStartsWith(name_or_flag, "-")) {
+      short_flag_ = name_or_flag;
+    } else {
+      metavar_ = name_or_flag;
+    }
+  }
+
+  // action was already consumed to construct this object
+  void ConsumeInit(NamedActions action){}
+
+  // type was already consumed to construct this object
+  template <typename T>
+  void ConsumeInit(TypeSentinel<T> type){}
+
   void ConsumeInit(NArgsSentinel nargs) {
     nargs_ = nargs.value;
   }
@@ -113,9 +147,28 @@ template <typename ValueType, typename OutputIterator>
 class StoreValue : public ActionBase<ValueType, OutputIterator> {
  public:
   template <typename... Args>
-  StoreValue(Args&&... args) {}
+  StoreValue(Args&&... args) {
+    this->Init1(args...);
+  }
 
   virtual ~StoreValue() {}
+
+  template <typename... Tail>
+  void Init1(const std::string& name_or_flag, Tail&&... tail) {
+    this->ConsumeNameOrFlag(name_or_flag);
+    this->Init1(tail...);
+  }
+
+  template <typename... Tail>
+  void Init1(const char* name_or_flag, Tail&&... tail) {
+    this->ConsumeNameOrFlag(name_or_flag);
+    this->Init1(tail...);
+  }
+
+  template <typename... Tail>
+  void Init1(Tail&&... tail) {
+    this->InitRest(tail...);
+  }
 
   template <typename... Tail>
   void Init(const std::string&& short_flag, const std::string&& long_flag,
