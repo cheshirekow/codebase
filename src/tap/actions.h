@@ -17,8 +17,19 @@ enum NamedActions {
   append_const,
   count,
   help,
-  version
+  version,
+  INVALID_ACTION,
 };
+
+struct ActionKW {
+  NamedActions operator=(NamedActions action) const {
+    return action;
+  }
+};
+
+namespace kw {
+ActionKW action;
+}  // namespace kw
 
 enum NArgs {
   NARGS_ZERO_OR_ONE = -1,   // '?'
@@ -61,6 +72,11 @@ class Action {
     metavar_ = metavar.value;
   }
 
+  void SetFlags(const std::string& short_flag, const std::string& long_flag) {
+    short_flag_ = short_flag;
+    long_flag_ = long_flag;
+  }
+
   Optional<std::string> short_flag_;
   Optional<std::string> long_flag_;
   int nargs_;
@@ -96,6 +112,9 @@ class ActionBase : public Action {
 template <typename ValueType, typename OutputIterator>
 class StoreValue : public ActionBase<ValueType, OutputIterator> {
  public:
+  template <typename... Args>
+  StoreValue(Args&&... args) {}
+
   virtual ~StoreValue() {}
 
   template <typename... Tail>
