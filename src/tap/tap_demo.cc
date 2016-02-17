@@ -8,13 +8,12 @@ int main(int argc, char** argv) {
   using namespace tap::kw;
   double foo;
   int bar;
+  int baz[3];
+
   parser.AddArgument("-f", "--foo", action = tap::store_true, type = double(),
                      dest = &foo);
   parser.AddArgument("-b", "--bar", type = int(), dest = &bar);
-
-  int values[3];
-  tap::actions::StoreValue<int, int*> temp_action;
-  temp_action.Construct("-f", "--foo", required = false,
-                        choices = {1.0, 2.0, 3.0}, constv = 0.2f, dest = values,
-                        metavar = "hello", help = "hello", nargs = 2);
+  parser.AddArgument("-z", "--baz", action = tap::store_true, required = false,
+                     type = int(), choices = {1, 2, 3}, constv = 2, nargs = 3,
+                     dest = baz, help = "It's a baz... duh");
 }
