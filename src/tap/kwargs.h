@@ -66,42 +66,42 @@ struct RequiredKW {
 
 struct ChoicesKW {
   template <typename T>
-  ChoicesSentinel<T> operator=(const std::initializer_list<T>& value) {
+  ChoicesSentinel<T> operator=(const std::initializer_list<T>& value) const {
     return ChoicesSentinel<T>{value};
   }
 };
 
 struct ConstKW {
   template <typename T>
-  ConstSentinel<T> operator=(const T& value) {
+  ConstSentinel<T> operator=(const T& value) const {
     return ConstSentinel<T>{value};
   }
 };
 
 struct DestKW {
   template <typename OutputIterator>
-  DestSentinel<OutputIterator> operator=(OutputIterator value) {
+  DestSentinel<OutputIterator> operator=(OutputIterator value) const {
     return DestSentinel<OutputIterator>{value};
   }
 };
 
 struct TypeKW {
   template <typename T>
-  TypeSentinel<T> operator=(const T& value) {
+  TypeSentinel<T> operator=(const T& value) const {
     return TypeSentinel<T>{};
   }
 };
 
 namespace kw {
 
-ChoicesKW choices;
-DestKW dest;
-NArgsKW nargs;
-HelpKW help;
-MetavarKW metavar;
-RequiredKW required;
-ConstKW constv;
-TypeKW type;
+constexpr ChoicesKW choices;
+constexpr DestKW dest;
+constexpr NArgsKW nargs;
+constexpr HelpKW help;
+constexpr MetavarKW metavar;
+constexpr RequiredKW required;
+constexpr ConstKW constv;
+constexpr TypeKW type;
 
 }  // namespace kw`
 }  // namespace tap

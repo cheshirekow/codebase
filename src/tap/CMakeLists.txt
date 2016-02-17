@@ -3,6 +3,7 @@ cc_require(glog)
 if(required_FOUND)
   cc_library(tap SOURCES
              actions.h
+             actions.cc
              hash.h
              kwargs.h
              tap.h
