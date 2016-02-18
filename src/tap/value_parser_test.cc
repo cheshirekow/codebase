@@ -108,4 +108,11 @@ TEST(TapValueParserTest, TestSignedParser8) {
     EXPECT_EQ(0, tap::ParseValue(kStrValue, &outvar));
     EXPECT_EQ(-128, outvar);
   }
+
+  // test char parsed as char
+  {
+    char kStrValue[] = "c";
+    EXPECT_EQ(0, tap::ParseValue(kStrValue, &outvar));
+    EXPECT_EQ('c', outvar);
+  }
 }

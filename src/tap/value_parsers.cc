@@ -319,6 +319,18 @@ int ParseSigned(char* str, Signed* outval) {
 }
 
 int ParseValue(char* str, int8_t* outval) {
+  // int8 is also a char, so check to see if it's a single non-numeric character
+  // than assume
+  // it's a char value to store.
+  if (str[1] == '\0') {
+    int error_code = 0;
+    AssertCharSet(str, kUnsignedCharset, &error_code);
+    if (error_code) {
+      *outval = str[0];
+      return 0;
+    }
+  }
+
   return ParseSigned(str, outval);
 }
 
