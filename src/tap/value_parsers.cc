@@ -346,4 +346,22 @@ int ParseValue(char* str, int64_t* outval) {
   return ParseSigned(str, outval);
 }
 
+static const std::set<std::string> kTrueSet = {"y",   "yes",  "Y",
+                                               "Yes", "true", "True"};
+static const std::set<std::string> kFalseSet = {"n",  "no",    "N",
+                                                "No", "false", "False"};
+
+int ParseValue(char* str, bool* outval) {
+  std::string str_string(str);
+  if (kTrueSet.count(str_string) > 0) {
+    *outval = true;
+    return 0;
+  }
+  if (kFalseSet.count(str_string) > 0) {
+    *outval = false;
+    return 0;
+  }
+  return -1;
+}
+
 }  // namespace tap

@@ -116,3 +116,18 @@ TEST(TapValueParserTest, TestSignedParser8) {
     EXPECT_EQ('c', outvar);
   }
 }
+
+TEST(TapValueParserTest, TestBool) {
+  bool outvar;
+  {
+    char kStrValue[] = "true";
+    EXPECT_EQ(0, tap::ParseValue(kStrValue, &outvar));
+    EXPECT_TRUE(outvar);
+  }
+
+  {
+    char kStrValue[] = "False";
+    EXPECT_EQ(0, tap::ParseValue(kStrValue, &outvar));
+    EXPECT_FALSE(outvar);
+  }
+}

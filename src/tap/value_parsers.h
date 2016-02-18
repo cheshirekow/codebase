@@ -30,5 +30,6 @@ int ParseValue(char* str, int8_t* outval);
 int ParseValue(char* str, int16_t* outval);
 int ParseValue(char* str, int32_t* outval);
 int ParseValue(char* str, int64_t* outval);
+int ParseValue(char* str, bool* outval);
 
 }  // namespace tap
