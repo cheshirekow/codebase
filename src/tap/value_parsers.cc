@@ -56,7 +56,6 @@ int ParseValue(char* str, float* outval) {
   return 0;
 }
 
-static const std::set<char> kSignedCharset = GetCharSet("-0123456789");
 static const std::set<char> kUnsignedCharset = GetCharSet("0123456789");
 
 template <uint8_t SIZE>
@@ -142,7 +141,7 @@ int8_t CharToInt(char c) {
 
 template <typename Unsigned>
 int ParseUnsigned(char* str, Unsigned* outval) {
-  typedef PowersOfTen<sizeof(unsigned)> PowTen;
+  typedef PowersOfTen<sizeof(Unsigned)> PowTen;
   const Unsigned kMax = std::numeric_limits<Unsigned>::max();
 
   int error_code = 0;
@@ -182,16 +181,16 @@ int ParseUnsigned(char* str, Unsigned* outval) {
   *outval = 0;
   for (int pow_ten = 0; end >= str && pow_ten < PowTen::num_values;
        ++pow_ten, --end) {
-    Unsigned exponent = static_cast<Unsigned>(CharToInt(*end));
+    Unsigned multiplier = static_cast<Unsigned>(CharToInt(*end));
 
     // verify that if we multiply this value by the current power of ten then we
     // will not overflow the desired type
     if ((pow_ten == PowTen::num_values - 1) &&
-        ((kMax / PowTen::values[pow_ten]) < exponent)) {
+        ((kMax / PowTen::values[pow_ten]) < multiplier)) {
       return -1;
     }
 
-    Unsigned increment = exponent * PowTen::values[pow_ten];
+    Unsigned increment = multiplier * PowTen::values[pow_ten];
 
     // verify that if we add the increment we will not overflow
     if (kMax - *outval < increment) {
@@ -220,20 +219,119 @@ int ParseValue(char* str, uint64_t* outval) {
   return ParseUnsigned(str, outval);
 }
 
-int ParseValue(char* str, int8_t* outval) {
+template <typename Signed>
+int ParseSigned(char* str, Signed* outval) {
+  typedef PowersOfTen<sizeof(unsigned)> PowTen;
+  const Signed kMin = std::numeric_limits<Signed>::min();
+  const Signed kMax = std::numeric_limits<Signed>::max();
+
+  bool is_negative = (str[0] == '-');
+  if (is_negative) {
+    ++str;
+  }
+
+  int error_code = 0;
+  AssertCharSet(str, kUnsignedCharset, &error_code);
+  if (error_code) {
+    return error_code;
+  }
+
+  // chomp zeros
+  while (*str == '0') {
+    ++str;
+  }
+
+  // find the back
+  char* end = str;
+  while (*end != '\0') {
+    ++end;
+  }
+
+  // string is empty
+  if (end == str) {
+    *outval = 0;
+    return 0;
+  }
+
+  // string contains too many digits for this sized type
+  if (end - str > PowTen::num_values) {
+    return -1;
+  }
+
+  // move the back ptr to the last char
+  --end;
+
+  // start at the back and build up the result, we've already asserted that
+  // pow_ten
+  // wont overflow
+  *outval = 0;
+  if (is_negative) {
+    for (int pow_ten = 0; end >= str && pow_ten < PowTen::num_values;
+         ++pow_ten, --end) {
+      Signed multiplier = -static_cast<Signed>(CharToInt(*end));
+
+      // verify that if we multiply this value by the current power of ten then
+      // we will not overflow the desired type
+      if ((pow_ten == PowTen::num_values - 1) &&
+          ((kMin / PowTen::values[pow_ten]) > multiplier)) {
+        return -1;
+      }
+
+      Signed increment = multiplier * PowTen::values[pow_ten];
+
+      // verify that if we add the increment we will not overflow
+      if (kMin - *outval > increment) {
+        return -1;
+      }
+
+      // add the increment
+      *outval += increment;
+    }
+  } else {
+    for (int pow_ten = 0; end >= str && pow_ten < PowTen::num_values;
+         ++pow_ten, --end) {
+      Signed multiplier = static_cast<Signed>(CharToInt(*end));
+
+      // verify that if we multiply this value by the current power of ten then
+      // we will not overflow the desired type
+      if ((pow_ten == PowTen::num_values - 1) &&
+          ((kMax / PowTen::values[pow_ten]) < multiplier)) {
+        return -1;
+      }
+
+      Signed increment = multiplier * PowTen::values[pow_ten];
+
+      // verify that if we add the increment we will not overflow
+      if (kMax - *outval < increment) {
+        return -1;
+      }
+
+      // add the increment
+      *outval += increment;
+    }
+  }
+
+  // the negative half of the support for signed types has one extra value than
+  // the positive
+  // half. For simplicity, we simply wont support that last possible value
+
   return 0;
+}
+
+int ParseValue(char* str, int8_t* outval) {
+  return ParseSigned(str, outval);
 }
 
 int ParseValue(char* str, int16_t* outval) {
-  return 0;
+  return ParseSigned(str, outval);
 }
 
 int ParseValue(char* str, int32_t* outval) {
-  return 0;
+  return ParseSigned(str, outval);
 }
 
 int ParseValue(char* str, int64_t* outval) {
-  return 0;
+  return ParseSigned(str, outval);
 }
 
 }  // namespace tap
