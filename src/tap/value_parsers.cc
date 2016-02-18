@@ -14,7 +14,7 @@ std::set<char> GetCharSet(const std::string& chars) {
 void AssertCharSet(char* str, const std::set<char>& charset, int* error_code) {
   for (char* ptr = str; *ptr != '\0'; ++ptr) {
     if (charset.count(*ptr) < 1) {
-      *error_code = 1;
+      *error_code = -1;
       return;
     }
   }
@@ -25,7 +25,7 @@ int ParseValue(char* str, std::string* outval) {
   return 0;
 }
 
-static const std::set<char> kFloatCharset = GetCharSet("+-0123456789.");
+static const std::set<char> kFloatCharset = GetCharSet("-0123456789.");
 
 int ParseValue(char* str, double* outval) {
   int error_code = 0;
@@ -48,28 +48,176 @@ int ParseValue(char* str, float* outval) {
 
   // for now
   double temp = atof(str);
+  *outval = static_cast<float>(temp);
   if (temp < -std::numeric_limits<float>::max() ||
       temp > std::numeric_limits<float>::max()) {
     return 1;
   }
-  *outval = static_cast<float>(temp);
+  return 0;
+}
+
+static const std::set<char> kSignedCharset = GetCharSet("-0123456789");
+static const std::set<char> kUnsignedCharset = GetCharSet("0123456789");
+
+template <uint8_t SIZE>
+struct PowersOfTen {
+  typedef typename GetUnsignedType<SIZE>::Type UnsignedType;
+  static const UnsignedType values[];
+  static const int num_values;
+};
+
+// 8-bits
+template <>
+const int PowersOfTen<1>::num_values = 3;
+
+template <>
+const uint8_t PowersOfTen<1>::values[] = {
+    1,    //
+    10,   //
+    100,  //
+};
+
+template <>
+const int PowersOfTen<2>::num_values = 5;
+
+template <>
+const uint16_t PowersOfTen<2>::values[] = {
+    1,      //
+    10,     //
+    100,    //
+    1000,   //
+    10000,  //
+};
+
+// 32-bits
+template <>
+const int PowersOfTen<4>::num_values = 10;
+
+template <>
+const uint32_t PowersOfTen<4>::values[] = {
+    1,           //
+    10,          //
+    100,         //
+    1000,        //
+    10000,       //
+    100000,      //
+    1000000,     //
+    10000000,    //
+    100000000,   //
+    1000000000,  //
+};
+
+// 64-bits
+template <>
+const int PowersOfTen<8>::num_values = 20;
+
+template <>
+const uint64_t PowersOfTen<8>::values[] = {
+    1,                       //
+    10,                      //
+    100,                     //
+    1000,                    //
+    10000,                   //
+    100000,                  //
+    1000000,                 //
+    10000000,                //
+    100000000,               //
+    1000000000,              //
+    10000000000,             //
+    100000000000,            //
+    1000000000000,           //
+    10000000000000,          //
+    100000000000000,         //
+    1000000000000000,        //
+    10000000000000000,       //
+    100000000000000000,      //
+    1000000000000000000,     //
+    10000000000000000000ULL  //
+};
+
+// NOTE: assumes c already validated to be in the range ['0', '9']
+int8_t CharToInt(char c) {
+  return c - '0';
+}
+
+template <typename Unsigned>
+int ParseUnsigned(char* str, Unsigned* outval) {
+  typedef PowersOfTen<sizeof(unsigned)> PowTen;
+  const Unsigned kMax = std::numeric_limits<Unsigned>::max();
+
+  int error_code = 0;
+  AssertCharSet(str, kUnsignedCharset, &error_code);
+  if (error_code) {
+    return error_code;
+  }
+
+  // chomp zeros
+  while (*str == '0') {
+    ++str;
+  }
+
+  // find the back
+  char* end = str;
+  while (*end != '\0') {
+    ++end;
+  }
+
+  // string is empty
+  if (end == str) {
+    *outval = 0;
+    return 0;
+  }
+
+  // string contains too many digits for this sized type
+  if (end - str > PowTen::num_values) {
+    return -1;
+  }
+
+  // move the back ptr to the last char
+  --end;
+
+  // start at the back and build up the result, we've already asserted that
+  // pow_ten
+  // wont overflow
+  *outval = 0;
+  for (int pow_ten = 0; end >= str && pow_ten < PowTen::num_values;
+       ++pow_ten, --end) {
+    Unsigned exponent = static_cast<Unsigned>(CharToInt(*end));
+
+    // verify that if we multiply this value by the current power of ten then we
+    // will not overflow the desired type
+    if ((pow_ten == PowTen::num_values - 1) &&
+        ((kMax / PowTen::values[pow_ten]) < exponent)) {
+      return -1;
+    }
+
+    Unsigned increment = exponent * PowTen::values[pow_ten];
+
+    // verify that if we add the increment we will not overflow
+    if (kMax - *outval < increment) {
+      return -1;
+    }
+
+    // add the increment
+    *outval += increment;
+  }
   return 0;
 }
 
 int ParseValue(char* str, uint8_t* outval) {
-  return 0;
+  return ParseUnsigned(str, outval);
 }
 
 int ParseValue(char* str, uint16_t* outval) {
-  return 0;
+  return ParseUnsigned(str, outval);
 }
 
 int ParseValue(char* str, uint32_t* outval) {
-  return 0;
+  return ParseUnsigned(str, outval);
 }
 
 int ParseValue(char* str, uint64_t* outval) {
-  return 0;
+  return ParseUnsigned(str, outval);
 }
 
 int ParseValue(char* str, int8_t* outval) {

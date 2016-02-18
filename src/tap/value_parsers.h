@@ -3,8 +3,21 @@
 #include <cstdint>
 #include <string>
 
-
 namespace tap {
+
+// clang-format off
+template <uint8_t SIZE> struct GetUnsignedType;
+template <> struct GetUnsignedType<1>{ typedef uint8_t Type; };
+template <> struct GetUnsignedType<2>{ typedef uint16_t Type; };
+template <> struct GetUnsignedType<4>{ typedef uint32_t Type; };
+template <> struct GetUnsignedType<8>{ typedef uint64_t Type; };
+
+  template <uint8_t SIZE> struct GetSignedType;
+  template <> struct GetSignedType<1>{ typedef int8_t Type; };
+  template <> struct GetSignedType<2>{ typedef int16_t Type; };
+  template <> struct GetSignedType<4>{ typedef int32_t Type; };
+  template <> struct GetSignedType<8>{ typedef int64_t Type; };
+// clang-format on
 
 int ParseValue(char* str, std::string* outval);
 int ParseValue(char* str, double* outval);
@@ -18,4 +31,4 @@ int ParseValue(char* str, int16_t* outval);
 int ParseValue(char* str, int32_t* outval);
 int ParseValue(char* str, int64_t* outval);
 
-} // namespace tap
+}  // namespace tap
