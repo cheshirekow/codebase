@@ -8,12 +8,16 @@ if(required_FOUND)
              kwargs.h
              tap.h
              tap.cc
+             value_parsers.h
+             value_parsers.cc
              PKG_DEPENDS glog
              TARGET_DEPENDS format)
 
   cc_executable(tap_demo SOURCES tap_demo.cc
                 TARGET_DEPENDS tap_static)
   cc_test(tap_kwarg_test SOURCES kwarg_test.cc)
+  cc_test(tap_value_parser_test SOURCES value_parser_test.cc
+          TARGET_DEPENDS tap_static)
 else()
   mark_excluded("tap: missing glog")
 endif()
