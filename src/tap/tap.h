@@ -14,8 +14,6 @@
 
 namespace tap {
 
-struct Nil{};
-
 template <typename... List>
 struct GetValueType;
 
@@ -49,7 +47,7 @@ struct GetIteratorType;
 
 template <>
 struct GetIteratorType<> {
-  typedef Nil Type;
+  typedef Nil* Type;
   enum { kListExhausted = 1 };
 };
 

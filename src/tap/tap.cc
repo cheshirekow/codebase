@@ -226,9 +226,15 @@ void ArgumentParser::ParseArgs(int* argc, char*** argv) {
         iter->second->ConsumeArgs(this, &args);
       }
     } else {
-      Action* action = positional_actions.front();
-      positional_actions.pop_front();
-      action->ConsumeArgs(this, &args);
+      if (positional_actions.size() > 0) {
+        Action* action = positional_actions.front();
+        positional_actions.pop_front();
+        action->ConsumeArgs(this, &args);
+      } else {
+        std::cerr << "No positional actions available to parse argument: "
+                  << args.front() << "\n";
+        std::exit(1);
+      }
     }
   }
 }

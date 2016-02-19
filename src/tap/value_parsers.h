@@ -2,8 +2,11 @@
 
 #include <cstdint>
 #include <string>
+#include "kwargs.h"
 
 namespace tap {
+
+struct Nil{};
 
 // clang-format off
 template <uint8_t SIZE> struct GetUnsignedType;
@@ -31,5 +34,6 @@ int ParseValue(char* str, int16_t* outval);
 int ParseValue(char* str, int32_t* outval);
 int ParseValue(char* str, int64_t* outval);
 int ParseValue(char* str, bool* outval);
+int ParseValue(char* str, Nil* outval);
 
 }  // namespace tap

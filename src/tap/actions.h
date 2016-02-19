@@ -11,6 +11,7 @@
 #endif
 
 #include "kwargs.h"
+#include "value_parsers.h"
 
 namespace tap {
 
@@ -298,34 +299,43 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
 
   virtual ~StoreValue() {}
   void ConsumeArgs(ArgumentParser* parser, std::list<char*>* args) override {
+    ValueType value;
     // TODO(josh): implement for real
     // TODO(josh): assert nargs_ > -5
     switch (this->nargs_) {
       case NARGS_ONE_OR_MORE:
         // TODO(josh): assert !IsFlag(args.front());
         while (args->size() > 0 && !IsFlag(args->front())) {
-          // *(dest_++) = Parse<ValueType>(args->front());
+          int result = ParseValue(args->front(), &value);
+          // TODO(josh): handle result
+          *(this->dest_++) = value;
           args->pop_front();
         }
         break;
 
       case NARGS_REMAINDER:
         while (args->size() > 0) {
-          // *(dest_++) = Parse<ValueType>(args->front());
+          int result = ParseValue(args->front(), &value);
+          // TODO(josh): handle result
+          *(this->dest_++) = value;
           args->pop_front();
         }
         break;
 
       case NARGS_ZERO_OR_MORE:
         while (args->size() > 0 && !IsFlag(args->front())) {
-          // *(dest_++) = Parse<ValueType>(args->front());
+          int result = ParseValue(args->front(), &value);
+          // TODO(josh): handle result
+          *(this->dest_++) = value;
           args->pop_front();
         }
         break;
 
       case NARGS_ZERO_OR_ONE:
         if (args->size() > 0 && !IsFlag(args->front())) {
-          // *(dest_++) = Parse<ValueType>(args->front());
+          int result = ParseValue(args->front(), &value);
+          // TODO(josh): handle result
+          *(this->dest_++) = value;
           args->pop_front();
         }
         break;
@@ -333,7 +343,9 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
       default:
         // TODO(josh): assert args->size() > nargs_
         for (int i = 0; i < this->nargs_ && args->size() > 0; i++) {
-          // *(dest_++) = Parse<ValueType>(args->front());
+          int result = ParseValue(args->front(), &value);
+          // TODO(josh): handle result
+          *(this->dest_++) = value;
           args->pop_front();
         }
     }

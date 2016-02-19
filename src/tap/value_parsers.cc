@@ -364,4 +364,8 @@ int ParseValue(char* str, bool* outval) {
   return -1;
 }
 
+int ParseValue(char* str, Nil* outval) {
+  return -1;
+}
+
 }  // namespace tap
