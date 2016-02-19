@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #include "actions.h"
-#include "tap_common.h"
+#include "common.h"
 
 namespace tap {
 

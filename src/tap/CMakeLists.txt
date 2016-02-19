@@ -4,11 +4,11 @@ if(required_FOUND)
   cc_library(tap SOURCES
              actions.h
              actions.cc
+             common.h
+             common.cc
              kwargs.h
              tap.h
              tap.cc
-             tap_common.h
-             tap_common.cc
              value_parsers.h
              value_parsers.cc
              PKG_DEPENDS glog

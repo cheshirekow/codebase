@@ -3,8 +3,7 @@
 #include <cstdint>
 #include <string>
 
-#include "kwargs.h"
-#include "tap_common.h"
+#include "common.h"
 
 namespace tap {
 
