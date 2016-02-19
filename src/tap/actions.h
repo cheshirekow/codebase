@@ -201,9 +201,9 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
   }
 
   virtual ~StoreValue() {}
+
   void ConsumeArgs(ArgumentParser* parser, std::list<char*>* args) override {
     ValueType value;
-    // TODO(josh): implement for real
     // TODO(josh): assert nargs_ > -5
     switch (this->nargs_) {
       case NARGS_ONE_OR_MORE:
@@ -278,25 +278,25 @@ template <typename ValueType, typename OutputIterator>
 class StoreConst : public ActionBase<StoreConst<ValueType, OutputIterator>,
                                      ValueType, OutputIterator> {
  public:
-  virtual ~StoreConst();
-};
+  using ActionBase<StoreConst<ValueType, OutputIterator>, ValueType,
+                   OutputIterator>::ConsumeArgSentinal;
 
-class StoreTrue : public StoreConst<bool, bool*> {
- public:
-  StoreTrue() {
-    nargs_ = 0;
-    const_ = true;
+  template <typename... Args>
+  StoreConst(Args&&... args) {
+    this->nargs_ = 0;
+    this->Construct(args...);
   }
-  virtual ~StoreTrue();
-};
 
-class StoreFalse : public StoreConst<bool, bool*> {
- public:
-  StoreFalse() {
-    nargs_ = 0;
-    const_ = false;
+  virtual ~StoreConst() {}
+
+  void ConsumeArgs(ArgumentParser* parser, std::list<char*>* args) override {
+    // TODO(josh): assert nargs_ == 1;
+    // TODO(josh): assert args->size() > nargs_
+    // TODO(josh): assert const_.is_set;
+    if (this->const_.is_set) {
+      *(this->dest_++) = this->const_.value;
+    }
   }
-  virtual ~StoreFalse();
 };
 
 template <typename ValueType, typename OutputIterator>

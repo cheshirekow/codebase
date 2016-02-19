@@ -161,12 +161,17 @@ class ArgumentParser {
         break;
 
       case store_const:
+        action = new actions::StoreConst<ValueType, OutputIterator>(args...);
         break;
 
       case store_true:
+        action = new actions::StoreConst<bool, OutputIterator>(
+            args..., kw::constv = true);
         break;
 
       case store_false:
+        action = new actions::StoreConst<bool, OutputIterator>(
+            args..., kw::constv = false);
         break;
 
       case append:

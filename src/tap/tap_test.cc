@@ -47,24 +47,57 @@ TEST(TapTest, TestEmptyParser) {
   parser.ParseArgs(&args);
 }
 
-TEST(TapTest, TestSimpleParser) {
+TEST(TapTest, TestStoreAction) {
   int foo = 0;
-  double bar = 0;
   tap::ArgumentParser parser;
 
   using namespace tap::kw;
-  parser.AddArgument("--foo", dest = &foo);
-  parser.AddArgument("--bar", dest = &bar);
-  std::list<std::string> str_args = {"--foo", "2", "--bar", "2.0"};
-  std::list<char*> args;
-  for (std::string& str : str_args) {
-    args.push_back(&(str[0]));
-  }
+  parser.AddArgument("--foo", action = tap::store, dest = &foo);
+  ArgStorage args({"program", "--foo", "2"});
 
-  parser.ParseArgs(&args);
-  EXPECT_EQ(0, args.size());
+  parser.ParseArgs(&args.argc, args.argv);
+  EXPECT_EQ(1, args.argc);
   EXPECT_EQ(2, foo);
-  EXPECT_EQ(2.0, bar);
+}
+
+TEST(TapTest, TestStoreConstAction) {
+  int foo = 0;
+  tap::ArgumentParser parser;
+
+  using namespace tap::kw;
+  parser.AddArgument("--foo", action = tap::store_const, constv = 2,
+                     dest = &foo);
+  ArgStorage args({"program", "--foo"});
+
+  parser.ParseArgs(&args.argc, args.argv);
+  EXPECT_EQ(1, args.argc);
+  EXPECT_EQ(2, foo);
+}
+
+TEST(TapTest, TestStoreTrueAction) {
+  bool foo = false;
+  tap::ArgumentParser parser;
+
+  using namespace tap::kw;
+  parser.AddArgument("--foo", action = tap::store_true, dest = &foo);
+  ArgStorage args({"program", "--foo"});
+
+  parser.ParseArgs(&args.argc, args.argv);
+  EXPECT_EQ(1, args.argc);
+  EXPECT_TRUE(foo);
+}
+
+TEST(TapTest, TestStoreFalseAction) {
+  bool foo = true;
+  tap::ArgumentParser parser;
+
+  using namespace tap::kw;
+  parser.AddArgument("--foo", action = tap::store_false, dest = &foo);
+  ArgStorage args({"program", "--foo"});
+
+  parser.ParseArgs(&args.argc, args.argv);
+  EXPECT_EQ(1, args.argc);
+  EXPECT_FALSE(foo);
 }
 
 TEST(TapTest, TestSimpleCommandLine) {

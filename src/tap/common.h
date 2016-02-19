@@ -31,7 +31,13 @@ enum NArgs {
 };
 
 /// A sentinel type used in some meta programming.
-struct Nil {};
+struct Nil {
+  template <typename T>
+  Nil& operator=(const T& value) {
+    // TODO(josh): assert error;
+    return *this;
+  }
+};
 
 /// A simple optional class that stores a simple value along with a flag marking
 /// whether or
