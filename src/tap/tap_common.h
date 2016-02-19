@@ -30,6 +30,51 @@ enum NArgs {
   NARGS_REMAINDER = -4,
 };
 
+/// A sentinel type used in some meta programming.
+struct Nil {};
+
+/// A simple optional class that stores a simple value along with a flag marking
+/// whether or
+/// not that value has been set.
+template <typename ValueType>
+struct Optional {
+  ValueType value;
+  bool is_set;
+
+  Optional() : is_set(false) {}
+  Optional<ValueType>& operator=(const ValueType& value_in) {
+    value = value_in;
+    is_set = true;
+    return *this;
+  }
+};
+
+/// Return true if @p query starts with the string @p start
+bool StringStartsWith(const std::string& query, const std::string& start);
+
+/// Return a copy of @p val_in with all characters made upppercase
+std::string ToUpper(const std::string& val_in);
+
+/// Return true if the string is of the form "-x"
+inline bool IsShortFlag(const std::string& str) {
+  return (str.size() >= 2 && str[0] == '-' && str[1] != '-');
+}
+
+/// Return true if the string is of the form "--foo"
+inline bool IsLongFlag(const std::string& str) {
+  return (str.size() >= 3 && str[0] == '-' && str[1] == '-');
+}
+
+/// Return true if the string is of either forms: "-x" or "--foo"
+inline bool IsFlag(const std::string& str) {
+  return IsShortFlag(str) || IsLongFlag(str);
+}
+
+// This is an empty function which just allows us to use a parameter pack
+// expansion of function calls without a recursive template.
+template <typename... Args>
+void NoOp(Args&&... args) {}
+
 #ifdef __GNUC__
 // Return a human-readable string for the type parameter T
 template <typename T>

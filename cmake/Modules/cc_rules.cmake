@@ -161,9 +161,14 @@ set(GTEST_LIBS
   gtest_main
   pthread)
 
+add_custom_target(build_tests)
+add_custom_target(run_tests COMMAND ${CMAKE_CTEST_COMMAND})
+
 function(cc_test test_name)
   cc_executable(${test_name} ${ARGN})
   target_link_libraries(${test_name}_exe ${GTEST_LIBS})
   add_test(NAME ${test_name} COMMAND ${test_name}_exe)
+  add_dependencies(build_tests ${test_name})
+  add_dependencies(run_tests ${test_name})
 endfunction()
 

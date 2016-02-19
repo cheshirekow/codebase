@@ -10,29 +10,13 @@
 #include <cxxabi.h>
 #endif
 
-#include "tap_common.h"
 #include "kwargs.h"
+#include "tap_common.h"
 #include "value_parsers.h"
 
 namespace tap {
 
 class ArgumentParser;
-
-template <typename ValueType>
-struct Optional {
-  ValueType value;
-  bool is_set;
-
-  Optional() : is_set(false) {}
-  Optional<ValueType>& operator=(const ValueType& value_in) {
-    value = value_in;
-    is_set = true;
-    return *this;
-  }
-};
-
-bool StringStartsWith(const std::string& query, const std::string& start);
-std::string ToUpper(const std::string& val_in);
 
 // Interface for parse actions.
 class Action {
@@ -71,8 +55,6 @@ class Action {
  protected:
   Action() : nargs_(1) {}
 
-  // virtual void Consume(int* argc, char*** argv) = 0;
-
   void ConsumeNameOrFlag(const std::string& name_or_flag) {
     if (StringStartsWith(name_or_flag, "--")) {
       long_flag_ = name_or_flag;
@@ -86,15 +68,14 @@ class Action {
     }
   }
 
-  // Action was already consumed in order to determine which derived class was
-  // constructed, but we'll store it anyway.
+  /// Action was already consumed in order to determine which derived class was
+  /// constructed, but we'll store it anyway.
   void ConsumeArgSentinal(NamedActions action) {
     action_ = action;
   }
 
-  // type was already consumed to construct this object. It's still within the
-  // parameter pack but we don't need to do anything with it during
-  // construction.
+  /// Value type was already consumed to construct this object. We store the
+  /// string representation though for help text and debugging.
   template <typename T>
   void ConsumeArgSentinal(Sentinel<_H("type"), T> type) {
     value_type_name_ = GetTypeName<T>();
@@ -148,25 +129,6 @@ class Action {
   Optional<std::string> metavar_;
 };
 
-inline bool IsShortFlag(const std::string& str) {
-  return (str.size() >= 2 && str[0] == '-' && str[1] != '-');
-}
-
-inline bool IsLongFlag(const std::string& str) {
-  return (str.size() >= 3 && str[0] == '-' && str[1] == '-');
-}
-
-inline bool IsFlag(const std::string& str) {
-  return IsShortFlag(str) || IsLongFlag(str);
-}
-
-namespace actions {
-
-// This is an empty function which just allows us to use a parameter pack
-// expansion of function calls without a recursive template.
-template <typename... Args>
-void NoOp(Args&&... args) {}
-
 // First base class just provides static interface. CTRP is required to gain
 // access to derived class's argument consumers.
 template <typename Derived>
@@ -201,6 +163,8 @@ class ActionInterface : public Action {
 
   void InitRest() {}
 };
+
+namespace actions {
 
 // Second base class provides some actual storage that is common among some
 // actions
@@ -367,5 +331,4 @@ class Help : public ActionInterface<Help> {
 };
 
 }  // namespace actions
-
 }  // namespace tap

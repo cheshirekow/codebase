@@ -14,6 +14,11 @@
 
 namespace tap {
 
+/// Given a typelist of argument types to the function
+/// ArgumentParser::AddArgument, determine
+/// if any of the arguments is a TypeSentinel. If so, extract the ValueType
+/// stored in the sentinel.
+/// Otherwise resolve to Nil.
 template <typename... List>
 struct GetValueType;
 
@@ -42,6 +47,10 @@ struct GetValueType<Sentinel<_H("type"), T>, Tail...> {
       "You have specified a command line argument with more than one type!");
 };
 
+/// Given a typelist of argument types to the function
+/// ArgumentParser::AddArgument, determine if any of the arguments is a
+/// DestSentinel. If so, extract the OutputIterator type stored in the sentinel.
+/// Otherwise, resolve to Nil.
 template <typename... List>
 struct GetIteratorType;
 
@@ -63,16 +72,15 @@ struct GetIteratorType<DestSentinel<T>, Tail...> {
   enum { kListExhausted = 0 };
 
   // assert that if we keep loking for a type sentinel, we reach the end of the
-  // list and end up with the default (i.e. there are no other type sentinels in
+  // list and end up with the default (i.e. there are no other dest sentinels in
   // the list.
   static_assert(GetIteratorType<Tail...>::kListExhausted,
                 "You have specified a command line argument with more than one "
                 "destination!");
 };
 
-// This template  resolves the value type of the output iterator if the user
-// failed
-// to specify a value type for the parser.
+/// This template  resolves the value type of the output iterator if the user
+/// failed to specify a value type for the parser.
 template <typename ValueType, typename OutputIterator>
 struct ResolveValueType {
   typedef ValueType Type;
@@ -97,13 +105,42 @@ NamedActions GetAction(NamedActions head, Tail&&... tail) {
   return head;
 }
 
+/// Template to extract the action type from a parameter pack. Recursively calls
+/// itself until either a NamedAction is encountered or the list is exhausted.
 template <typename Head, typename... Tail>
 NamedActions GetAction(Head&& head, Tail&&... tail) {
   return GetAction(tail...);
 }
 
+/// Primary interface into TAP. Stores a specification of command line flags and
+/// arguments, and provides methods for parsing and argument list and generating
+/// help text.
 class ArgumentParser {
  public:
+  /// KWargs api to add an argument.
+  /**
+   *  positional arguments:
+   *    * **name or flags**  one or two strings (or objects implicitly
+   *      convertable to a string). Can be one of the following:
+   *      * **short flag** i.e. "-x"
+   *      * **long flag** i.e. "--foo"
+   *      * **argument name** indicates the argument is a positional argument,
+   *        and provides the metavar used as a placeholder for this argument
+   *        in help text.
+   *  kwargs:
+   *    * **action** - which action to perform when this argument is
+   *      encountered.
+   *    * **nargs** - How many arguments to parse. May be an integer or one
+   *      of the following.
+   *    * **constv** - a constant value used by some of the actions
+   *    * **type** - the value type of the data used to parse the string
+   *    * **choices** - enumeration of valid values for the argument
+   *    * **required** - whether or not the argument is required
+   *    * **help** - help text for this argument
+   *    * **metavar** - placeholder name used in help output
+   *    * **dest** - output iterator where to store the value(s) when
+   *      encountered on the command line
+   */
   template <typename... Args>
   void AddArgument(Args&&... args) {
     typedef typename GetIteratorType<Args...>::Type OutputIterator;

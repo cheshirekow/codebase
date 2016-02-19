@@ -2,11 +2,11 @@
 
 #include <cstdint>
 #include <string>
+
 #include "kwargs.h"
+#include "tap_common.h"
 
 namespace tap {
-
-struct Nil{};
 
 // clang-format off
 template <uint8_t SIZE> struct GetUnsignedType;
