@@ -10,78 +10,13 @@
 #include <cxxabi.h>
 #endif
 
+#include "tap_common.h"
 #include "kwargs.h"
 #include "value_parsers.h"
 
 namespace tap {
 
 class ArgumentParser;
-
-#ifdef __GNUC__
-template <typename T>
-std::string GetTypeName() {
-  std::string result;
-  char* name = 0;
-  int status;
-  name = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
-  if (name != nullptr) {
-    result = name;
-  } else {
-    result = "[UNKNOWN]";
-  }
-  free(name);
-  return result;
-};
-#else
-template <typename _Get_TypeName>
-const std::string& GetTypeName() {
-  static std::string name;
-
-  if (name.empty()) {
-    const char* beginStr = "_Get_TypeName =";
-    const size_t beginStrLen = 15;
-    size_t begin, length;
-    name = __PRETTY_FUNCTION__;
-
-    begin = name.find(beginStr) + beginStrLen + 1;
-    length = name.find("]", begin) - begin;
-    name = name.substr(begin, length);
-  }
-
-  return name;
-}
-#endif
-
-enum NamedActions {
-  store,
-  store_const,
-  store_true,
-  store_false,
-  append,
-  append_const,
-  count,
-  help,
-  version,
-  ACTION_INVALID,
-  ACTION_NONE,
-};
-
-struct ActionKW {
-  NamedActions operator=(NamedActions action) const {
-    return action;
-  }
-};
-
-namespace kw {
-constexpr ActionKW action;
-}  // namespace kw
-
-enum NArgs {
-  NARGS_ZERO_OR_ONE = -1,   // '?'
-  NARGS_ZERO_OR_MORE = -2,  // '*'
-  NARGS_ONE_OR_MORE = -3,   // '+'
-  NARGS_REMAINDER = -4,
-};
 
 template <typename ValueType>
 struct Optional {

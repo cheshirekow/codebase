@@ -1,32 +1,9 @@
 #include <gtest/gtest.h>
 #include <tap/tap.h>
 
-TEST(TapTest, TestEmptyParser) {
-  std::list<char*> args;
-  tap::ArgumentParser parser;
-  parser.ParseArgs(&args);
-}
-
-TEST(TapTest, TestSimpleParser) {
-  int foo = 0;
-  double bar = 0;
-  tap::ArgumentParser parser;
-
-  using namespace tap::kw;
-  parser.AddArgument("--foo", dest = &foo);
-  parser.AddArgument("--bar", dest = &bar);
-  std::list<std::string> str_args = {"--foo", "2", "--bar", "2.0"};
-  std::list<char*> args;
-  for (std::string& str : str_args) {
-    args.push_back(&(str[0]));
-  }
-
-  parser.ParseArgs(&args);
-  EXPECT_EQ(0, args.size());
-  EXPECT_EQ(2, foo);
-  EXPECT_EQ(2.0, bar);
-}
-
+/// Construct with a list of strings. Will generate argc, argv suitable for
+/// passing into
+/// ArgumentParser::ParseArgs.
 struct ArgStorage {
   int argc;
   char** argv;
@@ -57,6 +34,38 @@ struct ArgStorage {
   std::vector<char*> argvec_;
   std::vector<char*> nullvec_;
 };
+
+TEST(TapTest, TestHash) {
+  enum { kHashCT = tap::HashStringCT("HelloWorld") };
+
+  EXPECT_EQ(kHashCT, tap::HashString("HelloWorld"));
+}
+
+TEST(TapTest, TestEmptyParser) {
+  std::list<char*> args;
+  tap::ArgumentParser parser;
+  parser.ParseArgs(&args);
+}
+
+TEST(TapTest, TestSimpleParser) {
+  int foo = 0;
+  double bar = 0;
+  tap::ArgumentParser parser;
+
+  using namespace tap::kw;
+  parser.AddArgument("--foo", dest = &foo);
+  parser.AddArgument("--bar", dest = &bar);
+  std::list<std::string> str_args = {"--foo", "2", "--bar", "2.0"};
+  std::list<char*> args;
+  for (std::string& str : str_args) {
+    args.push_back(&(str[0]));
+  }
+
+  parser.ParseArgs(&args);
+  EXPECT_EQ(0, args.size());
+  EXPECT_EQ(2, foo);
+  EXPECT_EQ(2.0, bar);
+}
 
 TEST(TapTest, TestSimpleCommandLine) {
   int foo = 0;

@@ -3,7 +3,8 @@
 #include <initializer_list>
 #include <list>
 #include <string>
-#include "hash.h"
+
+#include "tap_common.h"
 
 namespace tap {
 
@@ -15,6 +16,13 @@ struct Sentinel {
 template <uint64_t Key>
 struct KeyWord {
   template <typename T>
+  Sentinel<Key, T> operator=(T&& value) const {
+    return Sentinel<Key, T>{value};
+  }
+};
+
+template <uint64_t Key, typename T>
+struct TypedKeyWord {
   Sentinel<Key, T> operator=(T&& value) const {
     return Sentinel<Key, T>{value};
   }
@@ -51,6 +59,12 @@ struct DestKW {
   }
 };
 
+struct ActionKW {
+  NamedActions operator=(NamedActions action) const {
+    return action;
+  }
+};
+
 namespace kw {
 
 constexpr ChoicesKW choices;
@@ -61,6 +75,7 @@ constexpr MetavarKW metavar;
 constexpr RequiredKW required;
 constexpr ConstKW constv;
 constexpr TypeKW type;
+constexpr ActionKW action;
 
 }  // namespace kw`
 }  // namespace tap
