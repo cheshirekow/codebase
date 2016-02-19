@@ -20,9 +20,6 @@ struct KeyWord {
   }
 };
 
-typedef Sentinel<_H("nargs"), int> NArgsSentinel;
-typedef Sentinel<_H("help"), std::string> HelpSentinel;
-
 struct MetavarSentinel {
   std::string value;
 };
