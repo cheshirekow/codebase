@@ -213,17 +213,22 @@ void ArgumentParser::ParseArgs(int* argc, char*** argv) {
       args.pop_front();
       for (char c : flag_chars) {
         auto iter = short_flags.find(c);
-        // TODO(josh): assert found
         if (iter != short_flags.end()) {
           iter->second->ConsumeArgs(this, &args);
+        } else {
+          std::cerr << "Uknown short flag " << c << "\n";
+          std::exit(1);
         }
       }
     } else if (IsLongFlag(args.front())) {
       std::string flag_name = std::string(args.front()).substr(2);
+      args.pop_front();
       auto iter = long_flags.find(flag_name);
-      // TODO(josh): assert found
       if (iter != long_flags.end()) {
         iter->second->ConsumeArgs(this, &args);
+      } else {
+        std::cerr << "Uknown long flag " << flag_name << "\n";
+        std::exit(1);
       }
     } else {
       if (positional_actions.size() > 0) {
