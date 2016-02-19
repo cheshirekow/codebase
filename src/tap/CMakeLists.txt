@@ -18,6 +18,8 @@ if(required_FOUND)
   cc_test(tap_kwarg_test SOURCES kwarg_test.cc)
   cc_test(tap_value_parser_test SOURCES value_parser_test.cc
           TARGET_DEPENDS tap_static)
+  cc_test(tap_test SOURCES tap_test.cc
+          TARGET_DEPENDS tap_static)
 else()
   mark_excluded("tap: missing glog")
 endif()

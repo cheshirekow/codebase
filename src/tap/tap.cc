@@ -172,12 +172,27 @@ void ArgumentParser::GetHelp(std::ostream* help_out) {
 
 void ArgumentParser::ParseArgs(int* argc, char*** argv) {
   std::list<char*> args;
+
   for (int i = 0; i < *argc; ++i) {
     args.push_back((*argv)[i]);
   }
 
-  argv0_ = args.front();
-  args.pop_front();
+  ParseArgs(&args);
+  if (args.size() > 0) {
+    std::cerr << "Not all arguments were consumed. remaining args: ";
+    for (char* arg : args) {
+      std::cerr << arg << " ";
+    }
+    std::cerr << "\n";
+  }
+}
+
+void ArgumentParser::ParseArgs(std::list<char*>* args) {
+  if (args->size() < 1) {
+    return;
+  }
+  argv0_ = args->front();
+  args->pop_front();
 
   // TODO(josh): validate the parser before the following, as it makes
   // certain assumptions:
@@ -207,25 +222,25 @@ void ArgumentParser::ParseArgs(int* argc, char*** argv) {
   }
 
   // now walk through the argument list and run our parsers.
-  while (args.size() > 0) {
-    if (IsShortFlag(args.front())) {
-      std::string flag_chars = std::string(args.front()).substr(1);
-      args.pop_front();
+  while (args->size() > 0) {
+    if (IsShortFlag(args->front())) {
+      std::string flag_chars = std::string(args->front()).substr(1);
+      args->pop_front();
       for (char c : flag_chars) {
         auto iter = short_flags.find(c);
         if (iter != short_flags.end()) {
-          iter->second->ConsumeArgs(this, &args);
+          iter->second->ConsumeArgs(this, args);
         } else {
           std::cerr << "Uknown short flag " << c << "\n";
           std::exit(1);
         }
       }
-    } else if (IsLongFlag(args.front())) {
-      std::string flag_name = std::string(args.front()).substr(2);
-      args.pop_front();
+    } else if (IsLongFlag(args->front())) {
+      std::string flag_name = std::string(args->front()).substr(2);
+      args->pop_front();
       auto iter = long_flags.find(flag_name);
       if (iter != long_flags.end()) {
-        iter->second->ConsumeArgs(this, &args);
+        iter->second->ConsumeArgs(this, args);
       } else {
         std::cerr << "Uknown long flag " << flag_name << "\n";
         std::exit(1);
@@ -234,10 +249,10 @@ void ArgumentParser::ParseArgs(int* argc, char*** argv) {
       if (positional_actions.size() > 0) {
         Action* action = positional_actions.front();
         positional_actions.pop_front();
-        action->ConsumeArgs(this, &args);
+        action->ConsumeArgs(this, args);
       } else {
         std::cerr << "No positional actions available to parse argument: "
-                  << args.front() << "\n";
+                  << args->front() << "\n";
         std::exit(1);
       }
     }
