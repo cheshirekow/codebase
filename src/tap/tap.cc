@@ -170,20 +170,31 @@ void ArgumentParser::GetHelp(std::ostream* help_out) {
   }
 }
 
-void ArgumentParser::ParseArgs(int* argc, char*** argv) {
+void ArgumentParser::ParseArgs(int* argc, char** argv) {
   std::list<char*> args;
 
-  for (int i = 0; i < *argc; ++i) {
-    args.push_back((*argv)[i]);
+  if (*argc > 0) {
+    argv0_ = argv[0];
+  }
+
+  for (int i = 1; i < *argc; ++i) {
+    args.push_back(argv[i]);
   }
 
   ParseArgs(&args);
+
   if (args.size() > 0) {
     std::cerr << "Not all arguments were consumed. remaining args: ";
     for (char* arg : args) {
       std::cerr << arg << " ";
     }
     std::cerr << "\n";
+    // TODO(josh): exit depending on options for the parser
+  }
+
+  for (*argc = 1; args.size() > 0; (*argc)++) {
+    argv[*argc] = args.front();
+    args.pop_front();
   }
 }
 
@@ -191,8 +202,6 @@ void ArgumentParser::ParseArgs(std::list<char*>* args) {
   if (args->size() < 1) {
     return;
   }
-  argv0_ = args->front();
-  args->pop_front();
 
   // TODO(josh): validate the parser before the following, as it makes
   // certain assumptions:

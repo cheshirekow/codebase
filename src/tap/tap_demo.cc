@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
           "text, by the way. This is some aburdly long help text, by the "
           "way. ");
   parser.AddArgument("-h", "--help", action = tap::help);
-  parser.ParseArgs(&argc, &argv);
+  parser.ParseArgs(&argc, argv);
 
   std::cout << "foo : " << foo << "\n"
             << "bar : " << bar << "\n"

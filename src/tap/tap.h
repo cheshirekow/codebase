@@ -161,7 +161,7 @@ class ArgumentParser {
   void GetUsage(std::ostream* help_out);
   void GetHelp(std::ostream* help_out);
   void ParseArgs(std::list<char*>* args);
-  void ParseArgs(int* argc, char*** argv);
+  void ParseArgs(int* argc, char** argv);
 
  private:
   Optional<std::string> description_;

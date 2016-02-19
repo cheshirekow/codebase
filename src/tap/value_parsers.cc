@@ -1,4 +1,5 @@
 #include <climits>
+#include <iostream>
 #include <limits>
 #include <set>
 #include <string>
@@ -233,6 +234,8 @@ int ParseSigned(char* str, Signed* outval) {
   int error_code = 0;
   AssertCharSet(str, kUnsignedCharset, &error_code);
   if (error_code) {
+    std::cerr << "Argument '" << str
+              << "'' contains characters outside of the numeric character set\n";
     return error_code;
   }
 
