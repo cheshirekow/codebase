@@ -299,24 +299,6 @@ class StoreConst : public ActionBase<StoreConst<ValueType, OutputIterator>,
   }
 };
 
-template <typename ValueType, typename OutputIterator>
-class AppendValue : public ActionBase<AppendValue<ValueType, OutputIterator>,
-                                      ValueType, OutputIterator> {
- public:
-  virtual ~AppendValue() {}
-
- protected:
-  std::set<ValueType> choices_;
-  bool required_;
-};
-
-template <typename ValueType, typename OutputIterator>
-class AppendConst : public ActionBase<AppendConst<ValueType, OutputIterator>,
-                                      ValueType, OutputIterator> {
- public:
-  virtual ~AppendConst() {}
-};
-
 class Help : public ActionInterface<Help> {
  public:
   using ActionInterface<Help>::ConsumeArgSentinal;

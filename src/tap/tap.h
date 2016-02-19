@@ -91,6 +91,11 @@ struct ResolveValueType<Nil, OutputIterator> {
   typedef typename std::iterator_traits<OutputIterator>::value_type Type;
 };
 
+template <typename Container>
+struct ResolveValueType<Nil, std::back_insert_iterator<Container>> {
+  typedef typename Container::value_type Type;
+};
+
 template <>
 struct ResolveValueType<Nil, Nil> {
   typedef Nil Type;
@@ -175,9 +180,13 @@ class ArgumentParser {
         break;
 
       case append:
+        // TODO(assert output iterator has size)
+        action = new actions::StoreValue<ValueType, OutputIterator>(args...);
         break;
 
       case append_const:
+        // TODO(assert output iterator has size)
+        action = new actions::StoreConst<ValueType, OutputIterator>(args...);
         break;
 
       case count:
