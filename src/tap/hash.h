@@ -22,6 +22,11 @@ inline constexpr uint64_t HashStringCT(const char(&str)[SIZE]) {
   return internal::HashStringCT<SIZE>(str, 0, 0);
 }
 
+template <std::size_t SIZE>
+inline constexpr uint64_t _H(const char(&str)[SIZE]) {
+  return internal::HashStringCT<SIZE>(str, 0, 0);
+}
+
 inline uint64_t HashString(const std::string& str) {
   uint64_t hash = 0;
   // NOTE(josh): include the null terminating character in the hash

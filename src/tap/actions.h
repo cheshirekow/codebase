@@ -165,11 +165,13 @@ class Action {
     value_type_name_ = GetTypeName<T>();
   }
 
-  void ConsumeArgSentinal(NArgsSentinel nargs) {
+  template <typename T>
+  void ConsumeArgSentinal(Sentinel<_H("nargs"), T> nargs) {
     nargs_ = nargs.value;
   }
 
-  void ConsumeArgSentinal(HelpSentinel help) {
+  template <typename T>
+  void ConsumeArgSentinal(Sentinel<_H("help"), T> help) {
     help_ = help.value;
   }
 

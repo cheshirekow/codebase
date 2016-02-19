@@ -3,16 +3,25 @@
 #include <initializer_list>
 #include <list>
 #include <string>
+#include "hash.h"
 
 namespace tap {
 
-struct NArgsSentinel {
-  int value;
+template <uint64_t Key, typename T>
+struct Sentinel {
+  T value;
 };
 
-struct HelpSentinel {
-  std::string value;
+template <uint64_t Key>
+struct KeyWord {
+  template <typename T>
+  Sentinel<Key, T> operator=(T&& value) const {
+    return Sentinel<Key, T>{value};
+  }
 };
+
+typedef Sentinel<_H("nargs"), int> NArgsSentinel;
+typedef Sentinel<_H("help"), std::string> HelpSentinel;
 
 struct MetavarSentinel {
   std::string value;
@@ -40,17 +49,8 @@ struct RequiredSentinel {
 template <typename T>
 struct TypeSentinel {};
 
-struct NArgsKW {
-  NArgsSentinel operator=(int value) const {
-    return NArgsSentinel{value};
-  }
-};
-
-struct HelpKW {
-  HelpSentinel operator=(const std::string& value) const {
-    return HelpSentinel{value};
-  }
-};
+typedef KeyWord<_H("nargs")> NArgsKW;
+typedef KeyWord<_H("help")> HelpKW;
 
 struct MetavarKW {
   MetavarSentinel operator=(const std::string& value) const {
