@@ -30,7 +30,7 @@ struct GetValueType<Head, Tail...> {
 };
 
 template <typename T, typename... Tail>
-struct GetValueType<TypeSentinel<T>, Tail...> {
+struct GetValueType<Sentinel<_H("type"), T>, Tail...> {
   typedef T Type;
   enum { kListExhausted = 0 };
 

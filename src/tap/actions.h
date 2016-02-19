@@ -161,7 +161,7 @@ class Action {
   // parameter pack but we don't need to do anything with it during
   // construction.
   template <typename T>
-  void ConsumeArgSentinal(TypeSentinel<T> type) {
+  void ConsumeArgSentinal(Sentinel<_H("type"), T> type) {
     value_type_name_ = GetTypeName<T>();
   }
 
@@ -175,7 +175,8 @@ class Action {
     help_ = help.value;
   }
 
-  void ConsumeArgSentinal(MetavarSentinel metavar) {
+  template <typename T>
+  void ConsumeArgSentinal(Sentinel<_H("metavar"), T> metavar) {
     metavar_ = metavar.value;
   }
 
@@ -184,7 +185,7 @@ class Action {
   // of the functions.
   // TODO(josh): warn if these are ever called
   template <typename T>
-  void ConsumeArgSentinal(ConstSentinel<T> const_in) {}
+  void ConsumeArgSentinal(Sentinel<_H("const"), T> const_in) {}
 
   template <typename OutputIterator>
   void ConsumeArgSentinal(DestSentinel<OutputIterator> dest) {}
@@ -192,7 +193,8 @@ class Action {
   template <typename T>
   void ConsumeArgSentinal(ChoicesSentinel<T> choices) {}
 
-  void ConsumeArgSentinal(RequiredSentinel required) {}
+  template <typename T>
+  void ConsumeArgSentinal(Sentinel<_H("required"), T> required) {}
 
   void SetFlags(const std::string& short_flag, const std::string& long_flag) {
     short_flag_ = short_flag;
@@ -274,7 +276,7 @@ class ActionBase : public ActionInterface<Derived> {
   using Action::ConsumeArgSentinal;
 
   template <typename T>
-  void ConsumeArgSentinal(ConstSentinel<T> const_in) {
+  void ConsumeArgSentinal(Sentinel<_H("const"), T> const_in) {
     const_ = const_in.value;
   }
 
@@ -360,7 +362,8 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
     }
   }
 
-  void ConsumeArgSentinal(RequiredSentinel required) {
+  template <typename T>
+  void ConsumeArgSentinal(Sentinel<_H("required"), T> required) {
     required_ = required.value;
   }
 

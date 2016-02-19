@@ -20,15 +20,6 @@ struct KeyWord {
   }
 };
 
-struct MetavarSentinel {
-  std::string value;
-};
-
-template <typename T>
-struct ConstSentinel {
-  T value;
-};
-
 template <typename T>
 struct DestSentinel {
   T value;
@@ -39,27 +30,12 @@ struct ChoicesSentinel {
   std::list<T> value;
 };
 
-struct RequiredSentinel {
-  bool value;
-};
-
-template <typename T>
-struct TypeSentinel {};
-
 typedef KeyWord<_H("nargs")> NArgsKW;
 typedef KeyWord<_H("help")> HelpKW;
-
-struct MetavarKW {
-  MetavarSentinel operator=(const std::string& value) const {
-    return MetavarSentinel{value};
-  }
-};
-
-struct RequiredKW {
-  RequiredSentinel operator=(bool value) const {
-    return RequiredSentinel{value};
-  }
-};
+typedef KeyWord<_H("metavar")> MetavarKW;
+typedef KeyWord<_H("required")> RequiredKW;
+typedef KeyWord<_H("type")> TypeKW;
+typedef KeyWord<_H("const")> ConstKW;
 
 struct ChoicesKW {
   template <typename T>
@@ -68,24 +44,10 @@ struct ChoicesKW {
   }
 };
 
-struct ConstKW {
-  template <typename T>
-  ConstSentinel<T> operator=(const T& value) const {
-    return ConstSentinel<T>{value};
-  }
-};
-
 struct DestKW {
   template <typename OutputIterator>
   DestSentinel<OutputIterator> operator=(OutputIterator value) const {
     return DestSentinel<OutputIterator>{value};
-  }
-};
-
-struct TypeKW {
-  template <typename T>
-  TypeSentinel<T> operator=(const T& value) const {
-    return TypeSentinel<T>{};
   }
 };
 
