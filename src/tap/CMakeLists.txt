@@ -17,6 +17,7 @@ if(required_FOUND)
   cc_executable(tap_demo SOURCES tap_demo.cc
                 TARGET_DEPENDS tap_static)
 
+  cc_test(tap_is_container_test SOURCES is_container_test.cc)
   cc_test(tap_value_parser_test SOURCES value_parser_test.cc
           TARGET_DEPENDS tap_static)
   cc_test(tap_test SOURCES tap_test.cc

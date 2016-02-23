@@ -190,6 +190,11 @@ class ActionBase : public ActionInterface<Derived> {
   OutputIterator dest_;
 };
 
+template <typename DestType, typename ValueType>
+void Append(DestType*& dest, const ValueType& value) {
+  *(dest++) = value;
+}
+
 // Most common action, stores a single value in a variable
 template <typename ValueType, typename OutputIterator>
 class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,

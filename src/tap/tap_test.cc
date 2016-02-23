@@ -21,10 +21,6 @@ struct ArgStorage {
       nullvec_.push_back(&storage_.back());
     }
 
-    for (char* nullval : nullvec_) {
-      // *nullval = '\0';
-    }
-
     argc = args.size();
     argv = &argvec_[0];
   }
