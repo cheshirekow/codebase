@@ -1,10 +1,12 @@
 #pragma once
 
+#include <array>
 #include <cctype>
 #include <iostream>
 #include <list>
 #include <set>
 #include <string>
+#include <vector>
 
 #ifdef __GNUC__
 #include <cxxabi.h>
@@ -191,8 +193,19 @@ class ActionBase : public ActionInterface<Derived> {
 };
 
 template <typename DestType, typename ValueType>
-void Append(DestType*& dest, const ValueType& value) {
+inline void Append(DestType& dest, const ValueType& value) {
   *(dest++) = value;
+}
+
+template <class T, std::size_t N, typename ValueType>
+inline void Append(typename std::array<T, N>::iterator& dest,
+                   const ValueType& value) {
+  *(dest++) = value;
+}
+
+template <class T, class Allocator, typename ValueType>
+inline void Append(std::list<T, Allocator>* dest, const ValueType& value) {
+  dest->push_back(value);
 }
 
 // Most common action, stores a single value in a variable
@@ -216,7 +229,7 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
         while (args->size() > 0 && !IsFlag(args->front())) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          *(this->dest_++) = value;
+          Append(this->dest_, value);
           args->pop_front();
         }
         break;
@@ -225,7 +238,7 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
         while (args->size() > 0) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          *(this->dest_++) = value;
+          Append(this->dest_, value);
           args->pop_front();
         }
         break;
@@ -234,7 +247,7 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
         while (args->size() > 0 && !IsFlag(args->front())) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          *(this->dest_++) = value;
+          Append(this->dest_, value);
           args->pop_front();
         }
         break;
@@ -243,7 +256,7 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
         if (args->size() > 0 && !IsFlag(args->front())) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          *(this->dest_++) = value;
+          Append(this->dest_, value);
           args->pop_front();
         }
         break;
@@ -253,7 +266,7 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
         for (int i = 0; i < this->nargs_ && args->size() > 0; i++) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          *(this->dest_++) = value;
+          Append(this->dest_, value);
           args->pop_front();
         }
     }
@@ -299,7 +312,7 @@ class StoreConst : public ActionBase<StoreConst<ValueType, OutputIterator>,
     // TODO(josh): assert args->size() > nargs_
     // TODO(josh): assert const_.is_set;
     if (this->const_.is_set) {
-      *(this->dest_++) = this->const_.value;
+      Append(this->dest_, this->const_.value);
     }
   }
 };

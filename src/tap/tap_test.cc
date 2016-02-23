@@ -96,41 +96,38 @@ TEST(TapTest, TestStoreFalseAction) {
   EXPECT_FALSE(foo);
 }
 
-//TEST(TapTest, TestAppendAction) {
-//  std::list<int> foo;
-//  tap::ArgumentParser parser;
+TEST(TapTest, TestAppendAction) {
+  std::list<int> foo;
+  tap::ArgumentParser parser;
 
-//  using namespace tap::kw;
-//  parser.AddArgument("--foo", action = tap::store,
-//                     dest = std::back_inserter(foo));
-//  parser.AddArgument("--bar", action = tap::store,
-//                     dest = std::back_inserter(foo));
-//  parser.AddArgument("--baz", action = tap::store,
-//                     dest = std::back_inserter(foo));
-//  ArgStorage args({"program", "--foo", "1", "--bar", "2", "--baz", "3"});
+  using namespace tap::kw;
+  parser.AddArgument("--foo", action = tap::store, type = int(), dest = &foo);
+  parser.AddArgument("--bar", action = tap::store, type = int(), dest = &foo);
+  parser.AddArgument("--baz", action = tap::store, type = int(), dest = &foo);
+  ArgStorage args({"program", "--foo", "1", "--bar", "2", "--baz", "3"});
 
-//  parser.ParseArgs(&args.argc, args.argv);
-//  EXPECT_EQ(1, args.argc);
-//  EXPECT_EQ(std::list<int>({1, 2, 3}), foo);
-//}
+  parser.ParseArgs(&args.argc, args.argv);
+  EXPECT_EQ(1, args.argc);
+  EXPECT_EQ(std::list<int>({1, 2, 3}), foo);
+}
 
-//TEST(TapTest, TestAppendConstAction) {
-//  std::list<int> foo;
-//  tap::ArgumentParser parser;
+TEST(TapTest, TestAppendConstAction) {
+  std::list<int> foo;
+  tap::ArgumentParser parser;
 
-//  using namespace tap::kw;
-//  parser.AddArgument("--foo", action = tap::store_const, constv = 1,
-//                     dest = std::back_inserter(foo));
-//  parser.AddArgument("--bar", action = tap::store_const, constv = 2,
-//                     dest = std::back_inserter(foo));
-//  parser.AddArgument("--baz", action = tap::store_const, constv = 3,
-//                     dest = std::back_inserter(foo));
-//  ArgStorage args({"program", "--foo", "--bar", "--baz"});
+  using namespace tap::kw;
+  parser.AddArgument("--foo", action = tap::store_const, constv = 1,
+                     type = int(), dest = &foo);
+  parser.AddArgument("--bar", action = tap::store_const, constv = 2,
+                     type = int(), dest = &foo);
+  parser.AddArgument("--baz", action = tap::store_const, constv = 3,
+                     type = int(), dest = &foo);
+  ArgStorage args({"program", "--foo", "--bar", "--baz"});
 
-//  parser.ParseArgs(&args.argc, args.argv);
-//  EXPECT_EQ(1, args.argc);
-//  EXPECT_EQ(std::list<int>({1, 2, 3}), foo);
-//}
+  parser.ParseArgs(&args.argc, args.argv);
+  EXPECT_EQ(1, args.argc);
+  EXPECT_EQ(std::list<int>({1, 2, 3}), foo);
+}
 
 TEST(TapTest, TestSimpleCommandLine) {
   int foo = 0;
