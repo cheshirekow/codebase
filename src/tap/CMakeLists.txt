@@ -6,9 +6,11 @@ if(required_FOUND)
              actions.cc
              common.h
              common.cc
+             container_id.h
              kwargs.h
              tap.h
              tap.cc
+             value_consumer.h
              value_parsers.h
              value_parsers.cc
              PKG_DEPENDS glog
@@ -17,7 +19,8 @@ if(required_FOUND)
   cc_executable(tap_demo SOURCES tap_demo.cc
                 TARGET_DEPENDS tap_static)
 
-  cc_test(tap_is_container_test SOURCES is_container_test.cc)
+  cc_test(tap_container_id_test SOURCES container_id_test.cc)
+  cc_test(tap_value_consumer_test SOURCES value_consumer_test.cc)
   cc_test(tap_value_parser_test SOURCES value_parser_test.cc
           TARGET_DEPENDS tap_static)
   cc_test(tap_test SOURCES tap_test.cc
