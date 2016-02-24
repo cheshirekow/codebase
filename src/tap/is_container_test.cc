@@ -59,7 +59,7 @@ struct clone_constness<const src_type, dest_type> {
 }  // namespace details
 
 template <typename type, typename call_details>
-struct can_push {
+struct can_push_back {
  private:
   class yes {};
   class no {
@@ -107,13 +107,13 @@ struct can_push {
 };
 
 int main() {
-  static_assert(!can_push<std::array<int, 3>, void(int)>::value,
+  static_assert(!can_push_back<std::array<int, 3>, void(int)>::value,
                 "std::array<array> can push");
-  static_assert(can_push<std::list<int>, void(int)>::value,
+  static_assert(can_push_back<std::list<int>, void(int)>::value,
                 "std::list<int> can't push it's own type");
-  static_assert(!can_push<std::set<int>, void(int)>::value,
+  static_assert(!can_push_back<std::set<int>, void(int)>::value,
                 "std::set<int> can push");
-  static_assert(can_push<std::vector<int>, void(int)>::value,
+  static_assert(can_push_back<std::vector<int>, void(int)>::value,
                 "std::vector<int> can't push it's own type");
   //  static_assert(is_container<Foo, void(int)>::value, "");
   //  static_assert(is_container<Foo, void(const char*)>::value, "");
