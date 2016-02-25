@@ -81,4 +81,12 @@ int main() {
                 "std::set<int> iterator should be iterator");
   static_assert(has_iterators<std::vector<int>>::value,
                 "std::vector<int> iterator should be iterator");
+
+  static_assert(
+      std::is_same<typename get_value_type<std::vector<int>>::value_type,
+                   int>::value,
+      "value type of a vector<int> should be int");
+  static_assert(
+      std::is_same<typename get_value_type<int>::value_type, int>::value,
+      "value type of a int should be int");
 }

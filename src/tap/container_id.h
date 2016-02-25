@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <type_traits>
+#include "common.h"
 
 // Adapted from
 // https://groups.google.com/forum/#!msg/comp.lang.c++.moderated/T3x6lvmvvkQ/mfY5VTDJ--UJ
@@ -249,6 +250,22 @@ template <typename T>
 struct has_iterators {
   static const bool value =
       has_iterators_impl<T, has_begin<T>::result, has_end<T>::result>::value;
+};
+
+template <class T, class R = void>
+struct enable_if_type {
+  typedef R type;
+};
+
+template <class T, class Enable = void>
+struct get_value_type : std::false_type {
+  typedef T value_type;
+};
+
+template <class T>
+struct get_value_type<T, typename enable_if_type<typename T::value_type>::type>
+    : std::true_type {
+  typedef typename T::value_type value_type;
 };
 
 }  // namespace tap

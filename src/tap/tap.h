@@ -10,9 +10,88 @@
 #include <type_traits>
 
 #include "actions.h"
+#include "container_id.h"
 #include "common.h"
 
 namespace tap {
+
+/// Given a typelist of argument types to the function
+/// ArgumentParser::AddArgument, resolve the input value type (as declared by
+/// type=x())
+/// if it was specified, as well as the output value type which is the type of
+/// the destination
+/// object, or the value_type if that object is a container.
+template <typename... List>
+struct ParseTypes;
+
+/// There are no more arguments to parse, so "return" Nil as the types.
+template <>
+struct ParseTypes<> {
+  typedef Nil InputValueType;
+  typedef Nil OutputValueType;
+};
+
+/// The next type in the list is not one of the sentinel types we care about, so
+/// just recurse
+template <typename Head, typename... Tail>
+struct ParseTypes<Head, Tail...> {
+  typedef ParseTypes<Tail...> Next;
+  typedef typename Next::InputValueType InputValueType;
+  typedef typename Next::OutputValueType OutputValueType;
+};
+
+/// The next type in the typelist is a type sentinel, this tells us the
+/// user-specified parse-as type, so record it.
+template <typename T, typename... Tail>
+struct ParseTypes<Sentinel<_H("type"), T>, Tail...> {
+  typedef ParseTypes<Tail...> Next;
+
+  /// do not allow type to show up twice in the arguments
+  static_assert(
+      std::is_same<Nil, typename Next::InputValueType>::value,
+      "You have called AddArgument and specified type= more than once.");
+
+  typedef T InputValueType;
+  typedef typename Next::OutputValueType OutputValueType;
+};
+
+/// The next type in the typelist is a dest sentinel, this tells us the
+/// output_type type, so record it.
+template <typename T, typename... Tail>
+struct ParseTypes<Sentinel<_H("dest"), T*>, Tail...> {
+  typedef ParseTypes<Tail...> Next;
+
+  /// do not allow type to show up twice in the arguments
+  static_assert(
+      std::is_same<Nil, typename Next::OutputType>::value,
+      "You have called AddArgument and specified dest= more than once.");
+
+  typedef typename Next::InputValueType InputValueType;
+
+  // if T is a container, then this will resolve it's value type. Otherwise, it
+  // resolves T.
+  typedef typename get_value_type<T>::value_type OutputValueType;
+};
+
+/// Template meta function resolves the first type in this typelist which is not
+/// Nil.
+template <typename... List>
+struct FirstNotNil {};
+
+template <>
+struct FirstNotNil<> {
+  typedef Nil Type;
+};
+
+template <typename... Tail>
+struct FirstNotNil<Nil, Tail...> {
+  typedef typename FirstNotNil<Tail...>::Type Type;
+};
+
+template <typename Head, typename... Tail>
+struct FirstNotNil<Head, Tail...> {
+  typedef Head Type;
+};
 
 /// Given a typelist of argument types to the function
 /// ArgumentParser::AddArgument, determine
@@ -20,85 +99,11 @@ namespace tap {
 /// stored in the sentinel.
 /// Otherwise resolve to Nil.
 template <typename... List>
-struct GetValueType;
-
-template <>
-struct GetValueType<> {
-  typedef Nil Type;
-  enum { kListExhausted = 1 };
-};
-
-template <typename Head, typename... Tail>
-struct GetValueType<Head, Tail...> {
-  typedef typename GetValueType<Tail...>::Type Type;
-  enum { kListExhausted = GetValueType<Tail...>::kListExhausted };
-};
-
-template <typename T, typename... Tail>
-struct GetValueType<Sentinel<_H("type"), T>, Tail...> {
-  typedef T Type;
-  enum { kListExhausted = 0 };
-
-  // assert that if we keep loking for a type sentinel, we reach the end of the
-  // list and end up with the default (i.e. there are no other type sentinels in
-  // the list.
-  static_assert(
-      GetValueType<Tail...>::kListExhausted,
-      "You have specified a command line argument with more than one type!");
-};
-
-/// Given a typelist of argument types to the function
-/// ArgumentParser::AddArgument, determine if any of the arguments is a
-/// DestSentinel. If so, extract the OutputIterator type stored in the sentinel.
-/// Otherwise, resolve to Nil.
-template <typename... List>
-struct GetIteratorType;
-
-template <>
-struct GetIteratorType<> {
-  typedef Nil* Type;
-  enum { kListExhausted = 1 };
-};
-
-template <typename Head, typename... Tail>
-struct GetIteratorType<Head, Tail...> {
-  typedef typename GetIteratorType<Tail...>::Type Type;
-  enum { kListExhausted = GetIteratorType<Tail...>::kListExhausted };
-};
-
-template <typename T, typename... Tail>
-struct GetIteratorType<DestSentinel<T>, Tail...> {
-  typedef T Type;
-  enum { kListExhausted = 0 };
-
-  // assert that if we keep loking for a type sentinel, we reach the end of the
-  // list and end up with the default (i.e. there are no other dest sentinels in
-  // the list.
-  static_assert(GetIteratorType<Tail...>::kListExhausted,
-                "You have specified a command line argument with more than one "
-                "destination!");
-};
-
-/// This template  resolves the value type of the output iterator if the user
-/// failed to specify a value type for the parser.
-template <typename ValueType, typename OutputIterator>
-struct ResolveValueType {
-  typedef ValueType Type;
-};
-
-template <typename OutputIterator>
-struct ResolveValueType<Nil, OutputIterator> {
-  typedef typename std::iterator_traits<OutputIterator>::value_type Type;
-};
-
-template <typename Container>
-struct ResolveValueType<Nil, std::back_insert_iterator<Container>> {
-  typedef typename Container::value_type Type;
-};
-
-template <>
-struct ResolveValueType<Nil, Nil> {
-  typedef Nil Type;
+struct GetValueType {
+  typedef ParseTypes<List...> ParsedTypes;
+  typedef
+      typename FirstNotNil<typename ParsedTypes::InputValueType,
+                           typename ParsedTypes::OutputValueType>::Type Type;
 };
 
 inline NamedActions GetAction() {
@@ -148,10 +153,8 @@ class ArgumentParser {
    */
   template <typename... Args>
   void AddArgument(Args&&... args) {
-    typedef typename GetIteratorType<Args...>::Type OutputIterator;
-    typedef typename GetValueType<Args...>::Type ValueTypeIn;
-    typedef
-        typename ResolveValueType<ValueTypeIn, OutputIterator>::Type ValueType;
+    typedef Nil OutputIterator;
+    typedef typename GetValueType<Args...>::Type ValueType;
 
     // now check the action to determine how to proceed
     NamedActions named_action = GetAction(args...);
