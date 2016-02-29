@@ -101,9 +101,9 @@ TEST(TapTest, TestAppendAction) {
   tap::ArgumentParser parser;
 
   using namespace tap::kw;
-  parser.AddArgument("--foo", action = tap::store, type = int(), dest = &foo);
-  parser.AddArgument("--bar", action = tap::store, type = int(), dest = &foo);
-  parser.AddArgument("--baz", action = tap::store, type = int(), dest = &foo);
+  parser.AddArgument("--foo", action = tap::append, type = int(), dest = &foo);
+  parser.AddArgument("--bar", action = tap::append, type = int(), dest = &foo);
+  parser.AddArgument("--baz", action = tap::append, type = int(), dest = &foo);
   ArgStorage args({"program", "--foo", "1", "--bar", "2", "--baz", "3"});
 
   parser.ParseArgs(&args.argc, args.argv);
@@ -134,11 +134,11 @@ TEST(TapTest, TestAppendConstAction) {
   tap::ArgumentParser parser;
 
   using namespace tap::kw;
-  parser.AddArgument("--foo", action = tap::store_const, constv = 1,
+  parser.AddArgument("--foo", action = tap::append_const, constv = 1,
                      type = int(), dest = &foo);
-  parser.AddArgument("--bar", action = tap::store_const, constv = 2,
+  parser.AddArgument("--bar", action = tap::append_const, constv = 2,
                      type = int(), dest = &foo);
-  parser.AddArgument("--baz", action = tap::store_const, constv = 3,
+  parser.AddArgument("--baz", action = tap::append_const, constv = 3,
                      type = int(), dest = &foo);
   ArgStorage args({"program", "--foo", "--bar", "--baz"});
 
