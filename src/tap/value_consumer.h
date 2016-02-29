@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <string>
 #include <glog/logging.h>
 
@@ -112,8 +113,18 @@ struct ValueConsumerFactory<ValueType, T, false, true, has_iterators_> {
 template <typename ValueType, class T>
 struct ValueConsumerFactory<ValueType, T, false, false, true> {
   static ValueConsumer<ValueType>* Create(T* container) {
-    return new ArrayValueConsumer<ValueType, typename T::iterator>(
-        container->begin(), container->end());
+    static std::map<T*, ValueConsumer<ValueType>*> stored_consumers_;
+
+    auto iter = stored_consumers_.find(container);
+    if (iter != stored_consumers_.end()) {
+      return iter->second;
+    } else {
+      ValueConsumer<ValueType>* consumer =
+          new ArrayValueConsumer<ValueType, typename T::iterator>(
+              container->begin(), container->end());
+      stored_consumers_[container] = consumer;
+      return consumer;
+    }
   }
 };
 

@@ -111,6 +111,24 @@ TEST(TapTest, TestAppendAction) {
   EXPECT_EQ(std::list<int>({1, 2, 3}), foo);
 }
 
+TEST(TapTest, TestAppendActionArray) {
+  std::array<int, 4> foo = {0, 0, 0, 0};
+  tap::ArgumentParser parser;
+
+  using namespace tap::kw;
+  parser.AddArgument("--foo", action = tap::append_const, constv = 1,
+                     type = int(), dest = &foo);
+  parser.AddArgument("--bar", action = tap::append_const, constv = 2,
+                     type = int(), dest = &foo);
+  parser.AddArgument("--baz", action = tap::append_const, constv = 3,
+                     type = int(), dest = &foo);
+  ArgStorage args({"program", "--foo", "--bar", "--baz", "--foo"});
+
+  parser.ParseArgs(&args.argc, args.argv);
+  EXPECT_EQ(1, args.argc);
+  EXPECT_EQ((std::array<int, 4>({1, 2, 3, 1})), foo);
+}
+
 TEST(TapTest, TestAppendConstAction) {
   std::list<int> foo;
   tap::ArgumentParser parser;

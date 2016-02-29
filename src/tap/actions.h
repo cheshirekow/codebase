@@ -200,6 +200,10 @@ class ActionBase : public ActionInterface<Derived> {
   ActionBase() {}
 
   Optional<ValueType> const_;
+
+  // TODO(josh): We are technically double-freeing any ArrayValueConsumers.
+  // Switch this to an intrusively referenced count thing or figure out an
+  // alternative.
   std::unique_ptr<ValueConsumer<ValueType>> dest_;
 };
 
