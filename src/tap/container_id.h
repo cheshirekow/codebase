@@ -32,6 +32,26 @@ struct clone_constness<const src_type, dest_type> {
 
 }  // namespace details
 
+template <typename T>
+struct is_cstyle_array : public std::false_type {
+  enum { value = 0 };
+};
+
+template <typename T, std::size_t SIZE>
+struct is_cstyle_array<T(&)[SIZE]> : public std::true_type {
+  enum { value = 1 };
+};
+
+template <typename T>
+struct is_pointer : public std::false_type {
+  enum { value = 0 };
+};
+
+template <typename T>
+struct is_pointer<T*> : public std::true_type {
+  enum { value = 1 };
+};
+
 template <typename Type>
 class has_push_back {
   // clang-format off

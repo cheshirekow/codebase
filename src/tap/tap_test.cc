@@ -149,7 +149,7 @@ TEST(TapTest, TestSimpleCommandLine) {
 TEST(TapTest, TestFullParser) {
   int32_t foo = 0;
   uint32_t bar = 0;
-  uint32_t baz[3] = {0, 0, 0};
+  std::array<uint32_t, 3> baz = {0, 0, 0};
 
   tap::ArgumentParser parser;
 
@@ -160,7 +160,7 @@ TEST(TapTest, TestFullParser) {
   parser.AddArgument("-b", "--bar", dest = &bar);
   parser.AddArgument("--baz", action = store, required = false,
                      type = uint16_t(), nargs = 3, choices = {1, 2, 3},
-                     dest = baz);
+                     dest = &baz);
   ArgStorage args(
       {"program", "--foo", "1", "--bar", "2", "--baz", "1", "2", "3"});
   parser.ParseArgs(&args.argc, args.argv);

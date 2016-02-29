@@ -4,6 +4,7 @@
 #include <cctype>
 #include <iostream>
 #include <list>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -12,8 +13,11 @@
 #include <cxxabi.h>
 #endif
 
+#include <glog/logging.h>
+
 #include "common.h"
 #include "kwargs.h"
+#include "value_consumer.h"
 #include "value_parsers.h"
 
 namespace tap {
@@ -103,16 +107,24 @@ class Action {
   // of the functions.
   // TODO(josh): warn if these are ever called
   template <typename T>
-  void ConsumeArgSentinal(Sentinel<_H("const"), T> const_in) {}
-
-  template <typename OutputIterator>
-  void ConsumeArgSentinal(DestSentinel<OutputIterator> dest) {}
-
-  template <typename T>
-  void ConsumeArgSentinal(ChoicesSentinel<T> choices) {}
+  void ConsumeArgSentinal(Sentinel<_H("const"), T> const_in) {
+    LOG(WARNING) << "Unexpected call to Action::ConsumeArgSentinel(const)";
+  }
 
   template <typename T>
-  void ConsumeArgSentinal(Sentinel<_H("required"), T> required) {}
+  void ConsumeArgSentinal(Sentinel<_H("dest"), T*> dest) {
+    LOG(WARNING) << "Unexpected call to Action::ConsumeArgSentinel(dest)";
+  }
+
+  template <typename T>
+  void ConsumeArgSentinal(ChoicesSentinel<T> choices) {
+    LOG(WARNING) << "Unexpected call to Action::ConsumeArgSentinel(choices)";
+  }
+
+  template <typename T>
+  void ConsumeArgSentinal(Sentinel<_H("required"), T> required) {
+    LOG(WARNING) << "Unexpected call to Action::ConsumeArgSentinel(required)";
+  }
 
   void SetFlags(const std::string& short_flag, const std::string& long_flag) {
     short_flag_ = short_flag;
@@ -166,11 +178,9 @@ class ActionInterface : public Action {
   void InitRest() {}
 };
 
-namespace actions {
-
 // Second base class provides some actual storage that is common among some
 // actions
-template <typename Derived, typename ValueType, typename OutputIterator>
+template <typename Derived, typename ValueType>
 class ActionBase : public ActionInterface<Derived> {
  public:
   virtual ~ActionBase() {}
@@ -181,37 +191,23 @@ class ActionBase : public ActionInterface<Derived> {
     const_ = const_in.value;
   }
 
-  void ConsumeArgSentinal(DestSentinel<OutputIterator> dest) {
-    dest_ = dest.value;
+  template <typename T>
+  void ConsumeArgSentinal(Sentinel<_H("dest"), T*> dest) {
+    dest_.reset(CreateValueConsumer<ValueType>(dest.value));
   }
 
  protected:
   ActionBase() {}
 
   Optional<ValueType> const_;
-  OutputIterator dest_;
+  std::unique_ptr<ValueConsumer<ValueType>> dest_;
 };
 
-template <typename DestType, typename ValueType>
-inline void Append(DestType& dest, const ValueType& value) {
-  *(dest++) = value;
-}
-
-template <class T, std::size_t N, typename ValueType>
-inline void Append(typename std::array<T, N>::iterator& dest,
-                   const ValueType& value) {
-  *(dest++) = value;
-}
-
-template <class T, class Allocator, typename ValueType>
-inline void Append(std::list<T, Allocator>* dest, const ValueType& value) {
-  dest->push_back(value);
-}
+namespace actions {
 
 // Most common action, stores a single value in a variable
-template <typename ValueType, typename OutputIterator>
-class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
-                                     ValueType, OutputIterator> {
+template <typename ValueType>
+class StoreValue : public ActionBase<StoreValue<ValueType>, ValueType> {
  public:
   template <typename... Args>
   StoreValue(Args&&... args) {
@@ -222,23 +218,25 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
 
   void ConsumeArgs(ArgumentParser* parser, std::list<char*>* args) override {
     ValueType value;
-    // TODO(josh): assert nargs_ > -5
+    LOG_IF(FATAL, this->nargs_ < -4) << "Invalid value for nargs";
+    LOG_IF(FATAL, !this->dest_) << "Never provided a destination for this flag";
     switch (this->nargs_) {
-      case NARGS_ONE_OR_MORE:
-        // TODO(josh): assert !IsFlag(args.front());
+      case NARGS_ONE_OR_MORE: {
+        LOG_IF(FATAL, !IsFlag(args->front()))
+            << "expected an argument, got a flag at " << args->front();
         while (args->size() > 0 && !IsFlag(args->front())) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          Append(this->dest_, value);
+          this->dest_->ConsumeValue(value);
           args->pop_front();
         }
-        break;
+      } break;
 
       case NARGS_REMAINDER:
         while (args->size() > 0) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          Append(this->dest_, value);
+          this->dest_->ConsumeValue(value);
           args->pop_front();
         }
         break;
@@ -247,7 +245,7 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
         while (args->size() > 0 && !IsFlag(args->front())) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          Append(this->dest_, value);
+          this->dest_->ConsumeValue(value);
           args->pop_front();
         }
         break;
@@ -256,7 +254,7 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
         if (args->size() > 0 && !IsFlag(args->front())) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          Append(this->dest_, value);
+          this->dest_->ConsumeValue(value);
           args->pop_front();
         }
         break;
@@ -266,7 +264,7 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
         for (int i = 0; i < this->nargs_ && args->size() > 0; i++) {
           int result = ParseValue(args->front(), &value);
           // TODO(josh): handle result
-          Append(this->dest_, value);
+          this->dest_->ConsumeValue(value);
           args->pop_front();
         }
     }
@@ -284,20 +282,17 @@ class StoreValue : public ActionBase<StoreValue<ValueType, OutputIterator>,
     required_ = required.value;
   }
 
-  using ActionBase<StoreValue<ValueType, OutputIterator>, ValueType,
-                   OutputIterator>::ConsumeArgSentinal;
+  using ActionBase<StoreValue<ValueType>, ValueType>::ConsumeArgSentinal;
 
  protected:
   std::set<ValueType> choices_;
   bool required_;
 };
 
-template <typename ValueType, typename OutputIterator>
-class StoreConst : public ActionBase<StoreConst<ValueType, OutputIterator>,
-                                     ValueType, OutputIterator> {
+template <typename ValueType>
+class StoreConst : public ActionBase<StoreConst<ValueType>, ValueType> {
  public:
-  using ActionBase<StoreConst<ValueType, OutputIterator>, ValueType,
-                   OutputIterator>::ConsumeArgSentinal;
+  using ActionBase<StoreConst<ValueType>, ValueType>::ConsumeArgSentinal;
 
   template <typename... Args>
   StoreConst(Args&&... args) {
@@ -311,8 +306,8 @@ class StoreConst : public ActionBase<StoreConst<ValueType, OutputIterator>,
     // TODO(josh): assert nargs_ == 1;
     // TODO(josh): assert args->size() > nargs_
     // TODO(josh): assert const_.is_set;
-    if (this->const_.is_set) {
-      Append(this->dest_, this->const_.value);
+    if (this->dest_ && this->const_.is_set) {
+      this->dest_->ConsumeValue(this->const_.value);
     }
   }
 };

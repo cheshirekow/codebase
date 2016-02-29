@@ -5,6 +5,7 @@
 #include <string>
 
 #include "common.h"
+#include "container_id.h"
 
 namespace tap {
 
@@ -29,11 +30,6 @@ struct TypedKeyWord {
 };
 
 template <typename T>
-struct DestSentinel {
-  T value;
-};
-
-template <typename T>
 struct ChoicesSentinel {
   std::list<T> value;
 };
@@ -53,9 +49,9 @@ struct ChoicesKW {
 };
 
 struct DestKW {
-  template <typename OutputIterator>
-  DestSentinel<OutputIterator> operator=(OutputIterator value) const {
-    return DestSentinel<OutputIterator>{value};
+  template <typename T>
+  Sentinel<_H("dest"), T*> operator=(T* destination_storage) const {
+    return Sentinel<_H("dest"), T*>{destination_storage};
   }
 };
 

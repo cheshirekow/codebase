@@ -84,6 +84,8 @@ struct InsertValueConsumer : public ValueConsumer<ValueType> {
   ContainerType* container_;
 };
 
+/// Dispatches an appropriate value consumer depending on traits of the object
+/// pointed to
 template <typename ValueType, class T, bool can_push_back_, bool can_insert_,
           bool has_iterators_>
 struct ValueConsumerFactory {};
@@ -92,7 +94,7 @@ struct ValueConsumerFactory {};
 template <typename ValueType, class T, bool can_insert_, bool has_iterators_>
 struct ValueConsumerFactory<ValueType, T, true, can_insert_, has_iterators_> {
   static ValueConsumer<ValueType>* Create(T* container) {
-    return BackValueConsumer<ValueType, T>(container);
+    return new BackValueConsumer<ValueType, T>(container);
   }
 };
 
@@ -101,7 +103,7 @@ struct ValueConsumerFactory<ValueType, T, true, can_insert_, has_iterators_> {
 template <typename ValueType, class T, bool has_iterators_>
 struct ValueConsumerFactory<ValueType, T, false, true, has_iterators_> {
   static ValueConsumer<ValueType>* Create(T* container) {
-    return InsertValueConsumer<ValueType, T>(container);
+    return new InsertValueConsumer<ValueType, T>(container);
   }
 };
 
@@ -110,8 +112,8 @@ struct ValueConsumerFactory<ValueType, T, false, true, has_iterators_> {
 template <typename ValueType, class T>
 struct ValueConsumerFactory<ValueType, T, false, false, true> {
   static ValueConsumer<ValueType>* Create(T* container) {
-    return ArrayValueConsumer<ValueType, T>(container->begin(),
-                                            container->end());
+    return new ArrayValueConsumer<ValueType, typename T::iterator>(
+        container->begin(), container->end());
   }
 };
 
@@ -120,16 +122,40 @@ struct ValueConsumerFactory<ValueType, T, false, false, true> {
 template <typename ValueType, class T>
 struct ValueConsumerFactory<ValueType, T, false, false, false> {
   static ValueConsumer<ValueType>* Create(T* storage) {
-    return ScalarValueConsumer<ValueType, T>(storage);
+    return new ScalarValueConsumer<ValueType, T>(storage);
+  }
+};
+
+template <typename ValueType, class T, bool is_fundamental_>
+struct LevelOneHelper;
+
+template <typename ValueType, class T>
+struct LevelOneHelper<ValueType, T, false> {
+  static ValueConsumer<ValueType>* Create(T* dest) {
+    return ValueConsumerFactory<ValueType, T,
+                                can_push_back<T, void(ValueType)>::value,
+                                can_insert<T, void(ValueType)>::value,
+                                has_iterators<T>::value>::Create(dest);
   }
 };
 
 template <typename ValueType, class T>
+struct LevelOneHelper<ValueType, T, true> {
+  static ValueConsumer<ValueType>* Create(T* dest) {
+    return new ScalarValueConsumer<ValueType, T>(dest);
+  }
+};
+
+template <typename ValueType, class T, std::size_t SIZE>
+ValueConsumer<ValueType>* CreateValueConsumer(T(&dest)[SIZE]) {
+  static_assert(SIZE < 0, "WTF");
+  return new ArrayValueConsumer<ValueType, T*>(&dest[0], &dest[SIZE]);
+}
+
+template <typename ValueType, class T>
 ValueConsumer<ValueType>* CreateValueConsumer(T* dest) {
-  return ValueConsumerFactory<ValueType, T,
-                              can_push_back<T, void(ValueType)>::value,
-                              can_insert<T, void(ValueType)>::value,
-                              has_iterators<T>::value>::Create(dest);
+  return LevelOneHelper<ValueType, T, std::is_fundamental<T>::value>::Create(
+      dest);
 }
 
 }  // namespace tap

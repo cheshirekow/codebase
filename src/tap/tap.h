@@ -17,10 +17,9 @@ namespace tap {
 
 /// Given a typelist of argument types to the function
 /// ArgumentParser::AddArgument, resolve the input value type (as declared by
-/// type=x())
-/// if it was specified, as well as the output value type which is the type of
-/// the destination
-/// object, or the value_type if that object is a container.
+/// type=x()) if it was specified, as well as the output value type which is the
+/// type of the destination object, or the value_type if that object is a
+/// container.
 template <typename... List>
 struct ParseTypes;
 
@@ -63,7 +62,7 @@ struct ParseTypes<Sentinel<_H("dest"), T*>, Tail...> {
 
   /// do not allow type to show up twice in the arguments
   static_assert(
-      std::is_same<Nil, typename Next::OutputType>::value,
+      std::is_same<Nil, typename Next::OutputValueType>::value,
       "You have called AddArgument and specified dest= more than once.");
 
   typedef typename Next::InputValueType InputValueType;
@@ -165,31 +164,29 @@ class ArgumentParser {
     Action* action = nullptr;
     switch (named_action) {
       case store:
-        action = new actions::StoreValue<ValueType, OutputIterator>(args...);
+        action = new actions::StoreValue<ValueType>(args...);
         break;
 
       case store_const:
-        action = new actions::StoreConst<ValueType, OutputIterator>(args...);
+        action = new actions::StoreConst<ValueType>(args...);
         break;
 
       case store_true:
-        action = new actions::StoreConst<bool, OutputIterator>(
-            args..., kw::constv = true);
+        action = new actions::StoreConst<bool>(args..., kw::constv = true);
         break;
 
       case store_false:
-        action = new actions::StoreConst<bool, OutputIterator>(
-            args..., kw::constv = false);
+        action = new actions::StoreConst<bool>(args..., kw::constv = false);
         break;
 
       case append:
         // TODO(assert output iterator has size)
-        action = new actions::StoreValue<ValueType, OutputIterator>(args...);
+        action = new actions::StoreValue<ValueType>(args...);
         break;
 
       case append_const:
         // TODO(assert output iterator has size)
-        action = new actions::StoreConst<ValueType, OutputIterator>(args...);
+        action = new actions::StoreConst<ValueType>(args...);
         break;
 
       case count:

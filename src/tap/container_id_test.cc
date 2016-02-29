@@ -7,6 +7,7 @@
 #include "container_id.h"
 
 using namespace tap;
+
 int main() {
   static_assert(!has_push_back<std::array<int, 3>>::result,
                 "std::array shouldn't have push_back");
@@ -89,4 +90,7 @@ int main() {
   static_assert(
       std::is_same<typename get_value_type<int>::value_type, int>::value,
       "value type of a int should be int");
+
+  static_assert(is_cstyle_array<int(&)[3]>::value, "int[3] is a cstyle array");
+  static_assert(!is_cstyle_array<int>::value, "int* is not a cstyle array");
 }
