@@ -38,6 +38,7 @@ find_all(cheshirekow
          PKG pangomm-1.4 PREFIX pangomm
          PKG protobuf
          PKG re2
+         PKG sqlite3
          PKG sigc++-2.0 PREFIX sigc++
          PKG tinyxml2 PREFIX TinyXML2
          PKG tclap
