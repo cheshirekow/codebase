@@ -5,7 +5,9 @@ cc_require(${pkgs})
 
 if(required_FOUND)
   cc_executable(ptrace_demo
+                HEADERS syscall.h
                 SOURCES ptrace_demo.cc
+                        syscall.cc
                 PKG_DEPENDS ${pkgs}
                 TARGET_DEPENDS format_static)
 else()

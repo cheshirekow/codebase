@@ -1,5 +1,7 @@
 #include <sys/ptrace.h>
+#include <sys/reg.h>
 #include <sys/types.h>
+#include <sys/user.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -9,6 +11,8 @@
 #include <map>
 #include <string>
 #include <cppformat/format.h>
+
+#include "throttle/syscall.h"
 
 // NOTE(josh): see http://www.linuxjournal.com/article/6100?page=0,1
 
@@ -78,6 +82,20 @@ std::string PtraceEventToString(int ptrace_event) {
   return GetMapEntry(kEventMap, ptrace_event);
 }
 
+bool IsStoppedForSyscall(int wstatus) {
+  if (WIFSTOPPED(wstatus) && WSTOPSIG(wstatus) == SIGTRAP) {
+    int ptrace_event = ((wstatus >> 8) & (~SIGTRAP)) >> 8;
+    if (ptrace_event) {
+      return false;
+      // TODO(josh): Shouldn't this be ==? Does PTRACE_O_TRACESYSGOOD not
+      // work on this architecture? Best to use PTRACE_GETSIGINFO I guess.
+    } else if (WSTOPSIG(wstatus) | (SIGTRAP | 0x80)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 std::string WaitStatusToString(int wstatus) {
   if (WIFEXITED(wstatus)) {
     return fmt::format("Exited: {}", WEXITSTATUS(wstatus));
@@ -140,6 +158,13 @@ int main(int argc, char** argv) {
     while (wait_result == child_pid) {
       wait_result = waitpid(child_pid, &wstatus, 0);
       fmt::print("ptrace: {}\n", WaitStatusToString(wstatus));
+      if (IsStoppedForSyscall(wstatus)) {
+        // NOTE(josh): for 32bit use 4 * ORIG_EAX
+        long orig_eax = ptrace(PTRACE_PEEKUSER, child_pid, 8 * ORIG_RAX, NULL);
+        fmt::print(stdout, "Syscall was {}: {}\n", orig_eax,
+                   syscall_util::GetSyscallName(orig_eax));
+      }
+
       if (WIFEXITED(wstatus)) {
         break;
       }
