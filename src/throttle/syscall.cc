@@ -1,15 +1,30 @@
 #include "throttle/syscall.h"
 
+#include <linux/limits.h>
 #include <unistd.h>
+#include <sys/ptrace.h>
+#include <sys/reg.h>
 #include <sys/syscall.h>
+#include <sys/types.h>
+#include <sys/user.h>
+#include <unistd.h>
 #include <map>
 
-namespace syscall_util {
+#include <cppformat/format.h>
+
+// NOTE(josh): see http://man7.org/linux/man-pages/man2/syscall.2.html for
+// registers used for
+// syscall ID and params.
+// NOTE(josh): see
+// https://github.com/torvalds/linux/blob/master/include/linux/syscalls.h
+// for syscall definitions
+
+namespace sys {
 
 #define MAP_ENTRY(X) \
   { X, #X }
 
-static std::map<uint16_t, std::string> kSyscallNameMap = {
+static std::map<long, std::string> kSyscallNameMap = {
     // clang-format off
   MAP_ENTRY(SYS_read),
   MAP_ENTRY(SYS_write),
@@ -332,13 +347,149 @@ static std::map<uint16_t, std::string> kSyscallNameMap = {
     // clang-format on
 };
 
-std::string GetSyscallName(uint16_t syscall_id) {
+static std::map<long, Call*> kSyscallArgMap = {
+    {SYS_open, new Open()},    //
+    {SYS_close, new Close()},  //
+    {SYS_stat, new Stat()},    //
+    {SYS_lstat, new LStat()},  //
+    {SYS_fstat, new FStat()},  //
+
+};
+
+std::string GetName(long syscall_id) {
   auto map_iter = kSyscallNameMap.find(syscall_id);
   if (map_iter == kSyscallNameMap.end()) {
     return "Unknown";
   } else {
     return map_iter->second.substr(4);
   }
+}
+
+std::string GetArgsJSON(long syscall_id, int child_pid) {
+  auto map_iter = kSyscallArgMap.find(syscall_id);
+  if (map_iter == kSyscallArgMap.end()) {
+    return "{}";
+  } else {
+    user_regs_struct regs;
+    ptrace(PTRACE_GETREGS, child_pid, NULL, &regs);
+    Call* call = map_iter->second;
+    call->Decode(child_pid, regs);
+    return call->GetArgsJSON();
+  }
+}
+
+std::string GetJSON(int child_pid) {
+  // NOTE(josh): for 32bit use 4 * ORIG_EAX
+  long syscall_id = ptrace(PTRACE_PEEKUSER, child_pid, 8 * ORIG_RAX, NULL);
+  return fmt::format(
+      "{{\n"
+      "\"syscall_id\" : {},\n"
+      "\"syscall_name\" : \"{}\",\n"
+      "\"args\" : {}\n"
+      "}}",
+      syscall_id, GetName(syscall_id), GetArgsJSON(syscall_id, child_pid));
+}
+
+Call::~Call() {}
+
+static bool WordContainsTerminalChar(char* ptr) {
+  for (int i = 0; i < sizeof(long); i++) {
+    if (ptr[i] == '\0') {
+      return true;
+    }
+  }
+  return false;
+}
+
+static std::string GetStringAtAddress(const int child_pid,
+                                      const char* string_addr) {
+  char pathname_buf[PATH_MAX];
+  char* write_ptr = pathname_buf;
+  for (const char* read_ptr = string_addr; read_ptr < string_addr + PATH_MAX;
+       read_ptr += sizeof(long)) {
+    *reinterpret_cast<long*>(write_ptr) =
+        ptrace(PTRACE_PEEKTEXT, child_pid, read_ptr, NULL);
+    if (WordContainsTerminalChar(write_ptr)) {
+      break;
+    }
+    write_ptr += sizeof(long);
+  }
+  return pathname_buf;
+}
+
+Open::~Open() {}
+
+void Open::Decode(const int child_pid, const user_regs_struct& regs) {
+  const char* pathname_addr = reinterpret_cast<const char*>(regs.rdi);
+  pathname = GetStringAtAddress(child_pid, pathname_addr);
+  flags = static_cast<int>(regs.rsi);
+}
+
+std::string Open::GetArgsJSON() {
+  return fmt::format(
+      "{{\n"
+      "  \"pathname\": \"{}\"\n"
+      "  \"flags\": {}\n"
+      "}}",
+      pathname, flags);
+}
+
+Stat::~Stat() {}
+
+void Stat::Decode(const int child_pid, const user_regs_struct& regs) {
+  const char* pathname_addr = reinterpret_cast<const char*>(regs.rdi);
+  pathname = GetStringAtAddress(child_pid, pathname_addr);
+}
+
+std::string Stat::GetArgsJSON() {
+  return fmt::format(
+      "{{\n"
+      "  \"pathname\": \"{}\"\n"
+      "}}",
+      pathname);
+}
+
+LStat::~LStat() {}
+
+void LStat::Decode(const int child_pid, const user_regs_struct& regs) {
+  const char* pathname_addr = reinterpret_cast<const char*>(regs.rdi);
+  pathname = GetStringAtAddress(child_pid, pathname_addr);
+}
+
+std::string LStat::GetArgsJSON() {
+  return fmt::format(
+      "{{\n"
+      "  \"pathname\": \"{}\"\n"
+      "}}",
+      pathname);
+}
+
+Close::~Close() {}
+
+void Close::Decode(const int child_pid, const user_regs_struct& regs) {
+  fd = static_cast<int>(regs.rdi);
+}
+
+std::string Close::GetArgsJSON() {
+  return fmt::format(
+      "{{\n"
+      "  \"fd\": \"{}\"\n"
+      "}}",
+      fd);
+}
+
+FStat::~FStat() {}
+
+void FStat::Decode(const int child_pid, const user_regs_struct& regs) {
+  fd = static_cast<int>(regs.rdi);
+}
+
+std::string FStat::GetArgsJSON() {
+  return fmt::format(
+      "{{\n"
+      "  \"fd\": \"{}\"\n"
+      "}}",
+      fd);
 }
 
 }  // namespace syscall_util

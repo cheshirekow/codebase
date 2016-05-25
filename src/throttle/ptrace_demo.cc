@@ -7,6 +7,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <iostream>
 #include <list>
 #include <map>
 #include <string>
@@ -159,10 +160,8 @@ int main(int argc, char** argv) {
       wait_result = waitpid(child_pid, &wstatus, 0);
       fmt::print("ptrace: {}\n", WaitStatusToString(wstatus));
       if (IsStoppedForSyscall(wstatus)) {
-        // NOTE(josh): for 32bit use 4 * ORIG_EAX
-        long orig_eax = ptrace(PTRACE_PEEKUSER, child_pid, 8 * ORIG_RAX, NULL);
-        fmt::print(stdout, "Syscall was {}: {}\n", orig_eax,
-                   syscall_util::GetSyscallName(orig_eax));
+        std::cout << sys::GetJSON(child_pid);
+        std::cout << ",\n";
       }
 
       if (WIFEXITED(wstatus)) {
