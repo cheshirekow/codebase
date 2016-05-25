@@ -15,6 +15,9 @@ std::string GetName(long syscall_id);
 // Return a json object encoding the syscall id, name, and arguments
 json::JSON GetCallAsJSON(int child_pid, bool include_output = false);
 
+// Get syscall id
+long GetCallId(int child_pid);
+
 struct Args {
   virtual ~Args();
   virtual void Decode(const int child_pid, const user_regs_struct& regs) = 0;
@@ -23,7 +26,7 @@ struct Args {
 
 namespace args {
 
-// see: http://man7.org/linux/man-pages/man2/open.2.html
+// http://man7.org/linux/man-pages/man2/open.2.html
 // int open(const char *pathname, int flags);
 struct Open : public Args {
   std::string pathname;

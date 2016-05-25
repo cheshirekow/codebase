@@ -154,13 +154,21 @@ int main(int argc, char** argv) {
     // this is the parent
     ptrace(PTRACE_SETOPTIONS, NULL, PTRACE_O_EXITKILL | PTRACE_O_TRACESYSGOOD);
 
+    long last_syscall = -1;
     int wstatus = 0;
     pid_t wait_result = child_pid;
     while (wait_result == child_pid) {
       wait_result = waitpid(child_pid, &wstatus, 0);
       fmt::print("ptrace: {}\n", WaitStatusToString(wstatus));
       if (IsStoppedForSyscall(wstatus)) {
-        std::cout << sys::GetCallAsJSON(child_pid);
+        long this_syscall = sys::GetCallId(child_pid);
+        bool on_return = (this_syscall == last_syscall);
+        if (on_return) {
+          last_syscall = -1;
+        } else {
+          last_syscall = this_syscall;
+        }
+        std::cout << sys::GetCallAsJSON(child_pid, on_return).dump(2);
         std::cout << ",\n";
       }
 

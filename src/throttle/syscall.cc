@@ -1,5 +1,6 @@
 #include "throttle/syscall.h"
 
+#include <fcntl.h>
 #include <linux/limits.h>
 #include <unistd.h>
 #include <sys/ptrace.h>
@@ -7,13 +8,15 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/user.h>
-#include <unistd.h>
+
+#include <list>
 #include <map>
+#include <string>
 
 #include <cppformat/format.h>
 
-// NOTE(josh): see http://man7.org/linux/man-pages/man2/syscall.2.html for
-// registers used for
+// NOTE(josh): see
+// http://man7.org/linux/man-pages/man2/syscall.2.html for registers used for
 // syscall ID and params.
 // NOTE(josh): see
 // https://github.com/torvalds/linux/blob/master/include/linux/syscalls.h
@@ -392,9 +395,13 @@ static json::JSON GetArgsAsJSON(long syscall_id, int child_pid,
   }
 }
 
+long GetCallId(int child_pid) {
+  return ptrace(PTRACE_PEEKUSER, child_pid, 8 * ORIG_RAX, NULL);
+}
+
 json::JSON GetCallAsJSON(int child_pid, bool include_output) {
   // NOTE(josh): for 32bit use 4 * ORIG_EAX
-  long syscall_id = ptrace(PTRACE_PEEKUSER, child_pid, 8 * ORIG_RAX, NULL);
+  long syscall_id = GetCallId(child_pid);
   json::JSON json_out;
   json_out["syscall_id"] = syscall_id;
   json_out["syscall_name"] = GetName(syscall_id);
@@ -430,6 +437,21 @@ static std::string GetStringAtAddress(const int child_pid,
     write_ptr += sizeof(long);
   }
   return pathname_buf;
+}
+
+static void CopyDataAtAddress(const int child_pid, const void* tracee_addr,
+                              void* tracer_addr, size_t num_bytes_to_copy) {
+  // Integer divide round-up
+  size_t words_to_read = ((num_bytes_to_copy + sizeof(long) - 1) / sizeof(long));
+  for (size_t words_read = 0; words_read < words_to_read; words_read++) {
+    const uint8_t* read_addr =
+        static_cast<const uint8_t*>(tracee_addr) + words_read * sizeof(long);
+    uint8_t* write_addr =
+        static_cast<uint8_t*>(tracer_addr) + words_read * sizeof(long);
+
+    *reinterpret_cast<long*>(write_addr) =
+        ptrace(PTRACE_PEEKTEXT, child_pid, read_addr, NULL);
+  }
 }
 
 Args::~Args() {}
@@ -479,6 +501,28 @@ struct StructToJSONImpl<struct stat> {
   }
 };
 
+#define APPEND_IF_PRESENT(flag)    \
+  if (flags & flag) {              \
+    parsed_flags.push_back(#flag); \
+  }
+
+static json::JSON OpenFlagsToJSON(int flags) {
+  std::list<std::string> parsed_flags;
+  APPEND_IF_PRESENT(O_RDONLY);
+  APPEND_IF_PRESENT(O_WRONLY);
+  APPEND_IF_PRESENT(O_RDWR);
+  APPEND_IF_PRESENT(O_CLOEXEC);
+  APPEND_IF_PRESENT(O_CREAT);
+  APPEND_IF_PRESENT(O_DIRECTORY);
+  APPEND_IF_PRESENT(O_EXCL);
+  APPEND_IF_PRESENT(O_NOCTTY);
+  APPEND_IF_PRESENT(O_NOFOLLOW);
+  APPEND_IF_PRESENT(O_TMPFILE);
+  APPEND_IF_PRESENT(O_TRUNC);
+
+  return json::JSON(parsed_flags);
+}
+
 namespace args {
 
 Open::~Open() {}
@@ -493,6 +537,7 @@ json::JSON Open::GetJSON(bool include_output) {
   json::JSON json_out;
   json_out["pathname"] = pathname;
   json_out["flags"] = flags;
+  json_out["flags_parsed"] = OpenFlagsToJSON(flags);
   return json_out;
 }
 
@@ -501,6 +546,8 @@ Stat::~Stat() {}
 void Stat::Decode(const int child_pid, const user_regs_struct& regs) {
   const char* pathname_addr = reinterpret_cast<const char*>(regs.rdi);
   pathname = GetStringAtAddress(child_pid, pathname_addr);
+  struct stat* tracee_stat_buf = reinterpret_cast<struct stat*>(regs.rsi);
+  CopyDataAtAddress(child_pid, tracee_stat_buf, &stat_buf, sizeof(struct stat));
 }
 
 json::JSON Stat::GetJSON(bool include_output) {
@@ -528,6 +575,8 @@ FStat::~FStat() {}
 
 void FStat::Decode(const int child_pid, const user_regs_struct& regs) {
   fd = static_cast<int>(regs.rdi);
+  struct stat* tracee_stat_buf = reinterpret_cast<struct stat*>(regs.rsi);
+  CopyDataAtAddress(child_pid, tracee_stat_buf, &stat_buf, sizeof(struct stat));
 }
 
 json::JSON FStat::GetJSON(bool include_output) {
