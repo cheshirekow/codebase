@@ -160,7 +160,7 @@ int main(int argc, char** argv) {
       wait_result = waitpid(child_pid, &wstatus, 0);
       fmt::print("ptrace: {}\n", WaitStatusToString(wstatus));
       if (IsStoppedForSyscall(wstatus)) {
-        std::cout << sys::GetJSON(child_pid);
+        std::cout << sys::GetCallAsJSON(child_pid);
         std::cout << ",\n";
       }
 

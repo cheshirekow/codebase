@@ -32,7 +32,7 @@ find_all(cheshirekow
          PKG gtkmm-3.0 PREFIX GTKmm
          PKG gthread-2.0 PREFIX gthread
          PKG libcrypto++ 
-         PKG libglfw PREFIX glfw
+         # PKG libglfw PREFIX glfw
          PKG libglog PREFIX glog
          PKG libgflags PREFIX gflags
          PKG pangomm-1.4 PREFIX pangomm
@@ -93,6 +93,7 @@ include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(BEFORE SYSTEM third_party/cppformat)
 include_directories(BEFORE SYSTEM third_party/gtest)
 include_directories(BEFORE SYSTEM third_party/lcm)
+include_directories(third_party)
 
 add_subdirectory(third_party)
 

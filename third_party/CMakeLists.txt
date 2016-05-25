@@ -1,5 +1,6 @@
 add_subdirectory(cppformat)
 add_subdirectory(gtest)
+add_subdirectory(json)
 add_subdirectory(lcm)
 
 if(NOT (re2_FOUND))

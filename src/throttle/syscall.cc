@@ -347,15 +347,6 @@ static std::map<long, std::string> kSyscallNameMap = {
     // clang-format on
 };
 
-static std::map<long, Call*> kSyscallArgMap = {
-    {SYS_open, new Open()},    //
-    {SYS_close, new Close()},  //
-    {SYS_stat, new Stat()},    //
-    {SYS_lstat, new LStat()},  //
-    {SYS_fstat, new FStat()},  //
-
-};
-
 std::string GetName(long syscall_id) {
   auto map_iter = kSyscallNameMap.find(syscall_id);
   if (map_iter == kSyscallNameMap.end()) {
@@ -365,32 +356,56 @@ std::string GetName(long syscall_id) {
   }
 }
 
-std::string GetArgsJSON(long syscall_id, int child_pid) {
-  auto map_iter = kSyscallArgMap.find(syscall_id);
-  if (map_iter == kSyscallArgMap.end()) {
-    return "{}";
+static json::JSON GetArgsAsJSON(long syscall_id, int child_pid,
+                                bool include_output) {
+  std::unique_ptr<Args> args;
+  switch (syscall_id) {
+    case SYS_open: {
+      args.reset(new args::Open());
+      break;
+    }
+
+    case SYS_close: {
+      args.reset(new args::Close());
+      break;
+    }
+
+    case SYS_stat:
+    case SYS_lstat: {
+      args.reset(new args::Stat());
+      break;
+    }
+
+    case SYS_fstat: {
+      args.reset(new args::FStat());
+      break;
+    }
+  }
+
+  user_regs_struct regs;
+  ptrace(PTRACE_GETREGS, child_pid, NULL, &regs);
+  if (args) {
+    args->Decode(child_pid, regs);
+    return args->GetJSON(include_output);
   } else {
-    user_regs_struct regs;
-    ptrace(PTRACE_GETREGS, child_pid, NULL, &regs);
-    Call* call = map_iter->second;
-    call->Decode(child_pid, regs);
-    return call->GetArgsJSON();
+    return json::JSON();
   }
 }
 
-std::string GetJSON(int child_pid) {
+json::JSON GetCallAsJSON(int child_pid, bool include_output) {
   // NOTE(josh): for 32bit use 4 * ORIG_EAX
   long syscall_id = ptrace(PTRACE_PEEKUSER, child_pid, 8 * ORIG_RAX, NULL);
-  return fmt::format(
-      "{{\n"
-      "\"syscall_id\" : {},\n"
-      "\"syscall_name\" : \"{}\",\n"
-      "\"args\" : {}\n"
-      "}}",
-      syscall_id, GetName(syscall_id), GetArgsJSON(syscall_id, child_pid));
+  json::JSON json_out;
+  json_out["syscall_id"] = syscall_id;
+  json_out["syscall_name"] = GetName(syscall_id);
+  json_out["args"] = GetArgsAsJSON(syscall_id, child_pid, include_output);
+  if (include_output) {
+    user_regs_struct regs;
+    ptrace(PTRACE_GETREGS, child_pid, NULL, &regs);
+    json_out["returncode"] = regs.rax;
+  }
+  return json_out;
 }
-
-Call::~Call() {}
 
 static bool WordContainsTerminalChar(char* ptr) {
   for (int i = 0; i < sizeof(long); i++) {
@@ -417,6 +432,55 @@ static std::string GetStringAtAddress(const int child_pid,
   return pathname_buf;
 }
 
+Args::~Args() {}
+
+template <class FieldType>
+struct StructToJSONImpl {};
+
+template <class FieldType>
+json::JSON StructToJSON(FieldType* field_buf) {
+  return StructToJSONImpl<FieldType>::Decode(field_buf);
+}
+
+#define JSON_NATIVE(field) json_out[#field] = obj_buf->field
+#define JSON_STRUCT(field) json_out[#field] = StructToJSON(&(obj_buf->field))
+
+template <>
+struct StructToJSONImpl<struct timespec> {
+  static json::JSON Decode(struct timespec* obj_buf) {
+    json::JSON json_out;
+
+    JSON_NATIVE(tv_sec);
+    JSON_NATIVE(tv_nsec);
+
+    return json_out;
+  }
+};
+
+template <>
+struct StructToJSONImpl<struct stat> {
+  static json::JSON Decode(struct stat* obj_buf) {
+    json::JSON json_out;
+    JSON_NATIVE(st_dev);
+    JSON_NATIVE(st_ino);
+    JSON_NATIVE(st_mode);
+    JSON_NATIVE(st_nlink);
+    JSON_NATIVE(st_uid);
+    JSON_NATIVE(st_gid);
+    JSON_NATIVE(st_rdev);
+    JSON_NATIVE(st_size);
+    JSON_NATIVE(st_blksize);
+    JSON_NATIVE(st_blocks);
+    JSON_STRUCT(st_atim);
+    JSON_STRUCT(st_mtim);
+    JSON_STRUCT(st_ctim);
+
+    return json_out;
+  }
+};
+
+namespace args {
+
 Open::~Open() {}
 
 void Open::Decode(const int child_pid, const user_regs_struct& regs) {
@@ -425,13 +489,11 @@ void Open::Decode(const int child_pid, const user_regs_struct& regs) {
   flags = static_cast<int>(regs.rsi);
 }
 
-std::string Open::GetArgsJSON() {
-  return fmt::format(
-      "{{\n"
-      "  \"pathname\": \"{}\"\n"
-      "  \"flags\": {}\n"
-      "}}",
-      pathname, flags);
+json::JSON Open::GetJSON(bool include_output) {
+  json::JSON json_out;
+  json_out["pathname"] = pathname;
+  json_out["flags"] = flags;
+  return json_out;
 }
 
 Stat::~Stat() {}
@@ -441,27 +503,13 @@ void Stat::Decode(const int child_pid, const user_regs_struct& regs) {
   pathname = GetStringAtAddress(child_pid, pathname_addr);
 }
 
-std::string Stat::GetArgsJSON() {
-  return fmt::format(
-      "{{\n"
-      "  \"pathname\": \"{}\"\n"
-      "}}",
-      pathname);
-}
-
-LStat::~LStat() {}
-
-void LStat::Decode(const int child_pid, const user_regs_struct& regs) {
-  const char* pathname_addr = reinterpret_cast<const char*>(regs.rdi);
-  pathname = GetStringAtAddress(child_pid, pathname_addr);
-}
-
-std::string LStat::GetArgsJSON() {
-  return fmt::format(
-      "{{\n"
-      "  \"pathname\": \"{}\"\n"
-      "}}",
-      pathname);
+json::JSON Stat::GetJSON(bool include_output) {
+  json::JSON json_out;
+  json_out["pathname"] = pathname;
+  if (include_output) {
+    json_out["stat_buf"] = StructToJSON(&stat_buf);
+  }
+  return json_out;
 }
 
 Close::~Close() {}
@@ -470,12 +518,10 @@ void Close::Decode(const int child_pid, const user_regs_struct& regs) {
   fd = static_cast<int>(regs.rdi);
 }
 
-std::string Close::GetArgsJSON() {
-  return fmt::format(
-      "{{\n"
-      "  \"fd\": \"{}\"\n"
-      "}}",
-      fd);
+json::JSON Close::GetJSON(bool include_output) {
+  json::JSON json_out;
+  json_out["fd"] = fd;
+  return json_out;
 }
 
 FStat::~FStat() {}
@@ -484,12 +530,14 @@ void FStat::Decode(const int child_pid, const user_regs_struct& regs) {
   fd = static_cast<int>(regs.rdi);
 }
 
-std::string FStat::GetArgsJSON() {
-  return fmt::format(
-      "{{\n"
-      "  \"fd\": \"{}\"\n"
-      "}}",
-      fd);
+json::JSON FStat::GetJSON(bool include_output) {
+  json::JSON json_out;
+  json_out["fd"] = fd;
+  if (include_output) {
+    json_out["stat_buf"] = StructToJSON(&stat_buf);
+  }
+  return json_out;
 }
 
+}  // namespace args
 }  // namespace syscall_util

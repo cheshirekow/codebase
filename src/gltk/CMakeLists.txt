@@ -1,3 +1,4 @@
+return()
 cc_library(gltk
            HEADERS buffer.h
                    framebuffer.h
