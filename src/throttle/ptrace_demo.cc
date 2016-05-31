@@ -16,6 +16,9 @@
 #include "throttle/syscall.h"
 
 // NOTE(josh): see http://www.linuxjournal.com/article/6100?page=0,1
+// NOTE(josh): see http://www.hick.org/code/skape/papers/needle.txt
+// for a tutorial on how to execute code in another process and restore
+// state (i.e. to allocate a path string).
 
 // Provided by glibc
 extern char** environ;
