@@ -1,0 +1,18 @@
+{
+  "max_connections_to_queue" : 10,
+  "max_connections_to_accept" : 10,
+  "listen" : {
+    "domain" : "AF_INET",
+    "addr" : "0.0.0.0",
+    "port" : 8081
+  },
+  "listen" : {
+    "domain" : "AF_INET6",
+    "addr" : "::1",
+    "port" : 8081
+  },
+  "listen" : {
+    "domain" : "AF_UNIX",
+    "addr" : "/home/josh/.throttle.socket"
+  }
+}
