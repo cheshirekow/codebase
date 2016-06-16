@@ -23,20 +23,29 @@ DEFINE_string(config_file_path, "~/.throttle.json",
 std::map<std::string, int> kSocketDomainMap = {  //
     MAP_ENTRY(AF_UNIX),                          //
     MAP_ENTRY(AF_LOCAL),                         //
-    MAP_ENTRY(AF_INET),
-    MAP_ENTRY(AF_INET6)};
+    MAP_ENTRY(AF_INET), MAP_ENTRY(AF_INET6)};
 
 template <typename T>
-T GetMapEntry(const std::map<std::string, T>& map, const std::string& key,
-              bool* found) {
+T GetMapEntry(const std::map<std::string, T>& map, const std::string& key) {
   auto iter = map.find(key);
-  if (iter == map.end()) {
-    *found = false;
-    return T();
-  } else {
-    *found = true;
-    return iter->second;
-  }
+  CHECK(iter != map.end()) << "Failed to find key " << key << " in map ";
+  return iter->second;
+}
+
+json::JSON GetDefaultConfig() {
+  // clang-format off
+  json::JSON default_config{
+    {"max_connections_to_queue", 10},
+    {"max_connections_to_accept", 10},
+    {"listen" , {
+      {"domain", "AF_INET"},
+      {"addr", "0.0.0.0"},
+      {"port", 8081},
+    }}
+  };
+  // clang-format on
+
+  return default_config;
 }
 
 json::JSON GetConfig() {
@@ -71,12 +80,7 @@ int main(int argc, char** argv) {
   int max_connections_to_queue = config["max_connections_to_queue"];
   int max_connections_to_accept = config["max_connections_to_accept"];
 
-  bool map_entry_found = false;
-  int socket_domain = GetMapEntry(kSocketDomainMap, config["listen"]["domain"],
-                                  &map_entry_found);
-  CHECK(map_entry_found) << "Requested listen.domain "
-                         << config["listen"]["domain"] << " is invalid";
-
+  int socket_domain = GetMapEntry(kSocketDomainMap, config["listen"]["domain"]);
   int sockfd = socket(socket_domain, SOCK_STREAM | SOCK_NONBLOCK, 0);
   PCHECK(sockfd != -1) << "Failed to open a socket";
 
