@@ -10,6 +10,11 @@ if(required_FOUND)
                         syscall.cc
                 PKG_DEPENDS ${pkgs}
                 TARGET_DEPENDS format_static)
+
+  cc_executable(throttle_server
+                SOURCES server.cc
+                PKG_DEPENDS ${pkgs}
+                TARGET_DEPENDS format_static)
 else()
   mark_excluded("throttle: missing ${required_MISSING}")
 endif()
