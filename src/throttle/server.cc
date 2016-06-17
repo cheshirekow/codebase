@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -65,6 +66,9 @@ json::JSON GetConfig() {
   std::ifstream config_file(config_file_path);
   return json::JSON::parse(config_file);
 }
+
+static constexpr ssize_t kMaxEpollEvents = 10;
+static constexpr int kEpollTimeoutMS = -1;  // indefinite
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
@@ -134,7 +138,31 @@ int main(int argc, char** argv) {
   PCHECK(listen(sockfd, max_connections_to_queue) != -1)
       << "Failed to mark socket for listen";
 
-  // use epoll and call accept if inbound connection
+  int epollfd = epoll_create(1);
+  PCHECK(epollfd != -1) << "Failed to create epoll instance";
 
+  struct epoll_event epoll_event_init {};
+
+  // Add the listening socket to the epoll instance
+  epoll_event_init.events = EPOLLIN;
+  epoll_event_init.data.fd = sockfd;
+  int epoll_result =
+      epoll_ctl(epollfd, EPOLL_CTL_ADD, sockfd, &epoll_event_init);
+  PCHECK(epoll_result == 0) << "Failed to add sockfd to epoll";
+
+  struct epoll_event epoll_event_list[kMaxEpollEvents];
+  int num_epoll_events = 0;
+  while (num_epoll_events != -1) {
+    num_epoll_events =
+        epoll_wait(epollfd, epoll_event_list, kMaxEpollEvents, kEpollTimeoutMS);
+    for (int i = 0; i < num_epoll_events; i++) {
+      if (epoll_event_list[i].data.fd == sockfd) {
+        int accept_result = accept4(sockfd, NULL, NULL, SOCK_NONBLOCK);
+        PCHECK(accept_result != -1) << "Failed to accept inbound connection";
+      }
+    }
+  }
+
+  PLOG(INFO) << "Epoll exited";
   LOG_IF(WARNING, close(sockfd) != 0) << "Failed to close the socket, weird";
 }
