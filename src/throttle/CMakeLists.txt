@@ -12,7 +12,14 @@ if(required_FOUND)
                 TARGET_DEPENDS format_static)
 
   cc_executable(throttle_server
-                SOURCES server.cc
+                SOURCES messages.h server.cc
+                PKG_DEPENDS ${pkgs}
+                TARGET_DEPENDS format_static)
+
+  cc_executable(pthrottle
+                HEADERS syscall.h
+                SOURCES pthrottle.cc
+                        syscall.cc
                 PKG_DEPENDS ${pkgs}
                 TARGET_DEPENDS format_static)
 else()
