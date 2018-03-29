@@ -21,7 +21,7 @@
  *
  *  \date   Oct 24, 2012
  *  \author Josh Bialkowski (jbialk@mit.edu)
- *  \brief  
+ *  \brief
  */
 
 #include <gtkmm.h>
@@ -232,7 +232,7 @@ class Main {
  private:
   void loadLayout() {
     std::vector<std::string> paths = {
-        path_util::GetSourcePath() + "/src/dubins/hyper/layout.glade",
+        path_util::GetSourcePath() + "/src/mpblocks/dubins/hyper/layout.glade",
         path_util::GetResourcePath() + "/dubins_hyper_demo.glade"};
 
     bool layout_loaded = false;
@@ -540,11 +540,3 @@ int main( int argc, char** argv )
     app.run();
     return 0;
 }
-
-
-
-
-
-
-
-

@@ -21,7 +21,7 @@
  *
  *  \date   Jul 23, 2012
  *  \author Josh Bialkowski (jbialk@mit.edu)
- *  \brief  
+ *  \brief
  */
 
 #include <cpp_fontconfig/name.h>
@@ -114,7 +114,7 @@ void ObjectTypeList::BuildToken::write( const char* object, Type_t type )
     assert( m_iItem < m_nItems );
 
     FcObjectType* ptr = (FcObjectType*)m_ptr;
-    ptr[m_iItem].object = object;
+    ptr[m_iItem].object = (char*)object;
     ptr[m_iItem].type   = (FcType)type;
     m_iItem++;
 }
@@ -364,14 +364,3 @@ bool constant(Char8_t* string, int* result)
 
 }
 }
-
-
-
-
-
-
-
-
-
-
-

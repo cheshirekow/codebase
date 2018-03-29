@@ -1,0 +1,225 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x00007f927f84ae15, pid=7798, tid=0x00007f9280ffa700
+#
+# JRE version: Java(TM) SE Runtime Environment (8.0_161-b12) (build 1.8.0_161-b12)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (25.161-b12 mixed mode linux-amd64 compressed oops)
+# Problematic frame:
+# V  [libjvm.so+0x460e15]  ClassFileParser::parse_method(bool, AccessFlags*, Thread*)+0x1845
+#
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00007f927800a800):  JavaThread "main" [_thread_in_vm, id=7799, stack(0x00007f9280efa000,0x00007f9280ffb000)]
+
+siginfo: si_signo: 11 (SIGSEGV), si_code: 1 (SEGV_MAPERR), si_addr: 0x0000000168977988
+
+Registers:
+RAX=0x0000000168977960, RBX=0x00007f9280ff9160, RCX=0x0000000000000001, RDX=0x00007f9268977960
+RSP=0x00007f9280ff8f00, RBP=0x00007f9280ff9210, RSI=0x0000000000000029, RDI=0x00007f9280ff8eb0
+R8 =0xffffffffffffffff, R9 =0x0000000000000005, R10=0x00007f9268977980, R11=0x00007f927f72ff40
+R12=0x00007f9268977980, R13=0x0000000000000005, R14=0x00007f927800a800, R15=0x00007f9280ff92a0
+RIP=0x00007f927f84ae15, EFLAGS=0x0000000000010202, CSGSFS=0x002b000000000033, ERR=0x0000000000000006
+  TRAPNO=0x000000000000000e
+
+Top of Stack: (sp=0x00007f9280ff8f00)
+0x00007f9280ff8f00:   00007f9278052995 00007f9278009610
+0x00007f9280ff8f10:   000000000000001b 00007f92689777d8
+0x00007f9280ff8f20:   00007f927801f050 00007f927800a800
+0x00007f9280ff8f30:   00007f9280ff90f0 00007f927f84b9b3
+0x00007f9280ff8f40:   00007f9280ff9030 00007f927800a800
+0x00007f9280ff8f50:   0000006e0000005b 00007f9280ff90b0
+0x00007f9280ff8f60:   00007f9280ff9000 00007f920000000d
+0x00007f9280ff8f70:   00007f9280ff91c8 00007f9280ff91de
+0x00007f9280ff8f80:   00007f9280ff91d0 00007f9280ff91b0
+0x00007f9280ff8f90:   0000000000000001 00007f9280ff95d0
+0x00007f9280ff8fa0:   00007f9278052aa0 00007f9280ff96a0
+0x00007f9280ff8fb0:   000c7f927801f0b0 00007f9280e797a0
+0x00007f9280ff8fc0:   000d7f92780226e0 00007f9280e7b2e0
+0x00007f9280ff8fd0:   ffffffff80ff8ff0 0000000500010001
+0x00007f9280ff8fe0:   00007f92780529e1 0000000000000003
+0x00007f9280ff8ff0:   0000000000000000 0000000000000000
+0x00007f9280ff9000:   00007f9200000000 0100010000000000
+0x00007f9280ff9010:   00007f9280ff90b0 00007f927800a800
+0x00007f9280ff9020:   0000000000000003 0000000000000001
+0x00007f9280ff9030:   00007f9278010000 0000000000000004
+0x00007f9280ff9040:   00007f9280ff9090 0000000000000000
+0x00007f9280ff9050:   0000000000000014 0000000000000000
+0x00007f9280ff9060:   0000000100000000 0000000000000000
+0x00007f9280ff9070:   0000000000000000 0000000000000000
+0x00007f9280ff9080:   0000000078052adc 0000000000000000
+0x00007f9280ff9090:   0000000080ff90b0 0000000000000000
+0x00007f9280ff90a0:   0000000078052ad0 0000000000000000
+0x00007f9280ff90b0:   0000000080ff9300 0000000000000000
+0x00007f9280ff90c0:   00007f9200000000 0000000000000000
+0x00007f9280ff90d0:   000000007800a800 000000210000001a
+0x00007f9280ff90e0:   0000000a0000a800 00007f9278052840
+0x00007f9280ff90f0:   00007f9278052ad0 00007f927805a828 
+
+Instructions: (pc=0x00007f927f84ae15)
+0x00007f927f84adf5:   7d 03 00 00 0f b7 95 c4 fd ff ff 49 8b 44 24 08
+0x00007f927f84ae05:   66 89 50 2c 0f b7 8d c8 fd ff ff 49 8b 44 24 08
+0x00007f927f84ae15:   66 89 48 28 0f b7 9d ca fd ff ff 49 8b 44 24 08
+0x00007f927f84ae25:   66 89 58 2a 48 83 bd 48 fe ff ff 00 74 5e 48 8b 
+
+Register to memory mapping:
+
+RAX=0x0000000168977960 is an unknown value
+RBX=0x00007f9280ff9160 is pointing into the stack for thread: 0x00007f927800a800
+RCX=0x0000000000000001 is an unknown value
+RDX=0x00007f9268977960 is pointing into metadata
+RSP=0x00007f9280ff8f00 is pointing into the stack for thread: 0x00007f927800a800
+RBP=0x00007f9280ff9210 is pointing into the stack for thread: 0x00007f927800a800
+RSI=0x0000000000000029 is an unknown value
+RDI=0x00007f9280ff8eb0 is pointing into the stack for thread: 0x00007f927800a800
+R8 =0xffffffffffffffff is an unknown value
+R9 =0x0000000000000005 is an unknown value
+R10=0x00007f9268977980 is pointing into metadata
+R11=0x00007f927f72ff40: <offset 0x345f40> in /usr/lib/jvm/java-8-oracle/jre/lib/amd64/server/libjvm.so at 0x00007f927f3ea000
+R12=0x00007f9268977980 is pointing into metadata
+R13=0x0000000000000005 is an unknown value
+R14=0x00007f927800a800 is a thread
+R15=0x00007f9280ff92a0 is pointing into the stack for thread: 0x00007f927800a800
+
+
+Stack: [0x00007f9280efa000,0x00007f9280ffb000],  sp=0x00007f9280ff8f00,  free space=1019k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [libjvm.so+0x460e15]  ClassFileParser::parse_method(bool, AccessFlags*, Thread*)+0x1845
+V  [libjvm.so+0x4614a5]  ClassFileParser::parse_methods(bool, AccessFlags*, bool*, bool*, Thread*)+0x295
+V  [libjvm.so+0x46442a]  ClassFileParser::parseClassFile(Symbol*, ClassLoaderData*, Handle, KlassHandle, GrowableArray<Handle>*, TempNewSymbol&, bool, Thread*)+0xcca
+V  [libjvm.so+0x46940b]  ClassLoader::load_classfile(Symbol*, Thread*)+0x3fb
+V  [libjvm.so+0xa44de0]  SystemDictionary::load_instance_class(Symbol*, Handle, Thread*)+0x380
+V  [libjvm.so+0xa43d9c]  SystemDictionary::resolve_instance_class_or_null(Symbol*, Handle, Handle, Thread*)+0x78c
+V  [libjvm.so+0xa452f9]  SystemDictionary::resolve_or_fail(Symbol*, bool, Thread*)+0x29
+V  [libjvm.so+0xa74169]  initialize_class(Symbol*, Thread*)+0x19
+V  [libjvm.so+0xa7ce4e]  Threads::create_vm(JavaVMInitArgs*, bool*)+0xade
+V  [libjvm.so+0x6d6c24]  JNI_CreateJavaVM+0x74
+C  [libjli.so+0x797e]  JavaMain+0x9e
+C  [libpthread.so.0+0x76ba]  start_thread+0xca
+
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+  0x00007f927807b800 JavaThread "Finalizer" daemon [_thread_blocked, id=7802, stack(0x00007f92684fd000,0x00007f92685fe000)]
+  0x00007f9278076800 JavaThread "Reference Handler" daemon [_thread_blocked, id=7801, stack(0x00007f92685fe000,0x00007f92686ff000)]
+=>0x00007f927800a800 JavaThread "main" [_thread_in_vm, id=7799, stack(0x00007f9280efa000,0x00007f9280ffb000)]
+
+Other Threads:
+  0x00007f927806f000 VMThread [stack: 0x00007f92686ff000,0x00007f9268800000] [id=7800]
+
+VM state:not at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread: None
+
+Heap:
+ def new generation   total 2432K, used 217K [0x00000005ca400000, 0x00000005ca6a0000, 0x0000000671800000)
+  eden space 2176K,  10% used [0x00000005ca400000, 0x00000005ca436750, 0x00000005ca620000)
+  from space 256K,   0% used [0x00000005ca620000, 0x00000005ca620000, 0x00000005ca660000)
+  to   space 256K,   0% used [0x00000005ca660000, 0x00000005ca660000, 0x00000005ca6a0000)
+ tenured generation   total 5504K, used 0K [0x0000000671800000, 0x0000000671d60000, 0x00000007c0000000)
+   the space 5504K,   0% used [0x0000000671800000, 0x0000000671800000, 0x0000000671800200, 0x0000000671d60000)
+ Metaspace       used 1687K, capacity 4480K, committed 4480K, reserved 1056768K
+  class space    used 184K, capacity 384K, committed 384K, reserved 1048576K
+
+Card table byte_map: [0x00007f927ccd3000,0x00007f927dc82000] byte_map_base: 0x00007f9279e81000
+
+Polling page: 0x00007f928100c000
+
+CodeCache: size=245760Kb used=421Kb max_used=421Kb free=245338Kb
+ bounds [0x00007f9269000000, 0x00007f9269270000, 0x00007f9278000000]
+ total_blobs=136 nmethods=0 adapters=111
+ compilation: enabled
+
+Compilation events (0 events):
+No events
+
+GC Heap History (0 events):
+No events
+
+Deoptimization events (0 events):
+No events
+
+Classes redefined (0 events):
+No events
+
+Internal exceptions (2 events):
+Event: 0.021 Thread 0x00007f927800a800 Exception <a 'java/lang/NoSuchMethodError': Method sun.misc.Unsafe.defineClass(Ljava/lang/String;[BII)Ljava/lang/Class; name or signature does not match> (0x00000005ca407ca0) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u161/10277/hotspot/src/sh
+Event: 0.021 Thread 0x00007f927800a800 Exception <a 'java/lang/NoSuchMethodError': Method sun.misc.Unsafe.prefetchRead(Ljava/lang/Object;J)V name or signature does not match> (0x00000005ca407f88) thrown at [/HUDSON/workspace/8-2-build-linux-amd64/jdk8u161/10277/hotspot/src/share/vm/prims/jni.c
+
+Events (10 events):
+Event: 0.029 loading class sun/misc/NativeSignalHandler done
+Event: 0.029 loading class java/lang/Integer$IntegerCache
+Event: 0.029 loading class java/lang/Integer$IntegerCache done
+Event: 0.029 loading class sun/misc/OSEnvironment
+Event: 0.029 loading class sun/misc/OSEnvironment done
+Event: 0.029 loading class java/lang/System$2
+Event: 0.029 loading class sun/misc/JavaLangAccess
+Event: 0.029 loading class sun/misc/JavaLangAccess done
+Event: 0.029 loading class java/lang/System$2 done
+Event: 0.029 loading class java/lang/IllegalArgumentException
+
+
+Dynamic libraries:
+Can not get library information for pid = 7799
+
+VM Arguments:
+jvm_args: -Dapplication.home=/usr/lib/jvm/java-8-oracle -Xms8m 
+java_command: com.sun.tools.javac.Main -source 1.5 -target 1.5 -classpath :/src/third_party/lcm/lcm-java/jchart2d-code/src:/src/third_party/lcm/lcm-java:/out/lib:/src/third_party/lcm/lcm-java/jchart2d-code/ext/jide-oss-2.9.7.jar:/src/third_party/lcm/lcm-java/jchart2d-code/ext/xmlgraphics-commons-1.3.1.jar -d /out/third_party/lcm/lcm-java/CMakeFiles/lcm_jar.dir @/out/third_party/lcm/lcm-java/CMakeFiles/lcm_jar.dir/java_sources
+java_class_path (initial): /usr/lib/jvm/java-8-oracle/lib/tools.jar:/usr/lib/jvm/java-8-oracle/classes
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+PATH=/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/jvm/java-8-oracle/bin:/usr/lib/jvm/java-8-oracle/db/bin:/usr/lib/jvm/java-8-oracle/jre/bin
+LD_LIBRARY_PATH=/usr/lib/jvm/java-8-oracle/jre/lib/amd64/jli
+
+Signal Handlers:
+SIGSEGV: [libjvm.so+0xad01e0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGBUS: [libjvm.so+0xad01e0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGFPE: [libjvm.so+0x927fb0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGPIPE: [libjvm.so+0x927fb0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGXFSZ: [libjvm.so+0x927fb0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGILL: [libjvm.so+0x927fb0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGUSR1: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGUSR2: [libjvm.so+0x9297f0], sa_mask[0]=00000000000000000000000000000000, sa_flags=SA_RESTART|SA_SIGINFO
+SIGHUP: [libjvm.so+0x92abf0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGINT: [libjvm.so+0x92abf0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGTERM: [libjvm.so+0x92abf0], sa_mask[0]=11111111011111111101111111111110, sa_flags=SA_RESTART|SA_SIGINFO
+SIGQUIT: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+
+
+---------------  S Y S T E M  ---------------
+
+OS:DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=16.04
+DISTRIB_CODENAME=xenial
+DISTRIB_DESCRIPTION="Ubuntu 16.04.4 LTS"
+
+uname:Linux 4.13.0-37-generic #42~16.04.1-Ubuntu SMP Wed Mar 7 16:03:28 UTC 2018 x86_64
+WARNING!! /proc file system not found.
+Java may be unstable running multithreaded in a chroot environment on Linux when /proc filesystem is not mounted.
+libc:glibc 2.23 NPTL 2.23 
+rlimit: STACK 8192k, CORE 0k, NPROC 128203, NOFILE 1048576, AS infinity
+load average:0.00 0.00 -nan
+
+/proc/meminfo:
+
+
+CPU:total 1 (initial active 1) (4 cores per cpu, 2 threads per core) family 6 model 60 stepping 3, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, avx2, aes, clmul, erms, rtm, lzcnt, ht, tsc, tscinvbit, bmi1, bmi2
+
+/proc/cpuinfo:
+  <Not Available>
+
+Memory: 4k page, physical 32882532k(7367904k free), swap 33492988k(33321980k free)
+
+vm_info: Java HotSpot(TM) 64-Bit Server VM (25.161-b12) for linux-amd64 JRE (1.8.0_161-b12), built on Dec 19 2017 16:12:43 by "java_re" with gcc 4.3.0 20080428 (Red Hat 4.3.0-8)
+
+time: Thu Mar 29 14:10:30 2018
+elapsed time: 0 seconds (0d 0h 0m 0s)
+

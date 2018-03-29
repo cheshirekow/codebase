@@ -540,7 +540,7 @@ Main::Main() {
   m_goal_node.state.fill(0);
 
   std::vector<std::string> paths = {
-      path_util::GetSourcePath() + "/src/dubins/planner/layout.glade",
+      path_util::GetSourcePath() + "/src/mpblocks/dubins/planner/layout.glade",
       path_util::GetResourcePath() + "/dubins_planner_demo.glade"};
 
   bool layout_loaded = false;

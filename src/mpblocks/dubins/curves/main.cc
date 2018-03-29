@@ -21,7 +21,7 @@
  *
  *  \date   Oct 24, 2012
  *  \author Josh Bialkowski (jbialk@mit.edu)
- *  \brief  
+ *  \brief
  */
 
 
@@ -245,7 +245,7 @@ class Main {
  private:
   void loadLayout() {
     std::vector<std::string> paths = {
-        path_util::GetSourcePath() + "/src/dubins/curves/layout.glade",
+        path_util::GetSourcePath() + "/src/mpblocks/dubins/curves/layout.glade",
         path_util::GetResourcePath() + "/dubins_curves_demo.glade"};
 
     bool layout_loaded = false;
