@@ -67,3 +67,5 @@ if(fontconfig_FOUND)
 else()
   message(WARNING "Not building cpp_fontconfig") 
 endif()
+
+set_source_files_properties(name.cpp PROPERTIES COMPILE_FLAGS -fpermissive)

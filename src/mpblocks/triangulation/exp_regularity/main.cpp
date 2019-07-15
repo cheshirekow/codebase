@@ -26,6 +26,7 @@
 
 
 #include <algorithm>
+#include <vector>
 #include <Eigen/Dense>
 #include <map>
 #include "config.h"

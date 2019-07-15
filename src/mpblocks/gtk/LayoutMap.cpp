@@ -273,7 +273,7 @@ bool LayoutMap::loadLayout(std::string layoutFile) {
   namespace tiny = tinyxml2;
 
   tiny::XMLDocument doc;
-  if(doc.LoadFile(layoutFile.c_str()) != tiny::XML_NO_ERROR) {
+  if(doc.LoadFile(layoutFile.c_str()) != tiny::XML_SUCCESS) {
     std::cerr << "Failed to read " << layoutFile << std::endl;
     return false;
   }

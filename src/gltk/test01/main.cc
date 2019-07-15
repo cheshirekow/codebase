@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <GL/glew.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <cstring>
 #include <gltk/gltk.h>
 
@@ -22,13 +22,14 @@ int main(int argc, char** argv) {
   }
 
   glewExperimental = true;
-  glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);  // 4x antialiasing
-  glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);  // We want OpenGL 3.3
-  glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
-  glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  //We don't want the old OpenGL
+  glfwWindowHint(GLFW_SAMPLES, 4);  // 4x antialiasing
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);  // We want OpenGL 3.3
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  //We don't want the old OpenGL
 
   // Open a window and create its OpenGL context
-  if (!glfwOpenWindow(1024, 768, 0, 0, 0, 0, 32, 0, GLFW_WINDOW)) {
+  GLFWwindow* window = glfwCreateWindow(1024, 768, "Test 01", NULL, NULL);
+  if (!window) {
     fprintf( stderr, "Failed to open GLFW window\n");
     glfwTerminate();
     return -1;
@@ -40,10 +41,8 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  glfwSetWindowTitle("Test 01");
-
   // Ensure we can capture the escape key being pressed below
-  glfwEnable( GLFW_STICKY_KEYS);
+  glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
 
   // triangle data
   static const GLfloat vertex_buffer_data[] = { -1.0f, -1.0f, 0.0f, 1.0f, -1.0f,
@@ -134,11 +133,11 @@ int main(int argc, char** argv) {
     glDisableVertexAttribArray(0);
 
     // Swap buffers
-    glfwSwapBuffers();
+    glfwSwapBuffers(window);
 
   }  // Check if the ESC key was pressed or the window was closed
-  while (glfwGetKey( GLFW_KEY_ESC) != GLFW_PRESS
-      && glfwGetWindowParam( GLFW_OPENED));
+  while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS
+      && !glfwWindowShouldClose(window));
 }
 
 

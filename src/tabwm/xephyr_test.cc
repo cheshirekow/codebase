@@ -46,7 +46,7 @@ int main(int argc, char* argv[], char* envp[]) {
     std::vector<char*> argv = MakeArgv(&argv_str);
     int result = execv("/usr/bin/xeyes", &argv[0]);
     if (result < 0) {
-      std::cerr < "Failed to spawn xeyes\n";
+      std::cerr << "Failed to spawn xeyes\n";
     }
   }
 

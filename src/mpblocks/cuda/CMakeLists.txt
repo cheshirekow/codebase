@@ -16,3 +16,5 @@ if(CUDA_FOUND)
 else()
   message( WARNING "can't build mpblocks_cuda, missing ${MISSING}" )
 endif()
+
+set_source_files_properties(wrap.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)

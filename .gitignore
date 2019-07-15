@@ -1,2 +1,5 @@
 # qtcreator
 CMakeLists.txt.user
+
+# outputs
+.build

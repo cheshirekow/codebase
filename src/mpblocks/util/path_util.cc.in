@@ -13,7 +13,7 @@ std::string GetBuildPath() {
 }
 
 std::string GetResourcePath() {
-  return "@CMAKE_INSTALL_PREFIX/share/mpblocks@";
+  return "@CMAKE_INSTALL_PREFIX@/share/mpblocks";
 }
 
 std::string GetPreferencesPath() {

@@ -27,7 +27,7 @@
 #define GLTK_GLUINTREF_H_
 
 #include <GL/glew.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <gltk/refcounted.h>
 
 namespace gltk {

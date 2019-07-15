@@ -28,3 +28,4 @@ nix_test(notify_pipe_test)
 nix_test(timespec_test)
 nix_test(timeval_test)
         
+set_source_files_properties(timespec.cc PROPERTIES COMPILE_FLAGS -Wno-narrowing)

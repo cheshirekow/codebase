@@ -177,7 +177,7 @@ const char* const DIR_CACHE_FILE  = "fonts.cache-3";
 const char* const USER_CACHE_FILE = ".fonts.cache-3";
 
 // Adjust outline rasterizer
-const char* const CHAR_WIDTH  = "charwidth";  ///< Int
+// const char* const CHAR_WIDTH  = "charwidth";  ///< Int
 const char* const CHAR_HEIGHT = "charheight"; ///< Int
 const char* const MATRIX      = "matrix";     ///< FcMatrix
 

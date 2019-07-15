@@ -32,9 +32,9 @@ find_all(cheshirekow
          PKG gtkmm-3.0 PREFIX GTKmm
          PKG gthread-2.0 PREFIX gthread
          PKG libcrypto++ 
-         PKG libglfw PREFIX glfw
+         PKG glfw3 PREFIX glfw
          PKG libglog PREFIX glog
-         PKG libgflags PREFIX gflags
+         PKG gflags PREFIX gflags
          PKG pangomm-1.4 PREFIX pangomm
          PKG protobuf
          PKG re2
@@ -53,7 +53,7 @@ find_all(cheshirekow
          PACKAGE OpenGL
          PACKAGE CUDA
          PACKAGE FastCGI
-         PACKAGE Java
+         PACKAGE Java COMPONENTS Development
          PACKAGE ProtobufCompiler
          PACKAGE Soci COMPONENTS sqlite3
          PACKAGE Threads)

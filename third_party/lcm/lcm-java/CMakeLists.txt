@@ -42,7 +42,7 @@ set(lcm_java_files
     lcm/spy/ZoomableChartScrollWheel.java
     lcm/spy/ChannelData.java)
 
-set(CMAKE_JAVA_COMPILE_FLAGS -source 1.5 -target 1.5)
+set(CMAKE_JAVA_COMPILE_FLAGS -source 1.6 -target 1.6)
 set(CMAKE_JAVA_INCLUDE_PATH ${jchart2d_src_dir})
 
 add_jar(lcm_jar SOURCES ${lcm_java_files}

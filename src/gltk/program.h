@@ -27,7 +27,7 @@
 #define GLTK_PROGRAM_H_
 
 #include <GL/glew.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include <gltk/gluintref.h>
 #include <gltk/refptr.h>
 #include <gltk/shader.h>
